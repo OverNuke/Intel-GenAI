@@ -18,6 +18,11 @@ class Base(DeclarativeBase):
     """Declarative base shared by every module's ORM models (infrastructure layer only)."""
 
 
+def in_list(column: str, values: tuple[str, ...]) -> str:
+    """SQL `column IN ('a', 'b')` for a CHECK built from a domain Literal."""
+    return f"{column} IN ({', '.join(repr(v) for v in values)})"
+
+
 def engine_options() -> dict[str, Any]:
     """Serverless-friendly options: no client pool (Neon pools) and no prepared statements."""
     return {"poolclass": NullPool, "connect_args": {"prepare_threshold": None}}
