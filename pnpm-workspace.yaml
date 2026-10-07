@@ -1,0 +1,5 @@
+# Scripts de instalación denegados explícitamente: esbuild usa binarios por plataforma
+# (optionalDependencies) y unrs-resolver cae a WASM. Revisar si algún paquete lo exige.
+allowBuilds:
+  esbuild: false
+  unrs-resolver: false
