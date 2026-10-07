@@ -6,7 +6,9 @@ Status: accepted (2026-10-07)
 Prototype will grow across 3 roles and 17 screens; UI, LLM and DB are the parts most likely to change.
 
 ## Decision
-Screaming/hexagonal modules (`tickets`, `assistant`, `auth`, `catalog`, `assets`, `metrics`, `notifications`), each with `domain/application/infrastructure/ui`. `domain` imports nothing from Next, Drizzle or the AI SDK. `src/app` only routes and composes.
+Screaming/hexagonal modules in the **backend** (`backend/app/modules/`: `tickets`, `assistant`, `auth`, `catalog`, `metrics`), each with `domain/application/infrastructure/api`. `domain` imports nothing from FastAPI, SQLAlchemy or the LLM SDK. The frontend contains no domain rules (see ADR-0010).
+
+Update 2026-10-07: originally specified for a Next.js full-stack app; moved to Python with the monorepo split.
 
 ## Consequences
 Testable core; adapters swappable. More folders and ports than a flat Next app.

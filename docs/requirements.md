@@ -14,14 +14,14 @@ Source: `mock/Ariadna — prototipo.html` ("Mapa de páginas", "Páginas por rol
 | RF-06 | My tickets: search by number/title, state filter, tabs Abiertos/Cerrados/Todos, "Limpiar filtros". | U2 |
 | RF-07 | Ticket detail: state, dates, user-language stages, summary, timeline, data (impact, urgency, group, assignee, asset), "Necesitamos un dato de tu parte" notice. | U3 |
 | RF-08 | Service catalog (6 services) with examples, what to have at hand, who handles it; Software shows the manager-authorization notice. | U4 |
-| RF-09 | My equipment: model, serial, location, since; related tickets. | U5 |
+| RF-09 | *(Deferred)* My equipment: model, serial, location, since; related tickets. | U5 |
 | RF-10 | Conversation with Ariadna: three entry points (new ticket, help (?) on a ticket, a service); one question at a time; "Tu solicitud" auto-fills and is editable; shows "Esto es lo que entendí", "Lo que revisé", permissions notice; "Hablar con TI" / "Pasar con TI" always available. | U6 |
 | RF-11 | Only the person submits. Confirmation screen with ticket id (e.g. INC0001061) and "Constancia de Ariadna"; new ticket appears first in "Mis tickets". | U7 |
 | RF-12 | IT queue: 4 summaries, tabs Todos/Sin asignar/Asignados a mí, priority and SLA filters, search by ID/summary, sortable by priority and SLA, "Pasado por Ariadna" marker. | T1 |
 | RF-13 | IT ticket record: stages (Nuevo·Asignado·En curso·Resuelto·Cerrado), SLA, Pendiente flag, tabs Resumen/Línea de tiempo/Bitácora, Ariadna receipt. Actions: take, contact user (→ Pendiente; user sees RF-07 notice), reassign, add note, mark resolved. | T2 |
-| RF-14 | Closing with Ariadna: Ariadna checks completeness, adds participants and related IDs, prepares archive and internal-register entry (private step); IT writes the resolution, fixes flagged gaps, and presses "Cerrar ticket". | T3 |
-| RF-15 | Notice email on ticket creation: To = assigned IT group; Cc = Subgerencia head of requester; + Gerencia head if the whole area is affected. Subject "Nuevo ticket INC…: [resumen]". Only involved people. | T4 |
-| RF-16 | Agent metrics (Supervisor only): *measured* block and *estimated* block kept separate; period 7/30 days; trend as chart and as table. | S1 |
+| RF-14 | *(Deferred)* Closing with Ariadna: Ariadna checks completeness, adds participants and related IDs, prepares archive and internal-register entry (private step); IT writes the resolution, fixes flagged gaps, and presses "Cerrar ticket". | T3 |
+| RF-15 | *(View only in prototype; no real delivery)* Notice email on ticket creation: To = assigned IT group; Cc = Subgerencia head of requester; + Gerencia head if the whole area is affected. Subject "Nuevo ticket INC…: [resumen]". Only involved people. | T4 |
+| RF-16 | *(Static sample data)* Agent metrics (Supervisor only): *measured* block and *estimated* block kept separate; period 7/30 days; trend as chart and as table. | S1 |
 
 ## Non-functional
 
@@ -29,7 +29,8 @@ Source: `mock/Ariadna — prototipo.html` ("Mapa de páginas", "Páginas por rol
 - RNF-02 Demo data only; banner "Prototipo académico. Datos de ejemplo."; no real PII to the LLM.
 - RNF-03 The assistant never submits or closes (see ADR-0003).
 - RNF-04 LLM output validated against schemas; failures degrade to "Pasar con TI", never block the user.
-- RNF-05 Deployable on Vercel (libSQL/Turso persistence).
+- RNF-05 Deployable on Vercel as a monorepo (Next.js frontend + FastAPI backend + Neon Postgres).
+- RNF-06 LLM is a free-tier model behind an OpenAI-compatible endpoint; rate limits and invalid JSON must degrade gracefully (RNF-04).
 
 ## Open questions (from the mock's "Por definir")
 

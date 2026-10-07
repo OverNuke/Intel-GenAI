@@ -1,6 +1,6 @@
 # ADR-0007: Persistence with Drizzle + libSQL
 
-Status: accepted (2026-10-07)
+Status: superseded by ADR-0012 (2026-10-07)
 
 ## Context
 Needs relational tickets/timeline/assets; Vercel serverless can't keep a SQLite file.

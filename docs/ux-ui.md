@@ -21,7 +21,7 @@ No role switcher in the prototype bar. Denied section → A3 "Sin acceso".
 
 ## Design tokens
 
-`src/ui/tokens.css` (from "TicketGuía AI tokens v1.3"): colour roles (`--color-*`, status `--status-*-{text,tint}`), spacing 4–56, radii, sizes (rail 80, topbar 72, control 44, chat max 760, form panel 560), motion (`--duration-*`, `--easing-*`), z-layers. Themes via `[data-theme="grayscale|azul|verde"]`; accent roles only change per theme.
+`frontend/src/ui/tokens.css` (from "TicketGuía AI tokens v1.3"): colour roles (`--color-*`, status `--status-*-{text,tint}`), spacing 4–56, radii, sizes (rail 80, topbar 72, control 44, chat max 760, form panel 560), motion (`--duration-*`, `--easing-*`), z-layers. Themes via `[data-theme="grayscale|azul|verde"]`; accent roles only change per theme.
 
 ## Layout notes from the mock
 

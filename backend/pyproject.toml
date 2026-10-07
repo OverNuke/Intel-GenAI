@@ -1,0 +1,46 @@
+[project]
+name = "ariadna-backend"
+version = "0.0.0"
+description = "Ariadna API (FastAPI)"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.140,<1",
+  "pydantic>=2.12,<3",
+  "pydantic-settings>=2.12,<3",
+  "sqlalchemy[asyncio]>=2.0,<3",
+  "alembic>=1.16,<2",
+  "psycopg[binary]>=3.2,<4",
+  "openai>=2,<4",
+  "itsdangerous>=2.2,<3",
+  "uvicorn>=0.40,<1",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9,<10",
+  "pytest-asyncio>=1,<2",
+  "httpx>=0.28,<1",
+  "ruff>=0.14",
+  "mypy>=1.18",
+]
+
+[tool.uv]
+# Supply-chain: ignore releases published in the last days (mirrors pnpm's minimumReleaseAge).
+exclude-newer = "3 days"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["app", "tests"]

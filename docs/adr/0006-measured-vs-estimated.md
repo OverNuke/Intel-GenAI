@@ -6,7 +6,7 @@ Status: accepted (2026-10-07)
 S1 explicitly separates measured data from estimates ("no son resultados medidos").
 
 ## Decision
-`MeasuredMetric` and `EstimatedMetric` are different types in `metrics/domain`; UI components for each are separate and the estimated one always renders its label.
+`MeasuredMetric` and `EstimatedMetric` are different Pydantic types in `backend/app/modules/metrics/domain`; UI components for each are separate and the estimated one always renders its label.
 
 ## Consequences
 Prevents presenting assumptions as results.
