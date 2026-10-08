@@ -14,4 +14,12 @@ Each phase ends with passing tests and conventional commits. Domain/use cases ar
 
 **Deferred** (out of prototype scope): U5 Mi equipo (RF-09), T3 Cierre con Ariadna (RF-14), real T4 email delivery (RF-15; only the view), formal assistant evals, full a11y audit, Playwright E2E.
 
-Current state: Phase 0 in progress — monorepo split done; backend has the `submit_ticket` invariant and `/api/health` (6 tests green); frontend is tooling + tokens only. Pending: Alembic/Neon schema, seed, Next app shell.
+Current state: Phase 0 implemented, with two items unverified.
+
+Done: monorepo split; backend settings/db engine, ticket and user models, hand-written Alembic migration (validated offline via `--sql`), deterministic seed (8 incidents + sequence at 1061), OpenAPI export; frontend app shell (theme switch, typed API client, dev proxy, ESLint), `gen:api` types. Tests, ruff, mypy, typecheck and lint are green.
+
+Pending verification:
+- Migration and seed have NOT been run against a live Neon database (the real-DB test is skipped without `DATABASE_URL`).
+- The `vercel.json` backend service entrypoint (`app.main:app`) is unverified until a deploy (Phase 6).
+
+Known follow-up: TypeScript is pinned to `^6.0.3` until `typescript-eslint` supports TS 7.

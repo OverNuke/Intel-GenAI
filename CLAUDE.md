@@ -25,19 +25,26 @@ Frontend (`cd frontend`; pnpm v11 — its `minimumReleaseAge` policy rejects pac
 
 ```
 pnpm dev | pnpm test | pnpm test src/path/file.test.tsx | pnpm test -t "name" | pnpm typecheck | pnpm lint
-pnpm gen:api     # regenerate src/lib/api-types.ts from backend/openapi.json (TypeScript 7: no `baseUrl`, use `paths`)
+pnpm gen:api     # regenerate src/lib/api-types.ts from backend/openapi.json (no `baseUrl`, use `paths`)
 ```
+
+TypeScript is pinned to `^6.0.3`: `typescript-eslint` (pulled in by `eslint-config-next`) throws on TS 7. Revisit when it supports TS >= 7.1.
 
 Backend (`cd backend`; Python 3.13 via `.python-version`, `requires-python >=3.12`; `uv` ignores releases newer than 3 days):
 
 ```
 uv sync
-uv run uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload --loop scripts.dev_loop:selector_loop_factory   # the --loop flag is required on Windows (psycopg async)
 uv run pytest | uv run pytest tests/modules/tickets/test_submit_ticket.py::test_name
 uv run ruff check . && uv run mypy
+uv run alembic upgrade head              # migrations in backend/migrations/ (hand-written, sync engine)
+uv run python -m app.seed.run            # idempotent seed; never calls setval
+uv run python -m scripts.export_openapi  # regenerate backend/openapi.json
 ```
 
-Env vars (set in `.env.local` / Vercel; `.env*` writes are blocked by permissions, so document, don't create): `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, `DATABASE_URL` (Neon **pooled** URL), `SESSION_SECRET`, `ASSISTANT_ADAPTER` (`openai` | `fake`).
+The ticket number sequence `ticket_number_seq` starts at 1061 (seed uses INC0001053..1060 explicitly), so the next real ticket is INC0001061. `tests/seed/test_seed_db.py` runs only when `DATABASE_URL` is set; point it at a throwaway Neon branch only.
+
+Env vars (set in `.env.local` / Vercel; `.env*` writes are blocked by permissions, so document, don't create): `DATABASE_URL` (Neon **pooled** URL) and `DATABASE_URL_UNPOOLED` (optional, for Alembic/seed) are consumed today; planned: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, `SESSION_SECRET`, `ASSISTANT_ADAPTER` (`openai` | `fake`). See `README.md`.
 
 ## Architecture (big picture)
 
