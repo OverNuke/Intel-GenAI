@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _PSYCOPG_SCHEME = "postgresql+psycopg://"
 _PLAIN_SCHEMES = ("postgresql://", "postgres://")
 
+# Public on purpose: only used when VERCEL_ENV is unset (local dev and tests).
+DEV_SESSION_SECRET = "ariadna-dev-only-secret"
+
 
 class Settings(BaseSettings):
     """Runtime settings read from the environment. Nothing is required at import time."""
@@ -13,6 +16,8 @@ class Settings(BaseSettings):
 
     database_url: str | None = None
     database_url_unpooled: str | None = None
+    session_secret: str | None = None
+    vercel_env: str | None = None  # set by Vercel (production | preview | development)
 
 
 @lru_cache
@@ -34,3 +39,16 @@ def migration_url(settings: Settings) -> str:
     if not raw:
         raise RuntimeError("DATABASE_URL (or DATABASE_URL_UNPOOLED) is not set")
     return to_psycopg_url(raw)
+
+
+def on_vercel(settings: Settings) -> bool:
+    return bool(settings.vercel_env)
+
+
+def resolve_session_secret(settings: Settings) -> str:
+    """Dev default off Vercel; on Vercel a missing secret fails on first use, not at import."""
+    if settings.session_secret:
+        return settings.session_secret
+    if on_vercel(settings):
+        raise RuntimeError("SESSION_SECRET is required when VERCEL_ENV is set")
+    return DEV_SESSION_SECRET
