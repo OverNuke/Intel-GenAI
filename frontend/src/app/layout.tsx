@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
 import "@/ui/tokens.css";
+import "@/ui/components.css";
 
 export const metadata = {
   title: "Ariadna",
