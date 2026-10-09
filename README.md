@@ -50,7 +50,29 @@ uv run alembic upgrade head          # schema: users, tickets, ticket_number_seq
 uv run python -m app.seed.run        # idempotent: 3 demo users + 8 sample incidents (INC0001053..1060)
 ```
 
-The real-DB test (`tests/seed/test_seed_db.py`) is skipped unless `DATABASE_URL` is set. Point it **only at a throwaway Neon branch**: it runs migrations and seeds.
+Phase 1 adds migration `0002_user_area` (a `users.area` column). On a database that already ran `0001`, apply it and re-run the seed so the users get their area (the seed upserts email/area; it never calls `setval`):
+
+```
+cd backend
+uv run alembic upgrade head          # applies 0002_user_area
+uv run python -m app.seed.run        # idempotent: refreshes the 3 demo users
+```
+
+> Run migrations, the seed and the real-DB tests **only against a throwaway Neon branch** until the Phase 1 flow has been verified by hand.
+
+The real-DB tests (`tests/seed/test_seed_db.py`, `tests/modules/auth/test_sqlalchemy_users.py`) are skipped unless `DATABASE_URL` is set. Point them **only at a throwaway Neon branch**: they run migrations and seed.
+
+## Demo accounts (Phase 1)
+
+Sign-in is simulated. The backend issues a signed `ariadna_session` cookie (HttpOnly, SameSite=Lax, 8 h). Use "Entrar con la cuenta de la organización" to pick an account, or the form with the one demo credential.
+
+| Account | Area | Role | Opens |
+|---|---|---|---|
+| ana.ruiz@ejemplo.mx | Finanzas | Usuario | `/inicio` |
+| luis.herrera@ejemplo.mx | Mesa de ayuda | TI | `/ti/seguimiento` |
+| sara.molina@ejemplo.mx | Supervisión | Supervisor | `/supervisor/agente` |
+
+Credentials form: `ana.ruiz@ejemplo.mx` / `demo2026` (Ana only; the other accounts use the picker). Opening a section the role may not see shows "Sin acceso" (`/sin-acceso`); no session redirects to `/entrar`; "Cerrar sesión" ends at `/sesion-cerrada`.
 
 ## API contract
 
@@ -72,7 +94,8 @@ Set in `.env.local` / Vercel.
 | `LLM_BASE_URL` | OpenAI-compatible endpoint | planned |
 | `LLM_MODEL` | Model name | planned |
 | `LLM_API_KEY` | Endpoint API key | planned |
-| `SESSION_SECRET` | Signs the demo session cookie | planned |
+| `SESSION_SECRET` | Signs the demo session cookie. Optional locally (public dev default when `VERCEL_ENV` is unset); **required on Vercel** (the first use raises if missing) | yes |
+| `API_ORIGIN` | Absolute backend origin (e.g. `https://my-app.vercel.app`) used by Next **server components** to call `/api/auth/access` (Node `fetch` needs an absolute URL). Optional: falls back to `http://127.0.0.1:8000` outside production and to the request's own origin (`x-forwarded-proto` + host) in production | yes |
 | `ASSISTANT_ADAPTER` | `openai` or `fake` | planned |
 
 ## Status

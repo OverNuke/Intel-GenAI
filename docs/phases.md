@@ -22,4 +22,14 @@ Pending verification:
 - Migration and seed have NOT been run against a live Neon database (the real-DB test is skipped without `DATABASE_URL`).
 - The `vercel.json` backend service entrypoint (`app.main:app`) is unverified until a deploy (Phase 6).
 
+Phase 1 (Access): implemented, automated checks green, manual verification pending.
+
+Done: auth module (`/api/auth`: login by account or demo credentials, me, logout, access check, public accounts list), single domain authorization policy, signed session cookie, `users.area` + migration `0002_user_area`, typed client with `apiPost`, server-side guard (`requireAccess`), P1 landing, A1 sign-in with the A2 account picker as a state, A3 "Sin acceso", A4 "Sesión cerrada", minimal role shell and placeholder start pages.
+
+Pending verification (manual, on a throwaway Neon branch only):
+- Run `alembic upgrade head` (0002) and the seed; run the DB-gated tests; sign in through the picker.
+- Confirm the dev rewrite passes `Set-Cookie` through to the browser.
+- Confirm Vercel Deployment Protection does not break the server-side `/api/auth/access` fetch (`API_ORIGIN` may be needed).
+- Confirm the A3 "Sin acceso" copy (inferred; the mock has no screen for it).
+
 Known follow-up: TypeScript is pinned to `^6.0.3` until `typescript-eslint` supports TS 7.
