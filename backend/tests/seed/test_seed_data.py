@@ -12,10 +12,18 @@ def test_three_users_with_one_role_each() -> None:
     assert len({user.id for user in USERS}) == 3
 
 
-def test_user_emails_are_fictional() -> None:
-    assert len(USERS) == 3
-    assert all(user.email.endswith(".example") for user in USERS)
+def test_users_match_the_mock_accounts() -> None:
+    by_id = {user.id: (user.email, user.area) for user in USERS}
+    assert by_id == {
+        "ana": ("ana.ruiz@ejemplo.mx", "Finanzas"),
+        "luis": ("luis.herrera@ejemplo.mx", "Mesa de ayuda"),
+        "sara": ("sara.molina@ejemplo.mx", "Supervisión"),
+    }
+
+
+def test_user_emails_are_unique_and_use_the_fictional_domain() -> None:
     assert len({user.email for user in USERS}) == 3
+    assert all(user.email.endswith("@ejemplo.mx") for user in USERS)
 
 
 def test_eight_tickets_numbered_1053_to_1060() -> None:

@@ -8,13 +8,26 @@ from app.modules.tickets.domain.ticket import Impact, Priority, Ticket, TicketSt
 ORGANIZATION = "Centro Administrativo Regional Sur"
 
 USERS: tuple[User, ...] = (
-    User(id="ana", display_name="Ana Ruiz", email="ana.ruiz@ariadna.example", role="user"),
-    User(id="luis", display_name="Luis Herrera", email="luis.herrera@ariadna.example", role="it"),
+    User(
+        id="ana",
+        display_name="Ana Ruiz",
+        email="ana.ruiz@ejemplo.mx",
+        role="user",
+        area="Finanzas",
+    ),
+    User(
+        id="luis",
+        display_name="Luis Herrera",
+        email="luis.herrera@ejemplo.mx",
+        role="it",
+        area="Mesa de ayuda",
+    ),
     User(
         id="sara",
         display_name="Sara Molina",
-        email="sara.molina@ariadna.example",
+        email="sara.molina@ejemplo.mx",
         role="supervisor",
+        area="Supervisión",
     ),
 )
 

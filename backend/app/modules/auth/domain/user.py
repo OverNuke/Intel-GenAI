@@ -10,3 +10,4 @@ class User:
     display_name: str
     email: str
     role: Role
+    area: str

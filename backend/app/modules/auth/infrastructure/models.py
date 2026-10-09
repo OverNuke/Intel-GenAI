@@ -15,3 +15,4 @@ class UserRow(Base):
     display_name: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(254), unique=True)
     role: Mapped[str] = mapped_column(String(20))
+    area: Mapped[str] = mapped_column(String(80))

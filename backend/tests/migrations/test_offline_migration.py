@@ -45,10 +45,26 @@ def test_offline_upgrade_declares_check_constraints_and_pending_flag() -> None:
     assert "awaiting_user BOOLEAN DEFAULT false NOT NULL" in sql
 
 
-def test_single_initial_revision_is_the_head() -> None:
+def test_revisions_form_a_linear_chain_ending_at_0002() -> None:
     script = ScriptDirectory.from_config(_config())
-    assert script.get_heads() == ["0001"]
+    assert script.get_heads() == ["0002"]
+    assert script.get_revision("0002").down_revision == "0001"
     assert script.get_revision("0001").down_revision is None
+
+
+def test_offline_upgrade_adds_user_area_and_realigns_demo_emails() -> None:
+    sql = _upgrade_sql()
+    assert "ALTER TABLE users ADD COLUMN area VARCHAR(80)" in sql
+    assert "ana.ruiz@ejemplo.mx" in sql
+    assert "luis.herrera@ejemplo.mx" in sql
+    assert "sara.molina@ejemplo.mx" in sql
+    assert "'Mesa de ayuda'" in sql
+
+
+def test_offline_downgrade_of_0002_drops_the_area_column() -> None:
+    buffer = StringIO()
+    command.downgrade(_config(buffer), "0002:0001", sql=True)
+    assert "ALTER TABLE users DROP COLUMN area" in buffer.getvalue()
 
 
 def test_offline_downgrade_drops_tables_and_sequence() -> None:

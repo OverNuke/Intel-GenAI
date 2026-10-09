@@ -68,8 +68,11 @@ def test_ticket_is_a_frozen_value_with_display_id() -> None:
 
 
 def test_user_is_frozen() -> None:
-    user = User(id="ana", display_name="Ana Ruiz", email="ana@ariadna.example", role="user")
+    user = User(
+        id="ana", display_name="Ana Ruiz", email="ana.ruiz@ejemplo.mx", role="user", area="Finanzas"
+    )
     assert user.role == "user"
+    assert user.area == "Finanzas"
     with pytest.raises(FrozenInstanceError):
         user.role = "it"  # type: ignore[misc]
 
@@ -77,6 +80,10 @@ def test_user_is_frozen() -> None:
 def test_ticket_fields_match_the_orm_columns() -> None:
     domain_fields = {f.name for f in fields(Ticket)}
     assert domain_fields == {column.name for column in TicketRow.__table__.columns}
+
+
+def test_user_fields_match_the_orm_columns() -> None:
+    assert {f.name for f in fields(User)} == {column.name for column in UserRow.__table__.columns}
 
 
 def test_metadata_tables_are_exactly_users_and_tickets() -> None:

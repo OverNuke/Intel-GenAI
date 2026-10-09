@@ -47,6 +47,41 @@ def _next_sequence_value(url: str) -> int:
         engine.dispose()
 
 
+def _users(url: str) -> dict[str, tuple[str, str]]:
+    engine = sync_engine(url)
+    try:
+        with engine.connect() as connection:
+            rows = connection.execute(text("SELECT id, email, area FROM users")).all()
+        return {row.id: (row.email, row.area) for row in rows}
+    finally:
+        engine.dispose()
+
+
+def test_seed_users_have_area_and_mock_emails_and_reseeding_realigns_stale_rows() -> None:
+    get_settings.cache_clear()
+    url = migration_url(get_settings())
+    command.upgrade(Config(str(BACKEND / "alembic.ini")), "head")
+
+    run(url)
+    expected = {
+        "ana": ("ana.ruiz@ejemplo.mx", "Finanzas"),
+        "luis": ("luis.herrera@ejemplo.mx", "Mesa de ayuda"),
+        "sara": ("sara.molina@ejemplo.mx", "Supervisión"),
+    }
+    assert _users(url) == expected
+
+    engine = sync_engine(url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text("UPDATE users SET email = 'stale@ariadna.example', area = '' WHERE id = 'ana'")
+            )
+    finally:
+        engine.dispose()
+    run(url)
+    assert _users(url) == expected
+
+
 def test_upgrade_then_seed_twice_has_no_duplicates_and_next_id_is_1061() -> None:
     get_settings.cache_clear()
     url = migration_url(get_settings())

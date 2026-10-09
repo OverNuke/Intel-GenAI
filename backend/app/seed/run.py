@@ -1,7 +1,7 @@
 """Idempotent seed runner: `uv run python -m app.seed.run` (after `alembic upgrade head`).
 
-Inserts explicit ticket numbers 1053..1060 with ON CONFLICT DO NOTHING and never calls
-setval: the sequence keeps starting at 1061 (see the initial migration).
+Inserts explicit ticket numbers 1053..1060 with ON CONFLICT DO NOTHING (users upsert email and
+area) and never calls setval: the sequence keeps starting at 1061 (see the initial migration).
 """
 
 from dataclasses import asdict
@@ -27,7 +27,12 @@ def ticket_rows() -> list[dict[str, Any]]:
 
 def build_statements() -> tuple[Insert, Insert]:
     """Users first (tickets reference them), then tickets."""
-    users = insert(UserRow).values(user_rows()).on_conflict_do_nothing(index_elements=["id"])
+    # Users upsert email/area so rows seeded before 0002 realign; tickets stay insert-only.
+    users_insert = insert(UserRow).values(user_rows())
+    users = users_insert.on_conflict_do_update(
+        index_elements=["id"],
+        set_={"email": users_insert.excluded.email, "area": users_insert.excluded.area},
+    )
     tickets = (
         insert(TicketRow).values(ticket_rows()).on_conflict_do_nothing(index_elements=["number"])
     )
