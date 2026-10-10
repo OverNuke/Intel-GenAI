@@ -355,3 +355,84 @@ a {
   flex-direction: column;
   gap: var(--space-6);
 }
+
+/* 404 pública: tipografía a gran escala, solo tinta sobre lienzo. */
+.nf-page {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--size-viewport);
+}
+
+.nf-header,
+.nf-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+}
+
+.nf-wordmark {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nf-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.nf-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8.5vw, 8rem);
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.nf-divider {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-top: var(--border-hairline) solid var(--color-hairline);
+}
+
+.nf-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 50%;
+  margin-left: auto;
+}
+
+.nf-body p {
+  margin: 0;
+}
+
+.nf-exit {
+  align-self: flex-start;
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* 767px = --bp-compact (custom properties cannot be used in media queries). */
+@media (max-width: 767px) {
+  .nf-header,
+  .nf-footer {
+    padding: var(--space-4);
+  }
+
+  .nf-main {
+    padding: var(--space-4);
+  }
+
+  .nf-body {
+    width: 100%;
+    margin-left: 0;
+  }
+}
