@@ -8,7 +8,8 @@ export const DEV_BACKEND_ORIGIN = "http://127.0.0.1:8000";
  * Kept a plain proxy on purpose: Next forwards the upstream response headers untouched, so the
  * backend's Set-Cookie (login/logout) reaches the browser. Do not add header rules here.
  */
-export function devApiRewrites(nodeEnv: string | undefined): Rewrite[] {
+export function devApiRewrites(nodeEnv: string | undefined, apiOrigin?: string): Rewrite[] {
   if (nodeEnv === "production") return [];
-  return [{ source: "/api/:path*", destination: `${DEV_BACKEND_ORIGIN}/api/:path*` }];
+  const origin = apiOrigin?.trim().replace(/\/+$/, "") || DEV_BACKEND_ORIGIN;
+  return [{ source: "/api/:path*", destination: `${origin}/api/:path*` }];
 }
