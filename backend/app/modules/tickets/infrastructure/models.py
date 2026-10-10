@@ -1,20 +1,29 @@
 from datetime import datetime
-from typing import get_args
+from typing import Any, get_args
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Sequence,
     String,
     Text,
     false,
+    true,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.modules.tickets.domain.ticket import Impact, Priority, TicketStatus, Urgency
+from app.modules.tickets.domain.ticket import (
+    Impact,
+    Priority,
+    TicketEventKind,
+    TicketStatus,
+    Urgency,
+)
 from app.shared.db import Base, in_list
 
 # First generated id is 1061 (INC0001061): the seed inserts 1053..1060 explicitly.
@@ -56,3 +65,23 @@ class TicketRow(Base):
     sla_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # Stored as submitted (not regenerated on read); NULL for tickets that skipped Ariadna.
+    ariadna_receipt: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Client-generated idempotency key of the submission (REQ-TS-7).
+    submission_key: Mapped[str | None] = mapped_column(String(64), unique=True)
+
+
+class TicketEventRow(Base):
+    __tablename__ = "ticket_events"
+    __table_args__ = (
+        CheckConstraint(in_list("kind", get_args(TicketEventKind)), name="ck_ticket_events_kind"),
+        Index("ix_ticket_events_ticket_number_created_at", "ticket_number", "created_at"),
+    )
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    ticket_number: Mapped[int] = mapped_column(ForeignKey("tickets.number", ondelete="CASCADE"))
+    kind: Mapped[str] = mapped_column(String(20))
+    author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
+    body: Mapped[str | None] = mapped_column(Text)
+    visible_to_requester: Mapped[bool] = mapped_column(Boolean, server_default=true())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
