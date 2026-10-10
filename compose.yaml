@@ -1,0 +1,167 @@
+# Local Docker stack for manual testing and a one-command test run.
+# Local only. Host dotenv files and remote database URLs must never reach a container:
+# every variable is passed explicitly below, and no platform-detection variable is set.
+#
+#   docker compose up --build
+#   docker compose --profile test up --build --exit-code-from tests tests
+
+x-backend-build: &backend-build
+  context: ./backend
+
+x-frontend-build: &frontend-build
+  context: ./frontend
+
+services:
+  # ---- Stack (default) -----------------------------------------------------------------------
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ariadna
+      POSTGRES_PASSWORD: ariadna
+      POSTGRES_DB: ariadna
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ariadna -d ariadna"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: *backend-build
+    image: ariadna-backend:local
+    command: ["sh", "-c", "alembic upgrade head && python -m app.seed.run"]
+    environment:
+      DATABASE_URL: postgresql://ariadna:ariadna@db:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db:5432/ariadna
+      ASSISTANT_ADAPTER: fake
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build: *backend-build
+    image: ariadna-backend:local
+    environment:
+      DATABASE_URL: postgresql://ariadna:ariadna@db:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db:5432/ariadna
+      ASSISTANT_ADAPTER: fake
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    build: *frontend-build
+    image: ariadna-frontend:local
+    environment:
+      API_ORIGIN: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ---- Test profile --------------------------------------------------------------------------
+  # Fresh, throwaway Postgres (tmpfs, no ports, no volume) so DB-gated tests run, not skip.
+  db-test:
+    profiles: [test]
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ariadna
+      POSTGRES_PASSWORD: ariadna
+      POSTGRES_DB: ariadna
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ariadna -d ariadna"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  # Each suite writes its output and exit code to /results and always exits 0, so one failing
+  # suite never prevents the other from running; `tests` turns the codes into the exit status.
+  test-backend:
+    profiles: [test]
+    build: *backend-build
+    image: ariadna-backend:local
+    command:
+      - sh
+      - -c
+      - >-
+        rm -f /results/backend.code;
+        { alembic upgrade head && python -m app.seed.run && pytest; } > /results/backend.log 2>&1;
+        echo $$? > /results/backend.code
+    environment:
+      DATABASE_URL: postgresql://ariadna:ariadna@db-test:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db-test:5432/ariadna
+      ASSISTANT_ADAPTER: fake
+    volumes:
+      - test-results:/results
+    depends_on:
+      db-test:
+        condition: service_healthy
+    restart: "no"
+
+  test-frontend:
+    profiles: [test]
+    build: *frontend-build
+    image: ariadna-frontend:local
+    command:
+      - sh
+      - -c
+      - >-
+        rm -f /results/frontend.code;
+        pnpm test > /results/frontend.log 2>&1;
+        echo $$? > /results/frontend.code
+    volumes:
+      - test-results:/results
+    restart: "no"
+
+  tests:
+    profiles: [test]
+    image: ariadna-backend:local
+    pull_policy: never
+    command:
+      - sh
+      - -c
+      - |
+        rc=0
+        for n in backend frontend; do
+          echo "===== $$n tests ====="
+          cat "/results/$$n.log" 2>/dev/null || echo "(no output)"
+          if [ ! -f "/results/$$n.code" ]; then
+            echo "===== $$n: no exit code recorded (treated as FAILED) ====="
+            rc=1
+          elif [ "$$(cat "/results/$$n.code")" != "0" ]; then
+            echo "===== $$n: FAILED (exit $$(cat "/results/$$n.code")) ====="
+            rc=1
+          else
+            echo "===== $$n: passed ====="
+          fi
+        done
+        rm -f /results/*.log /results/*.code
+        exit $$rc
+    volumes:
+      - test-results:/results
+    depends_on:
+      test-backend:
+        condition: service_completed_successfully
+      test-frontend:
+        condition: service_completed_successfully
+    restart: "no"
+
+volumes:
+  db-data:
+  test-results:
