@@ -1,0 +1,44 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@neon/config':
+        specifier: ^1.8.6
+        version: 1.8.6
+
+packages:
+
+  '@neon/config@1.8.6':
+    resolution: {integrity: sha512-+D13lQmo94qfFUXEjcrSrbn51dLZf4DDEHqdZEO22bvEgQNXQjIsBMJkxvqIWEPPWCt5BZ4hm/CQdS1FG7EZBg==}
+    engines: {node: '>=20.19.0'}
+
+  '@neon/sdk@7.0.1':
+    resolution: {integrity: sha512-Zyo84tVyK3cO/vkREgFSPZ0llGoWNgcbbz38/UkqyqKN/Ky6huHibTCyvnlnBV1aeWnJhEhg9W0HIylE6sCS0g==}
+    engines: {node: '>=20.19.0'}
+
+  jiti@2.7.0:
+    resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
+    hasBin: true
+
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+
+snapshots:
+
+  '@neon/config@1.8.6':
+    dependencies:
+      '@neon/sdk': 7.0.1
+      jiti: 2.7.0
+      zod: 4.6.5
+
+  '@neon/sdk@7.0.1': {}
+
+  jiti@2.7.0: {}
+
+  zod@4.6.5: {}

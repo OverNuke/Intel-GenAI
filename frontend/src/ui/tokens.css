@@ -1,0 +1,164 @@
+/* Ariadna design tokens — extraídos de mock/Ariadna — prototipo.html (TicketGuía AI tokens v1.3). */
+
+:root, [data-theme="grayscale"] {
+  --color-canvas: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-container: #ebebed;
+  --color-field: #f4f4f5;
+  --color-ink: #18181b;
+  --color-muted: #55555f;
+  --color-hairline: #e4e4e7;
+  --color-border-control: #8b8b95;
+  --color-accent: #1c1c21;
+  --color-accent-hover: #3f3f46;
+  --color-on-accent: #ffffff;
+  --color-accent-text: #1c1c21;
+  --color-accent-tint: #ededef;
+  --color-inverted: #1c1c21;
+  --color-on-inverted: #ffffff;
+  --color-on-inverted-muted: #b4b4be;
+  --color-chart-muted: #8b8b95;
+  --color-scrim: rgba(24, 24, 27, 0.12);
+  --status-error-text: #b42318;
+  --status-error-tint: #fdecea;
+  --status-warning-text: #8a5300;
+  --status-warning-tint: #fff4db;
+  --status-info-text: #1d5aa6;
+  --status-info-tint: #eaf2fc;
+  --status-success-text: #1c7341;
+  --status-success-tint: #e9f6ee;
+  --status-neutral-text: #4e4e58;
+  --status-neutral-tint: #efeff1;
+}
+
+[data-theme="azul"] {
+  --color-accent: #1f4fbf;
+  --color-accent-hover: #1a43a3;
+  --color-accent-text: #1a43a3;
+  --color-accent-tint: #eaf0fb;
+}
+
+[data-theme="verde"] {
+  --color-accent: #17694a;
+  --color-accent-hover: #135a3f;
+  --color-accent-text: #135a3f;
+  --color-accent-tint: #e8f3ee;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 56px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+  --size-rail: 80px;
+  --size-topbar: 72px;
+  --size-row: 44px;
+  --size-control: 44px;
+  --size-pill: 28px;
+  --size-icon-sm: 16px;
+  --size-icon-md: 20px;
+  --size-icon-lg: 24px;
+  --size-island: 44px;
+  --size-island-rail: 60px;
+  --size-island-panel: 420px;
+  --size-node: 24px;
+  --size-node-sm: 16px;
+  --size-connector: 2px;
+  --size-form-panel: 560px;
+  --size-chat-max: 760px;
+  --size-record-rail: 360px;
+  --size-chart: 176px;
+  --size-tooltip-gap: 8px;
+  --size-card-min: 240px;
+  --size-chat-min: 420px;
+  --size-viewport: 100dvh;
+  --size-viewport-w: 100vw;
+  --border-hairline: 1px;
+  --border-selected: 2px;
+  --border-focus: 2px;
+  --icon-stroke-sm: 2.25;
+  --icon-stroke-md: 1.8;
+  --icon-stroke-lg: 1.5;
+  --duration-fast: 120ms;
+  --duration-micro: 160ms;
+  --duration-island-in: 180ms;
+  --duration-island-out: 140ms;
+  --duration-value: 200ms;
+  --duration-chat-out: 280ms;
+  --duration-chat: 320ms;
+  --duration-stagger: 40ms;
+  --duration-intent: 150ms;
+  --duration-reduced: 100ms;
+  --easing-out: cubic-bezier(0.2, 0, 0, 1);
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --shadow-e1: 0 8px 24px rgba(24, 24, 27, 0.12), 0 1px 2px rgba(24, 24, 27, 0.06);
+  --z-island: 20;
+  --z-overlay: 30;
+  --z-tooltip: 40;
+  --z-prototype: 50;
+  --bp-compact: 767px;
+  --bp-standard: 1440px;
+  --bp-medium: 1100px;
+  --font-ui: Figtree, system-ui, sans-serif;
+  --font-display: "LT Remark", Figtree, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --text-greeting-family: var(--font-display);
+  --text-greeting-size: 32px;
+  --text-greeting-line: 40px;
+  --text-greeting-weight: 400;
+  --text-metric-family: var(--font-ui);
+  --text-metric-size: 36px;
+  --text-metric-line: 40px;
+  --text-metric-weight: 700;
+  --text-metric-numeric: var(--text-numeric);
+  --text-numeric: tabular-nums;
+  --text-title-family: var(--font-display);
+  --text-title-size: 24px;
+  --text-title-line: 32px;
+  --text-title-weight: 700;
+  --text-section-family: var(--font-ui);
+  --text-section-size: 18px;
+  --text-section-line: 26px;
+  --text-section-weight: 600;
+  --text-body-family: var(--font-ui);
+  --text-body-size: 16px;
+  --text-body-line: 24px;
+  --text-body-weight: 400;
+  --text-body-strong-family: var(--font-ui);
+  --text-body-strong-size: 16px;
+  --text-body-strong-line: 24px;
+  --text-body-strong-weight: 600;
+  --text-label-family: var(--font-ui);
+  --text-label-size: 14px;
+  --text-label-line: 20px;
+  --text-label-weight: 600;
+  --text-meta-family: var(--font-ui);
+  --text-meta-size: 14px;
+  --text-meta-line: 20px;
+  --text-meta-weight: 400;
+  --text-id-family: var(--font-mono);
+  --text-id-size: 14px;
+  --text-id-line: 20px;
+  --text-id-weight: 500;
+}
+
+:root[data-motion="reduce"] {
+  --duration-fast: var(--duration-reduced);
+  --duration-micro: var(--duration-reduced);
+  --duration-island-in: var(--duration-reduced);
+  --duration-island-out: var(--duration-reduced);
+  --duration-value: var(--duration-reduced);
+  --duration-chat-out: var(--duration-reduced);
+  --duration-chat: var(--duration-reduced);
+  --duration-stagger: 0ms;
+  --duration-intent: 0ms;
+}

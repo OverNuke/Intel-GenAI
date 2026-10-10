@@ -1,3 +1,115 @@
-# First commit
+# Ariadna
 
-Creation of the repo
+Ariadna is an AI web assistant that helps people prepare an IT request *before* submitting it (fewer misclassified tickets, missing data, wrong department). It is a deliberately small **prototype** for a fictional organization, with sample data only. UI copy is es-MX; code and docs are English.
+
+Requirements, phases and ADRs live in `docs/`; the UX source of truth is `mock/Ariadna — prototipo.html`.
+
+## Layout
+
+```
+frontend/   Next.js (App Router), UI only
+backend/    FastAPI (uv), hexagonal by module; owns domain rules, LLM adapter, Postgres
+vercel.json Vercel services: frontend + backend, /api/* -> backend
+docs/       requirements, phases, ADRs
+```
+
+Each folder is installed and tested on its own.
+
+## Quickstart
+
+Backend (Python 3.12+, [uv](https://docs.astral.sh/uv/)):
+
+```
+cd backend
+uv sync
+uv run uvicorn app.main:app --reload --loop scripts.dev_loop:selector_loop_factory
+uv run pytest
+uv run ruff check . && uv run mypy
+```
+
+The `--loop` flag is needed on Windows (psycopg async cannot run on the default Proactor loop); it is harmless elsewhere.
+
+Frontend (pnpm):
+
+```
+cd frontend
+pnpm install
+pnpm dev        # proxies /api/* to the backend in development
+pnpm test
+pnpm typecheck
+pnpm lint
+```
+
+## Database
+
+Postgres on Neon. Migrations and seed read `DATABASE_URL_UNPOOLED` and fall back to `DATABASE_URL`.
+
+```
+cd backend
+uv run alembic upgrade head          # schema: users, tickets, ticket_number_seq starting at 1061
+uv run python -m app.seed.run        # idempotent: 3 demo users + 8 sample incidents (INC0001053..1060)
+```
+
+Phase 1 adds migration `0002_user_area` (a `users.area` column). On a database that already ran `0001`, apply it and re-run the seed so the users get their area (the seed upserts email/area; it never calls `setval`):
+
+```
+cd backend
+uv run alembic upgrade head          # applies 0002_user_area
+uv run python -m app.seed.run        # idempotent: refreshes the 3 demo users
+```
+
+> Run migrations, the seed and the real-DB tests **only against a throwaway Neon branch** until the Phase 1 flow has been verified by hand.
+
+The real-DB tests (`tests/seed/test_seed_db.py`, `tests/modules/auth/test_sqlalchemy_users.py`) are skipped unless `DATABASE_URL` is set. Point them **only at a throwaway Neon branch**: they run migrations and seed.
+
+## Neon resources (human-only, ADR-0013)
+
+`neon.ts` declares a private `uploads` bucket. Run these steps yourself, in order; the agent never runs them:
+
+1. `neon link` to the Marketplace project on a **child branch** (not `main`); confirm the flags with `neon link --help` first. Never copy a returned URL into `.env*`.
+2. `neon config plan` and read the diff: it must only add the `uploads` bucket (**Gate**).
+3. Push the branch and check the Vercel preview build: `frontend` and `backend` still build and nothing picks the root `package.json` as a project.
+4. `neon deploy` (alias of `neon config apply`). It may not be reversible.
+5. Check `.env`, `.env.local` and `backend/.env`: no production `DATABASE_URL` landed there, and `git status` shows no untracked `.env*`.
+
+The root `package.json` is a single-dependency toolchain file (`@neon/config`), not a JS workspace. Review the files that `neon skills` and `neon mcp` write (`git status` and user-global config) before committing them. Keep a production URL out of `backend/.env`: DB-gated tests would skip while Alembic and the seed would hit production.
+
+## Demo accounts (Phase 1)
+
+Sign-in is simulated. The backend issues a signed `ariadna_session` cookie (HttpOnly, SameSite=Lax, 8 h). Use "Entrar con la cuenta de la organización" to pick an account, or the form with the one demo credential.
+
+| Account | Area | Role | Opens |
+|---|---|---|---|
+| ana.ruiz@ejemplo.mx | Finanzas | Usuario | `/inicio` |
+| luis.herrera@ejemplo.mx | Mesa de ayuda | TI | `/ti/seguimiento` |
+| sara.molina@ejemplo.mx | Supervisión | Supervisor | `/supervisor/agente` |
+
+Credentials form: `ana.ruiz@ejemplo.mx` / `demo2026` (Ana only; the other accounts use the picker). Opening a section the role may not see shows "Sin acceso" (`/sin-acceso`); no session redirects to `/entrar`; "Cerrar sesión" ends at `/sesion-cerrada`.
+
+## API contract
+
+FastAPI's OpenAPI is the source of truth; the frontend uses generated types.
+
+```
+cd backend && uv run python -m scripts.export_openapi   # writes backend/openapi.json
+cd frontend && pnpm gen:api                              # writes src/lib/api-types.ts
+```
+
+## Environment variables
+
+Set in `.env.local` / Vercel.
+
+| Variable | Purpose | Used by code today |
+|---|---|---|
+| `DATABASE_URL` | Neon **pooled** URL (app runtime) | yes |
+| `DATABASE_URL_UNPOOLED` | Neon direct URL for Alembic/seed (optional; falls back to `DATABASE_URL`) | yes |
+| `LLM_BASE_URL` | OpenAI-compatible endpoint | planned |
+| `LLM_MODEL` | Model name | planned |
+| `LLM_API_KEY` | Endpoint API key | planned |
+| `SESSION_SECRET` | Signs the demo session cookie. Optional locally (public dev default when `VERCEL_ENV` is unset); **required on Vercel** (the first use raises if missing) | yes |
+| `API_ORIGIN` | Absolute backend origin (e.g. `https://my-app.vercel.app`) used by Next **server components** to call `/api/auth/access` (Node `fetch` needs an absolute URL). Optional: falls back to `http://127.0.0.1:8000` outside production and to the request's own origin (`x-forwarded-proto` + host) in production | yes |
+| `ASSISTANT_ADAPTER` | `openai` or `fake` | planned |
+
+## Status
+
+See `docs/phases.md`.
