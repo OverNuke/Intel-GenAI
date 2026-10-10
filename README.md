@@ -62,6 +62,34 @@ uv run python -m app.seed.run        # idempotent: refreshes the 3 demo users
 
 The real-DB tests (`tests/seed/test_seed_db.py`, `tests/modules/auth/test_sqlalchemy_users.py`) are skipped unless `DATABASE_URL` is set. Point them **only at a throwaway Neon branch**: they run migrations and seed.
 
+## Docker
+
+Local-only stack (Docker Desktop, Compose v2): Postgres 17 + migrate/seed + backend + frontend, fully isolated from Neon and from host `.env*` files (nothing is read via `env_file`; `ASSISTANT_ADAPTER=fake`). Not used for Vercel deploys.
+
+```
+docker compose up --build            # then open http://localhost:3000
+docker compose down -v               # stop and reset the database volume
+```
+
+- Startup order: `db` healthy, `migrate` (alembic + idempotent seed) exits 0, `backend` healthy, `frontend`.
+- There are no bind mounts and no hot reload: re-run with `--build` to pick up code changes.
+- The frontend reaches the backend through `API_ORIGIN=http://backend:8000` (dev rewrite of `/api`).
+
+Run both test suites (pytest against a fresh throwaway Postgres, so DB-gated tests run instead of skipping, and vitest):
+
+```
+docker compose --profile test up --build --exit-code-from tests tests
+```
+
+The command prints both outputs and exits non-zero if either suite fails; a failing backend suite does not stop vitest. If your Compose version aborts early because of `--exit-code-from`, use the fallback:
+
+```
+docker compose --profile test run --rm --build tests
+docker compose --profile test down
+```
+
+Commands above are PowerShell-safe (no `&&`). The Postgres major (17) is a pin of this setup; align it with your Neon project if it differs.
+
 ## Neon resources (human-only, ADR-0013)
 
 `neon.ts` declares a private `uploads` bucket. Run these steps yourself, in order; the agent never runs them:
@@ -108,7 +136,7 @@ Set in `.env.local` / Vercel.
 | `LLM_API_KEY` | Endpoint API key. Never required: without it the deterministic fake adapter answers | yes |
 | `LLM_TIMEOUT_SECONDS` | Per-request timeout of the LLM call (default `20`; keep it below the platform function limit) | yes |
 | `SESSION_SECRET` | Signs the demo session cookie. Optional locally (public dev default when `VERCEL_ENV` is unset); **required on Vercel** (the first use raises if missing) | yes |
-| `API_ORIGIN` | Absolute backend origin (e.g. `https://my-app.vercel.app`) used by Next **server components** to call `/api/auth/access` (Node `fetch` needs an absolute URL). Optional: falls back to `http://127.0.0.1:8000` outside production and to the request's own origin (`x-forwarded-proto` + host) in production | yes |
+| `API_ORIGIN` | Absolute backend origin (e.g. `https://my-app.vercel.app`) used by Next **server components** to call `/api/auth/access` (Node `fetch` needs an absolute URL). Optional: falls back to `http://127.0.0.1:8000` outside production and to the request's own origin (`x-forwarded-proto` + host) in production. Outside production it is also the target of the dev `/api` rewrite (the Docker stack sets it to `http://backend:8000`) | yes |
 | `ASSISTANT_ADAPTER` | `openai` or `fake`. Unset = `openai` only when `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` are all set, otherwise `fake` (a missing key never fails the app) | yes |
 
 ## Status
