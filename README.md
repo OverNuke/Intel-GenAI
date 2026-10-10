@@ -62,6 +62,18 @@ uv run python -m app.seed.run        # idempotent: refreshes the 3 demo users
 
 The real-DB tests (`tests/seed/test_seed_db.py`, `tests/modules/auth/test_sqlalchemy_users.py`) are skipped unless `DATABASE_URL` is set. Point them **only at a throwaway Neon branch**: they run migrations and seed.
 
+## Neon resources (human-only, ADR-0013)
+
+`neon.ts` declares a private `uploads` bucket. Run these steps yourself, in order; the agent never runs them:
+
+1. `neon link` to the Marketplace project on a **child branch** (not `main`); confirm the flags with `neon link --help` first. Never copy a returned URL into `.env*`.
+2. `neon config plan` and read the diff: it must only add the `uploads` bucket (**Gate**).
+3. Push the branch and check the Vercel preview build: `frontend` and `backend` still build and nothing picks the root `package.json` as a project.
+4. `neon deploy` (alias of `neon config apply`). It may not be reversible.
+5. Check `.env`, `.env.local` and `backend/.env`: no production `DATABASE_URL` landed there, and `git status` shows no untracked `.env*`.
+
+The root `package.json` is a single-dependency toolchain file (`@neon/config`), not a JS workspace. Review the files that `neon skills` and `neon mcp` write (`git status` and user-global config) before committing them. Keep a production URL out of `backend/.env`: DB-gated tests would skip while Alembic and the seed would hit production.
+
 ## Demo accounts (Phase 1)
 
 Sign-in is simulated. The backend issues a signed `ariadna_session` cookie (HttpOnly, SameSite=Lax, 8 h). Use "Entrar con la cuenta de la organización" to pick an account, or the form with the one demo credential.

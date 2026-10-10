@@ -17,7 +17,7 @@ vercel.json Vercel "services": frontend + backend, rewrite /api/(.*) -> backend
 docs/ mock/ .atl/
 ```
 
-Each folder is installed and tested on its own (no JS workspace at the root).
+Each folder is installed and tested on its own (no JS workspace at the root). Root `package.json` is a single-dependency Neon toolchain file (`@neon/config` for `neon.ts`), not a JS workspace; `frontend/` and `backend/` remain installed and tested on their own.
 
 ## Commands
 
