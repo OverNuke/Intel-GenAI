@@ -49,13 +49,13 @@ Rules: run each step yourself, in order, and stop at every GATE. Do not paste se
 neon.ts (top-level `buckets`, or the `preview.buckets` fallback if version < 1.6.0), ADR-0013, docs note, `.gitignore`, optional CLAUDE.md note (needs your approval), regression `pnpm typecheck` and `uv run pytest` with no production URL set.
 
 ## Phase 5: plan, verify, deploy
-- [ ] 5.1 `neon config plan`. The diff must ONLY add the private `uploads` bucket. Anything else: stop and decide.
-- [ ] 5.1a Push the branch and check the Vercel PREVIEW build log: frontend and backend services still build, and nothing picks the root `package.json` as a project. Do not build locally.
+- [x] 5.1 `neon config plan`. The diff must ONLY add the private `uploads` bucket. Anything else: stop and decide.
+- [x] 5.1a Push the branch and check the Vercel PREVIEW build log: frontend and backend services still build, and nothing picks the root `package.json` as a project. Do not build locally.
 - [ ] GATE B: you have read the plan, no secrets are staged, and you accept that `deploy` may build and may not be cleanly reversible.
-- [ ] 5.2 `neon deploy` (alias of `neon config apply`)
-- [ ] 5.3 Check no `deprecated preview` warning appeared.
-- [ ] 5.4 Check `.env`, `.env.local`, `backend/.env`: no production `DATABASE_URL` landed there. `git status` shows no untracked `.env*`.
-- [ ] 5.5 In the Neon console, confirm the `uploads` bucket exists and is private.
+- [x] 5.2 `neon deploy` (alias of `neon config apply`)
+- [x] 5.3 Check no `deprecated preview` warning appeared.
+- [x] 5.4 Check `.env`, `.env.local`, `backend/.env`: no production `DATABASE_URL` landed there. `git status` shows no untracked `.env*`.
+- [x] 5.5 In the Neon console, confirm the `uploads` bucket exists and is private.
 
 ## Rollback
 Remove the `uploads` bucket in the console (reversibility of `deploy` is undocumented), delete `.neon`, root `package.json`, the lockfile and root `node_modules/`, scrub Neon variables from local `.env`, `npm uninstall -g neon`.
