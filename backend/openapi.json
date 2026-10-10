@@ -207,6 +207,680 @@
         }
       }
     },
+    "/api/tickets/mine": {
+      "get": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Get My Tickets",
+        "operationId": "get_my_tickets_api_tickets_mine_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTicketsOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets": {
+      "post": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Post Ticket",
+        "description": "Creates a ticket for the session user from a draft the person confirmed.\n\nThe requester is never read from the body and Ariadna has no route to this endpoint.",
+        "operationId": "post_ticket_api_tickets_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitTicketIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetailOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Earlier submission with the same key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetailOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tickets/{display_id}": {
+      "get": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Get Ticket",
+        "operationId": "get_ticket_api_tickets__display_id__get",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetailOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/services": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Services",
+        "operationId": "list_services_api_catalog_services_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Services Api Catalog Services Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/services/{key}": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Read Service",
+        "operationId": "read_service_api_catalog_services__key__get",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assistant/turn": {
+      "post": {
+        "tags": [
+          "assistant"
+        ],
+        "summary": "Post Turn",
+        "description": "Stateless: nothing is stored. LLM failures answer 200 with a handoff, never 5xx.",
+        "operationId": "post_turn_api_assistant_turn_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TurnResult"
+                    },
+                    {
+                      "$ref": "#/components/schemas/HandoffResult"
+                    }
+                  ],
+                  "title": "Response Post Turn Api Assistant Turn Post",
+                  "discriminator": {
+                    "propertyName": "kind",
+                    "mapping": {
+                      "turn": "#/components/schemas/TurnResult",
+                      "handoff": "#/components/schemas/HandoffResult"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/it/tickets": {
+      "get": {
+        "tags": [
+          "it-desk"
+        ],
+        "summary": "Get Queue",
+        "description": "Full queue plus its counters; tabs, filters and sorting are applied client-side.",
+        "operationId": "get_queue_api_it_tickets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/it/tickets/{display_id}": {
+      "get": {
+        "tags": [
+          "it-desk"
+        ],
+        "summary": "Get Record",
+        "operationId": "get_record_api_it_tickets__display_id__get",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItTicketOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/it/tickets/{display_id}/contact": {
+      "post": {
+        "tags": [
+          "it-desk"
+        ],
+        "summary": "Post Contact",
+        "description": "\"Contactar al usuario\": sets Pendiente, logs the contact, never changes the status.",
+        "operationId": "post_contact_api_it_tickets__display_id__contact_post",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItTicketOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/metrics/agent": {
+      "get": {
+        "tags": [
+          "metrics"
+        ],
+        "summary": "Get Agent Metrics",
+        "description": "Static sample metrics (7 or 30 days). Supervisor only; any other period is a 422.",
+        "operationId": "get_agent_metrics_api_metrics_agent_get",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "enum": [
+                7,
+                30
+              ],
+              "default": 7,
+              "title": "Period"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentMetricsOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessDenied"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "summary": "Health",
@@ -283,6 +957,341 @@
         ],
         "title": "AccessDenied"
       },
+      "AgentMetricsOut": {
+        "properties": {
+          "period": {
+            "type": "integer",
+            "enum": [
+              7,
+              30
+            ],
+            "title": "Period"
+          },
+          "sample": {
+            "type": "boolean",
+            "const": true,
+            "title": "Sample",
+            "default": true
+          },
+          "measured": {
+            "items": {
+              "$ref": "#/components/schemas/MeasuredMetricOut"
+            },
+            "type": "array",
+            "title": "Measured"
+          },
+          "estimated": {
+            "$ref": "#/components/schemas/EstimatedBlockOut"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/TrendPointOut"
+            },
+            "type": "array",
+            "title": "Trend"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "measured",
+          "estimated",
+          "trend"
+        ],
+        "title": "AgentMetricsOut"
+      },
+      "AssistantTurn": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 600,
+            "title": "Message"
+          },
+          "understood": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Understood",
+            "default": ""
+          },
+          "reviewed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Reviewed"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/TurnDraft"
+          },
+          "missing_data": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Missing Data"
+          },
+          "target_group": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Group"
+          },
+          "needs_authorization": {
+            "type": "boolean",
+            "title": "Needs Authorization",
+            "default": false
+          },
+          "permissions_notice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permissions Notice"
+          },
+          "ready": {
+            "type": "boolean",
+            "title": "Ready",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "AssistantTurn",
+        "description": "One turn: a single question (or a \"draft is ready\" statement) plus the draft so far."
+      },
+      "ContactErrorOut": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "ticket-finished",
+              "message-too-long"
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "ContactErrorOut"
+      },
+      "ContactIn": {
+        "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ContactIn"
+      },
+      "ConversationIn": {
+        "properties": {
+          "entry": {
+            "$ref": "#/components/schemas/EntryIn"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/MessageIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "History"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/DraftIn"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "entry"
+        ],
+        "title": "ConversationIn"
+      },
+      "DraftIn": {
+        "properties": {
+          "service": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Summary",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Description",
+            "default": ""
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DraftIn"
+      },
+      "DraftOut": {
+        "properties": {
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "service",
+          "summary",
+          "description",
+          "impact",
+          "urgency"
+        ],
+        "title": "DraftOut"
+      },
+      "EntryIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "new",
+              "ticket",
+              "service"
+            ],
+            "title": "Kind"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "EntryIn"
+      },
       "ErrorBody": {
         "properties": {
           "detail": {
@@ -295,6 +1304,77 @@
           "detail"
         ],
         "title": "ErrorBody"
+      },
+      "EstimatedBlockOut": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": "Estimaciones, no son resultados medidos"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/EstimatedMetricOut"
+            },
+            "type": "array",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metrics"
+        ],
+        "title": "EstimatedBlockOut",
+        "description": "Estimates live in their own block, always labelled."
+      },
+      "EstimatedMetricOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "estimated",
+            "title": "Kind",
+            "default": "estimated"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "minutes",
+              "score",
+              "mxn"
+            ],
+            "title": "Unit"
+          },
+          "basis": {
+            "type": "string",
+            "title": "Basis"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "no son resultados medidos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "value",
+          "unit",
+          "basis"
+        ],
+        "title": "EstimatedMetricOut"
       },
       "FieldErrorBody": {
         "properties": {
@@ -338,6 +1418,272 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HandoffResult": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "handoff",
+            "title": "Kind",
+            "default": "handoff"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "rate_limited",
+              "timeout",
+              "connection_error",
+              "http_error",
+              "invalid_output"
+            ],
+            "title": "Reason"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/DraftOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "draft"
+        ],
+        "title": "HandoffResult"
+      },
+      "ItEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "author_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Name"
+          },
+          "visible_to_requester": {
+            "type": "boolean",
+            "title": "Visible To Requester"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "body",
+          "author_name",
+          "visible_to_requester",
+          "created_at"
+        ],
+        "title": "ItEventOut",
+        "description": "Bit\u00e1cora entry: includes events the requester cannot see and who wrote them."
+      },
+      "ItTicketOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "service_label": {
+            "type": "string",
+            "title": "Service Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "assigned",
+              "in_progress",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "awaiting_user": {
+            "type": "boolean",
+            "title": "Awaiting User"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Priority"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Urgency"
+          },
+          "assigned_group": {
+            "type": "string",
+            "title": "Assigned Group"
+          },
+          "assignee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Name"
+          },
+          "requester_name": {
+            "type": "string",
+            "title": "Requester Name"
+          },
+          "asset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset"
+          },
+          "via_ariadna": {
+            "type": "boolean",
+            "title": "Via Ariadna"
+          },
+          "sla_due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Due At"
+          },
+          "sla_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "overdue",
+                  "due_soon",
+                  "on_time"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla State"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ItEventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "summary",
+          "description",
+          "service",
+          "service_label",
+          "status",
+          "awaiting_user",
+          "priority",
+          "impact",
+          "urgency",
+          "assigned_group",
+          "assignee_name",
+          "requester_name",
+          "asset",
+          "via_ariadna",
+          "sla_due_at",
+          "sla_state",
+          "created_at",
+          "updated_at",
+          "events",
+          "receipt"
+        ],
+        "title": "ItTicketOut",
+        "description": "T2 record. Names only: no requester or assignee ids."
       },
       "LoginErrors": {
         "properties": {
@@ -402,6 +1748,402 @@
         "title": "LoginRequestBody",
         "description": "Lenient on purpose: every field optional so the use case, not FastAPI (422), reports\nwhich field is wrong. Do not tighten into a strict union."
       },
+      "MeasuredMetricOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "measured",
+            "title": "Kind",
+            "default": "measured"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "count",
+              "percent"
+            ],
+            "title": "Unit"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "value",
+          "unit",
+          "description"
+        ],
+        "title": "MeasuredMetricOut"
+      },
+      "MessageIn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "MessageIn"
+      },
+      "MySummaryOut": {
+        "properties": {
+          "open": {
+            "type": "integer",
+            "title": "Open"
+          },
+          "awaiting": {
+            "type": "integer",
+            "title": "Awaiting"
+          },
+          "resolved": {
+            "type": "integer",
+            "title": "Resolved"
+          },
+          "closed": {
+            "type": "integer",
+            "title": "Closed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "open",
+          "awaiting",
+          "resolved",
+          "closed"
+        ],
+        "title": "MySummaryOut"
+      },
+      "MyTicketsOut": {
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/MySummaryOut"
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/TicketOut"
+            },
+            "type": "array",
+            "title": "Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "tickets"
+        ],
+        "title": "MyTicketsOut"
+      },
+      "QueueOut": {
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/QueueSummaryOut"
+          },
+          "tickets": {
+            "items": {
+              "$ref": "#/components/schemas/QueueRowOut"
+            },
+            "type": "array",
+            "title": "Tickets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "tickets"
+        ],
+        "title": "QueueOut"
+      },
+      "QueueRowOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "requester_name": {
+            "type": "string",
+            "title": "Requester Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "assigned",
+              "in_progress",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "awaiting_user": {
+            "type": "boolean",
+            "title": "Awaiting User"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Priority"
+          },
+          "sla_due_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Due At"
+          },
+          "sla_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "overdue",
+                  "due_soon",
+                  "on_time"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla State"
+          },
+          "assignee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Name"
+          },
+          "assigned_to_me": {
+            "type": "boolean",
+            "title": "Assigned To Me"
+          },
+          "via_ariadna": {
+            "type": "boolean",
+            "title": "Via Ariadna"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "summary",
+          "requester_name",
+          "status",
+          "awaiting_user",
+          "priority",
+          "sla_due_at",
+          "sla_state",
+          "assignee_name",
+          "assigned_to_me",
+          "via_ariadna",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "QueueRowOut",
+        "description": "One row of T1. Names only: no requester or assignee ids."
+      },
+      "QueueSummaryOut": {
+        "properties": {
+          "open": {
+            "type": "integer",
+            "title": "Open"
+          },
+          "unassigned": {
+            "type": "integer",
+            "title": "Unassigned"
+          },
+          "assigned_to_me": {
+            "type": "integer",
+            "title": "Assigned To Me"
+          },
+          "sla_at_risk": {
+            "type": "integer",
+            "title": "Sla At Risk"
+          }
+        },
+        "type": "object",
+        "required": [
+          "open",
+          "unassigned",
+          "assigned_to_me",
+          "sla_at_risk"
+        ],
+        "title": "QueueSummaryOut"
+      },
+      "ReceiptIn": {
+        "properties": {
+          "understood": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Understood"
+          },
+          "reviewed": {
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Reviewed"
+          },
+          "not_done": {
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Not Done"
+          },
+          "permissions_notice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permissions Notice"
+          },
+          "missing_data": {
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Missing Data"
+          },
+          "target_group": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Target Group",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "understood"
+        ],
+        "title": "ReceiptIn"
+      },
+      "ReceiptOut": {
+        "properties": {
+          "understood": {
+            "type": "string",
+            "title": "Understood"
+          },
+          "reviewed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reviewed"
+          },
+          "not_done": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Not Done"
+          },
+          "permissions_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permissions Notice"
+          },
+          "missing_data": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Data"
+          },
+          "target_group": {
+            "type": "string",
+            "title": "Target Group"
+          }
+        },
+        "type": "object",
+        "required": [
+          "understood",
+          "reviewed",
+          "not_done",
+          "permissions_notice",
+          "missing_data",
+          "target_group"
+        ],
+        "title": "ReceiptOut",
+        "description": "The \"Constancia de Ariadna\", stored as submitted."
+      },
       "RoleOut": {
         "properties": {
           "key": {
@@ -449,6 +2191,535 @@
           "label"
         ],
         "title": "SectionOut"
+      },
+      "ServiceOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "examples": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Examples"
+          },
+          "have_at_hand": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Have At Hand"
+          },
+          "handled_by": {
+            "type": "string",
+            "title": "Handled By"
+          },
+          "requires_manager_authorization": {
+            "type": "boolean",
+            "title": "Requires Manager Authorization"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "description",
+          "examples",
+          "have_at_hand",
+          "handled_by",
+          "requires_manager_authorization"
+        ],
+        "title": "ServiceOut"
+      },
+      "SubmitDraftIn": {
+        "properties": {
+          "service": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Service"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Summary"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Description"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "service",
+          "summary",
+          "description"
+        ],
+        "title": "SubmitDraftIn"
+      },
+      "SubmitErrorOut": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "missing-human-confirmation",
+              "confirmation-not-from-requester",
+              "incomplete-draft",
+              "unknown-service"
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "SubmitErrorOut"
+      },
+      "SubmitTicketIn": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/SubmitDraftIn"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "draft"
+        ],
+        "title": "SubmitTicketIn",
+        "description": "The requester is the session user: there is deliberately no requester or `by` field."
+      },
+      "TicketDetailOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "service_label": {
+            "type": "string",
+            "title": "Service Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "assigned",
+              "in_progress",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "awaiting_user": {
+            "type": "boolean",
+            "title": "Awaiting User"
+          },
+          "via_ariadna": {
+            "type": "boolean",
+            "title": "Via Ariadna"
+          },
+          "asset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Urgency"
+          },
+          "assigned_group": {
+            "type": "string",
+            "title": "Assigned Group"
+          },
+          "assignee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Name"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/TicketEventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "contact_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Notice"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReceiptOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "summary",
+          "service",
+          "service_label",
+          "status",
+          "awaiting_user",
+          "via_ariadna",
+          "asset",
+          "created_at",
+          "updated_at",
+          "description",
+          "impact",
+          "urgency",
+          "assigned_group",
+          "assignee_name",
+          "events",
+          "contact_notice",
+          "receipt"
+        ],
+        "title": "TicketDetailOut"
+      },
+      "TicketEventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "body",
+          "created_at"
+        ],
+        "title": "TicketEventOut"
+      },
+      "TicketOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service"
+          },
+          "service_label": {
+            "type": "string",
+            "title": "Service Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "assigned",
+              "in_progress",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status"
+          },
+          "awaiting_user": {
+            "type": "boolean",
+            "title": "Awaiting User"
+          },
+          "via_ariadna": {
+            "type": "boolean",
+            "title": "Via Ariadna"
+          },
+          "asset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "summary",
+          "service",
+          "service_label",
+          "status",
+          "awaiting_user",
+          "via_ariadna",
+          "asset",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TicketOut",
+        "description": "One row of U1/U2. Never carries requester or assignee ids."
+      },
+      "TrendPointOut": {
+        "properties": {
+          "day": {
+            "type": "integer",
+            "title": "Day"
+          },
+          "adoption": {
+            "type": "number",
+            "title": "Adoption"
+          },
+          "corrected": {
+            "type": "number",
+            "title": "Corrected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "adoption",
+          "corrected"
+        ],
+        "title": "TrendPointOut"
+      },
+      "TurnDraft": {
+        "properties": {
+          "service": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Summary",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Description",
+            "default": ""
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          }
+        },
+        "type": "object",
+        "title": "TurnDraft"
+      },
+      "TurnResult": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "turn",
+            "title": "Kind",
+            "default": "turn"
+          },
+          "turn": {
+            "$ref": "#/components/schemas/AssistantTurn"
+          }
+        },
+        "type": "object",
+        "required": [
+          "turn"
+        ],
+        "title": "TurnResult"
       },
       "UserOut": {
         "properties": {
