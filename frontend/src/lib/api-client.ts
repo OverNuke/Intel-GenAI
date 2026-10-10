@@ -1,12 +1,12 @@
 import type { paths } from "./api-types";
 
-type GetPaths = {
+export type GetPaths = {
   [P in keyof paths]: paths[P] extends { get: { responses: { 200: { content: { "application/json": unknown } } } } }
     ? P
     : never;
 }[keyof paths];
 
-type PostPaths = { [P in keyof paths]: paths[P] extends { post: unknown } ? P : never }[keyof paths];
+export type PostPaths = { [P in keyof paths]: paths[P] extends { post: unknown } ? P : never }[keyof paths];
 
 export type GetResponse<P extends GetPaths> = paths[P] extends {
   get: { responses: { 200: { content: { "application/json": infer R } } } };
@@ -43,11 +43,27 @@ export type RequestOptions = {
   baseUrl?: string;
   headers?: Record<string, string>;
   cache?: RequestCache;
+  /** Values for `{name}` placeholders of the path template (URL-encoded). */
+  params?: Record<string, string>;
+  /** Query-string entries appended to the URL. */
+  query?: Record<string, string>;
+  /** Lets the caller abort (timeouts). */
+  signal?: AbortSignal;
 };
+
+function buildUrl(path: string, opts: RequestOptions): string {
+  const filled = path.replace(/\{(\w+)\}/g, (match, name: string) => {
+    const value = opts.params?.[name];
+    return value === undefined ? match : encodeURIComponent(value);
+  });
+  const query = opts.query ? new URLSearchParams(opts.query).toString() : "";
+  return `${opts.baseUrl ?? ""}${filled}${query ? `?${query}` : ""}`;
+}
 
 function buildInit(base: RequestInit, headers: Record<string, string>, opts: RequestOptions): RequestInit {
   const init: RequestInit = { ...base, headers: { ...headers, ...opts.headers } };
   if (opts.cache) init.cache = opts.cache;
+  if (opts.signal) init.signal = opts.signal;
   return init;
 }
 
@@ -59,7 +75,7 @@ export async function apiGet<P extends GetPaths>(
 ): Promise<ApiResult<GetResponse<P>>> {
   let response: Response;
   try {
-    response = await fetchImpl(`${opts.baseUrl ?? ""}${path}`, buildInit({}, { Accept: "application/json" }, opts));
+    response = await fetchImpl(buildUrl(path, opts), buildInit({}, { Accept: "application/json" }, opts));
   } catch {
     return { ok: false, status: 0 };
   }
@@ -83,7 +99,7 @@ export async function apiPost<P extends PostPaths>(
   let response: Response;
   try {
     response = await fetchImpl(
-      `${opts.baseUrl ?? ""}${path}`,
+      buildUrl(path, opts),
       buildInit(base, { Accept: "application/json", "Content-Type": "application/json" }, opts),
     );
   } catch {

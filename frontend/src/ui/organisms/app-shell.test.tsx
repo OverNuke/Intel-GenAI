@@ -20,18 +20,28 @@ const shell = (user: User, active: string) =>
   );
 
 describe("AppShell rail", () => {
-  it("Usuario: Inicio (current) plus the three own-ticket sections", () => {
+  it("Usuario: Inicio, Mis tickets and ¿Qué necesitas? are live; Mi equipo is disabled", () => {
     shell(ana, "home");
     const rail = screen.getByRole("navigation", { name: "Secciones" });
-    const names = within(rail).getAllByRole("link").map((a) => a.textContent);
-    expect(names).toEqual(["Inicio"]);
+    const links = within(rail).getAllByRole("link");
+    expect(links.map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+      ["Inicio", "/inicio"],
+      ["Mis tickets", "/tickets"],
+      ["¿Qué necesitas?", "/solicitud"],
+    ]);
     expect(within(rail).getByRole("link", { name: "Inicio" }).getAttribute("aria-current")).toBe("page");
-    for (const label of ["Mis tickets", "¿Qué necesitas?", "Mi equipo"]) {
-      expect(within(rail).getByText(label).closest("[aria-disabled='true']")).not.toBeNull();
-    }
+    expect(within(rail).getByText("Mi equipo").closest("[aria-disabled='true']")).not.toBeNull();
+    expect(within(rail).getByText("Próxima etapa del prototipo")).toBeTruthy();
   });
 
-  it("TI: only Seguimiento de tickets is live, own tickets are a disabled group with a note", () => {
+  it("marks Mis tickets as the current page when that section is active", () => {
+    shell(ana, "my-tickets");
+    const rail = screen.getByRole("navigation", { name: "Secciones" });
+    expect(within(rail).getByRole("link", { name: "Mis tickets" }).getAttribute("aria-current")).toBe("page");
+    expect(within(rail).getByRole("link", { name: "Inicio" }).getAttribute("aria-current")).toBeNull();
+  });
+
+  it("TI: Seguimiento de tickets plus an enabled own-tickets group (S-AS-2)", () => {
     shell(luis, "ticket-tracking");
     const rail = screen.getByRole("navigation", { name: "Secciones" });
     const link = within(rail).getByRole("link", { name: "Seguimiento de tickets" });
@@ -39,17 +49,18 @@ describe("AppShell rail", () => {
     expect(link.getAttribute("aria-current")).toBe("page");
     expect(within(rail).queryByRole("link", { name: "Inicio" })).toBeNull();
     const group = within(rail).getByRole("group", { name: "Tus propios tickets" });
-    expect(within(group).getAllByText(/Mis tickets|¿Qué necesitas\?|Mi equipo/)).toHaveLength(3);
-    expect(within(group).queryAllByRole("link")).toHaveLength(0);
+    expect(within(group).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/tickets", "/solicitud"]);
+    expect(within(group).getByText("Mi equipo").closest("[aria-disabled='true']")).not.toBeNull();
     expect(within(rail).getByText("Próxima etapa del prototipo")).toBeTruthy();
   });
 
-  it("Supervisor: only Seguimiento del agente is live", () => {
+  it("Supervisor: Seguimiento del agente is live and own tickets are enabled too", () => {
     shell(sara, "agent-tracking");
     const rail = screen.getByRole("navigation", { name: "Secciones" });
     expect(within(rail).getByRole("link", { name: "Seguimiento del agente" }).getAttribute("href")).toBe("/supervisor/agente");
     expect(within(rail).queryByRole("link", { name: "Seguimiento de tickets" })).toBeNull();
-    expect(within(rail).getByRole("group", { name: "Tus propios tickets" })).toBeTruthy();
+    const group = within(rail).getByRole("group", { name: "Tus propios tickets" });
+    expect(within(group).getAllByRole("link")).toHaveLength(2);
   });
 });
 

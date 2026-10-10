@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { ROLE_HOME, ROLE_LABELS } from "@/lib/access-labels";
 import type { components } from "@/lib/api-types";
+import { COPY } from "@/lib/copy";
 
 type User = components["schemas"]["UserOut"];
 type Role = User["role"];
 
 const ORG = "Centro Administrativo Regional Sur";
-const OWN_TICKETS = ["Mis tickets", "¿Qué necesitas?", "Mi equipo"] as const;
 
 const LIVE_SECTION: Record<Role, { key: string; label: string }> = {
   user: { key: "home", label: "Inicio" },
@@ -34,6 +34,16 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+function RailLink({ href, label, current }: { href: string; label: string; current: boolean }) {
+  return (
+    <li>
+      <Link href={href} className="rail-item" aria-current={current ? "page" : undefined}>
+        {label}
+      </Link>
+    </li>
+  );
+}
+
 function Disabled({ label }: { label: string }) {
   return (
     <li>
@@ -44,34 +54,33 @@ function Disabled({ label }: { label: string }) {
   );
 }
 
+/** Own-ticket destinations, live for every role; "Mi equipo" (U5) stays a placeholder. */
+function OwnItems({ active }: { active: string }) {
+  return (
+    <>
+      <RailLink href="/tickets" label={COPY.myTickets} current={active === "my-tickets"} />
+      <RailLink href="/solicitud" label={COPY.whatDoYouNeed} current={active === "new-request"} />
+      <Disabled label={COPY.myTeam} />
+      <li className="t-meta">{COPY.nextStage}</li>
+    </>
+  );
+}
+
 function Rail({ user, active }: { user: User; active: string }) {
   const live = LIVE_SECTION[user.role];
   return (
     <nav aria-label="Secciones" className="rail">
       <ul>
-        <li>
-          <Link
-            href={ROLE_HOME[user.role]}
-            className="rail-item"
-            aria-current={active === live.key ? "page" : undefined}
-          >
-            {live.label}
-          </Link>
-        </li>
+        <RailLink href={ROLE_HOME[user.role]} label={live.label} current={active === live.key} />
         {user.role === "user" ? (
-          OWN_TICKETS.map((label) => <Disabled key={label} label={label} />)
+          <OwnItems active={active} />
         ) : (
           <li>
-            <ul role="group" aria-labelledby="rail-own" aria-describedby="rail-own-note">
+            <ul role="group" aria-labelledby="rail-own">
               <li id="rail-own" className="t-meta">
                 Tus propios tickets
               </li>
-              {OWN_TICKETS.map((label) => (
-                <Disabled key={label} label={label} />
-              ))}
-              <li id="rail-own-note" className="t-meta">
-                Próxima etapa del prototipo
-              </li>
+              <OwnItems active={active} />
             </ul>
           </li>
         )}
