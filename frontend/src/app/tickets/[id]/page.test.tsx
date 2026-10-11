@@ -34,6 +34,7 @@ const ticket = {
   assigned_group: "Soporte TI",
   assignee_name: "Luis Herrera",
   events: [],
+  participants: [],
   contact_notice: "Confirma la extensión",
   receipt: null,
 };

@@ -12,10 +12,32 @@ type Turn = components["schemas"]["AssistantTurn"];
 type ReceiptIn = components["schemas"]["ReceiptIn"];
 type UnavailableReason = components["schemas"]["HandoffResult"]["reason"];
 
+type Proposal = NonNullable<Turn["proposals"]>[number];
+
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export type Entry = { kind: "new" | "ticket" | "service"; ref: string | null };
 /** "requested" = the person pressed "Hablar con TI" / "Pasar con TI". */
 export type DegradedReason = UnavailableReason | "requested";
+
+export type ProposalStatus = "idle" | "busy" | "done" | "error";
+export type ProposalState = {
+  /** Unique within the current turn. */
+  id: string;
+  /** Content identity, so a confirmed proposal the model repeats is not shown again. */
+  signature: string;
+  proposal: Proposal;
+  status: ProposalStatus;
+  /** Result (done) or backend message (error). */
+  message: string | null;
+  /** Amber follow-ups: ambiguous / unknown names. */
+  notes: string[];
+};
+
+export function proposalSignature(proposal: Proposal): string {
+  return JSON.stringify(proposal);
+}
+
+export type SentTicket = { id: string; notices: string[] };
 
 export type ConversationState = {
   entry: Entry;
@@ -28,6 +50,15 @@ export type ConversationState = {
   phase: "chat" | "confirm";
   submit: "idle" | "busy" | "error";
   idempotencyKey: string | null;
+  /** Agent v2: what Ariadna proposes (never executed without a click). */
+  proposals: ProposalState[];
+  confirmedProposals: string[];
+  /** Names to add right after the not-yet-sent request is submitted. */
+  queuedParticipants: string[];
+  /** Draft fields the person edited since the last turn (server warnings about them are stale). */
+  editedSinceTurn: DraftField[];
+  /** Set only when the ticket was sent but something after the send needs the person's attention. */
+  sent: SentTicket | null;
 };
 
 export type Action =
@@ -38,8 +69,14 @@ export type Action =
   | { type: "edit"; field: DraftField; value: string | null }
   | { type: "review"; key: string }
   | { type: "back" }
-  | { type: "submit-start" }
-  | { type: "submit-fail" };
+  | { type: "submit-start"; key?: string }
+  | { type: "submit-fail" }
+  | { type: "proposal-start"; id: string }
+  | { type: "proposal-done"; id: string; message: string; notes?: string[] }
+  | { type: "proposal-fail"; id: string; message: string }
+  | { type: "proposal-dismiss"; id: string }
+  | { type: "participants-queued"; id: string; message: string }
+  | { type: "sent"; id: string; notices: string[] };
 
 export function initialState(entry: Entry, greeting: string, draft: DraftFields = EMPTY_DRAFT): ConversationState {
   return {
@@ -53,7 +90,21 @@ export function initialState(entry: Entry, greeting: string, draft: DraftFields 
     phase: "chat",
     submit: "idle",
     idempotencyKey: null,
+    proposals: [],
+    confirmedProposals: [],
+    queuedParticipants: [],
+    editedSinceTurn: [],
+    sent: null,
   };
+}
+
+function patchProposal(state: ConversationState, id: string, patch: Partial<ProposalState>): ConversationState {
+  return { ...state, proposals: state.proposals.map((p) => (p.id === id ? { ...p, ...patch } : p)) };
+}
+
+function confirmedWith(state: ConversationState, id: string): string[] {
+  const found = state.proposals.find((p) => p.id === id);
+  return found ? [...state.confirmedProposals, found.signature] : state.confirmedProposals;
 }
 
 export function reducer(state: ConversationState, action: Action): ConversationState {
@@ -70,6 +121,20 @@ export function reducer(state: ConversationState, action: Action): ConversationS
         turn: action.turn,
         messages: [...state.messages, { role: "assistant", content: action.turn.message }],
         draft: mergeDraft(state.draft, suggestion, state.touched),
+        editedSinceTurn: [],
+        proposals: (action.turn.proposals ?? [])
+          .map((proposal, index) => ({ proposal, signature: proposalSignature(proposal), index }))
+          .filter((p) => !state.confirmedProposals.includes(p.signature))
+          .map(
+            (p): ProposalState => ({
+              id: `p${state.messages.length}-${p.index}`,
+              signature: p.signature,
+              proposal: p.proposal,
+              status: "idle",
+              message: null,
+              notes: [],
+            }),
+          ),
       };
     }
     case "handoff":
@@ -81,15 +146,42 @@ export function reducer(state: ConversationState, action: Action): ConversationS
         ...state,
         draft: { ...state.draft, [action.field]: action.value },
         touched: { ...state.touched, [action.field]: true },
+        editedSinceTurn: state.editedSinceTurn.includes(action.field)
+          ? state.editedSinceTurn
+          : [...state.editedSinceTurn, action.field],
       };
     case "review":
       return { ...state, phase: "confirm", submit: "idle", idempotencyKey: action.key };
     case "back":
       return { ...state, phase: "chat", submit: "idle" };
     case "submit-start":
-      return { ...state, submit: "busy" };
+      return { ...state, submit: "busy", idempotencyKey: state.idempotencyKey ?? action.key ?? null };
     case "submit-fail":
       return { ...state, submit: "error" };
+    case "proposal-start":
+      return patchProposal(state, action.id, { status: "busy", message: null, notes: [] });
+    case "proposal-done":
+      return {
+        ...patchProposal(state, action.id, { status: "done", message: action.message, notes: action.notes ?? [] }),
+        confirmedProposals: confirmedWith(state, action.id),
+      };
+    case "proposal-fail":
+      return patchProposal(state, action.id, { status: "error", message: action.message });
+    case "proposal-dismiss":
+      return { ...state, proposals: state.proposals.filter((p) => p.id !== action.id) };
+    case "participants-queued": {
+      const found = state.proposals.find((p) => p.id === action.id);
+      const names = found?.proposal.kind === "add_participants" ? found.proposal.names : [];
+      const queued = [...state.queuedParticipants];
+      for (const name of names) if (!queued.includes(name)) queued.push(name);
+      return {
+        ...patchProposal(state, action.id, { status: "done", message: action.message, notes: [] }),
+        queuedParticipants: queued,
+        confirmedProposals: confirmedWith(state, action.id),
+      };
+    }
+    case "sent":
+      return { ...state, submit: "idle", sent: { id: action.id, notices: action.notices } };
   }
 }
 

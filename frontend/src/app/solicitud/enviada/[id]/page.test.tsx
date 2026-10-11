@@ -34,6 +34,7 @@ const ticket = {
   assigned_group: "Soporte de impresión",
   assignee_name: null,
   events: [],
+  participants: [],
   contact_notice: null,
   receipt: null,
 };

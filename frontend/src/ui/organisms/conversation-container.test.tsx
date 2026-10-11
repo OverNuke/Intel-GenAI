@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { components } from "@/lib/api-types";
 
@@ -399,5 +399,216 @@ describe("ConversationContainer (U6)", () => {
     expect(await screen.findByLabelText("Tu respuesta para Ariadna")).toBeTruthy();
     expect((screen.getByLabelText("Resumen") as HTMLInputElement).value).toBe("Impresora sin imprimir");
     await act(async () => {});
+  });
+});
+
+// --- agent v2: one-line intake, flags and proposals -------------------------------------------
+
+const HARDWARE: Service = {
+  key: "hardware",
+  label: "Equipo de cómputo",
+  description: "PC, laptop y periféricos",
+  examples: [],
+  have_at_hand: ["Número de activo"],
+  handled_by: "Soporte de equipo",
+  requires_manager_authorization: false,
+};
+
+const oneLineTurn = (over: Record<string, unknown> = {}) =>
+  turn({
+    message: "Dime a cuántas personas afecta.",
+    understood: "Tu PC tiene los cables pelados.",
+    reviewed: ["Destino sugerido: Soporte de equipo"],
+    draft: {
+      service: "hardware",
+      summary: "PC con cables pelados",
+      description: "Tengo un problema técnico con mi PC, los cables están pelados.",
+      impact: null,
+      urgency: "high",
+    },
+    missing_data: ["Impacto"],
+    flags: [
+      { field: "impact", severity: "blocking", message: "Falta indicar a cuántas personas afecta." },
+      { field: "asset_number", severity: "warning", message: "número de inventario (empieza con AT-)" },
+    ],
+    target_group: "Soporte de equipo",
+    ...over,
+  });
+
+const withProposals = (proposals: unknown[], base = turn()) => ({
+  ...base,
+  turn: { ...base.turn, proposals },
+});
+
+const LEVEL_INDEX: Record<string, number> = { low: 0, medium: 1, high: 2 };
+const radio = (group: string, value: string) =>
+  document.querySelectorAll<HTMLInputElement>(`#${group}-group input[type=radio]`)[LEVEL_INDEX[value]!]!;
+
+describe("ConversationContainer agent v2", () => {
+  it("one sentence fills 'Tu solicitud' and shows red and amber flags for what is left", async () => {
+    const f = fetcher({ "/api/assistant/turn": () => json(oneLineTurn()) });
+    open(f, { services: [...SERVICES, HARDWARE] });
+    say("Tengo un problema técnico con mi PC, los cables están pelados.");
+    await waitFor(() => expect(screen.getByText("Tu PC tiene los cables pelados.")).toBeTruthy());
+    expect((screen.getByLabelText("Resumen") as HTMLInputElement).value).toBe("PC con cables pelados");
+    expect((screen.getByLabelText("Descripción") as HTMLTextAreaElement).value).toContain("cables están pelados");
+    expect(radio("urgency", "high").checked).toBe(true);
+    const list = screen.getByRole("list", { name: "Lo que falta y lo que conviene revisar" });
+    const [red, amber] = within(list).getAllByRole("listitem");
+    expect(red!.textContent).toContain("Falta: Impacto");
+    expect(amber!.textContent).toContain("Conviene revisar:");
+    expect(amber!.textContent).toContain("número de inventario");
+    expect((screen.getByRole("button", { name: "Revisar y enviar" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("filling the missing field clears the red item at once but keeps the amber one", async () => {
+    const f = fetcher({ "/api/assistant/turn": () => json(oneLineTurn()) });
+    open(f, { services: [...SERVICES, HARDWARE] });
+    say("PC con cables pelados");
+    await waitFor(() => expect(screen.getByText("Tu PC tiene los cables pelados.")).toBeTruthy());
+    fireEvent.click(radio("impact", "low"));
+    const list = screen.getByRole("list", { name: "Lo que falta y lo que conviene revisar" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(1);
+    expect(list.textContent).not.toContain("Falta:");
+    expect(list.textContent).toContain("Conviene revisar:");
+    expect((screen.getByRole("button", { name: "Revisar y enviar" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("a proposal never executes on arrival; add_participants posts only after Confirmar", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () =>
+        json(
+          withProposals([{ kind: "add_participants", names: ["Luis Herrera", "Pepe", "Marta"], ticket_ref: "INC0001056" }]),
+        ),
+      "/api/tickets/INC0001056/participants": () =>
+        json({
+          ticket: {},
+          added: ["Luis Herrera"],
+          ambiguous: [{ name: "Marta", candidates: ["Marta Díaz", "Marta Ruiz"] }],
+          unknown: ["Pepe"],
+          over_limit: [],
+        }),
+    });
+    open(f, { entry: { kind: "ticket", ref: "INC0001056" }, ticketSummary: "Red lenta" });
+    say("agrega a Luis, Pepe y Marta");
+    await screen.findByRole("button", { name: "Confirmar" });
+    expect(f).toHaveBeenCalledTimes(1); // only the turn
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    await waitFor(() => expect(f).toHaveBeenCalledTimes(2));
+    expect(bodyOf(f, 1)).toEqual({ names: ["Luis Herrera", "Pepe", "Marta"], confirmed: true });
+    const status = await screen.findByRole("status");
+    expect(status.textContent).toContain("Luis Herrera");
+    const notes = within(screen.getByRole("list", { name: "Para revisar" })).getAllByRole("listitem");
+    expect(notes.map((n) => n.textContent)).toEqual([
+      "Hay más de una persona llamada Marta: Marta Díaz, Marta Ruiz.",
+      "No encontramos a Pepe.",
+    ]);
+  });
+
+  it("Ahora no dismisses a proposal without calling anything", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(withProposals([{ kind: "close_ticket", ticket_ref: "INC0001056" }])),
+    });
+    open(f);
+    say("cierra el ticket");
+    await screen.findByRole("button", { name: "Ahora no" });
+    fireEvent.click(screen.getByRole("button", { name: "Ahora no" }));
+    expect(screen.queryByRole("button", { name: "Confirmar" })).toBeNull();
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("close_ticket shows the backend 409 message as-is and keeps the card for a retry", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(withProposals([{ kind: "close_ticket", ticket_ref: "INC0001056" }])),
+      "/api/tickets/INC0001056/close": () =>
+        json({ reason: "not-resolved", message: "El ticket todavía no está resuelto." }, 409),
+    });
+    open(f);
+    say("cierra el ticket");
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("El ticket todavía no está resuelto.");
+    expect(bodyOf(f, 1)).toEqual({ confirmed: true });
+    expect(screen.getByRole("button", { name: "Confirmar" })).toBeTruthy();
+  });
+
+  it("update_ticket PATCHes only the proposed fields with confirmed: true", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () =>
+        json(withProposals([{ kind: "update_ticket", ticket_ref: "INC0001056", summary: "Red caída", urgency: "high" }])),
+      "/api/tickets/INC0001056": () => json({ id: "INC0001056" }),
+    });
+    open(f, { entry: { kind: "ticket", ref: "INC0001056" }, ticketSummary: "Red lenta" });
+    say("cambia el título");
+    expect((await screen.findByRole("list", { name: "Cambios propuestos" })).textContent).toContain("Red lenta → Red caída");
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    await waitFor(() => expect(f).toHaveBeenCalledTimes(2));
+    expect((f.mock.calls[1]![1] as RequestInit).method).toBe("PATCH");
+    expect(bodyOf(f, 1)).toEqual({ summary: "Red caída", urgency: "high", confirmed: true });
+    expect((await screen.findByRole("status")).textContent).toContain("INC0001056");
+  });
+
+  it("create_ticket proposal reuses the submit flow with confirmed: true and an idempotency key", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(withProposals([{ kind: "create_ticket" }], readyTurn())),
+      "/api/tickets": () => json({ id: "INC0001061" }, 201),
+    });
+    open(f);
+    say("La impresora no imprime");
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar y enviar" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/solicitud/enviada/INC0001061"));
+    const body = bodyOf(f, 1);
+    expect(body.confirmed).toBe(true);
+    expect(body.idempotency_key).toBe("key-1");
+    expect(body.draft).toMatchObject({ service: "printing", summary: "Impresora sin imprimir" });
+  });
+
+  it("create_ticket proposal stays disabled while the draft has blocking items", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(withProposals([{ kind: "create_ticket" }])),
+    });
+    open(f);
+    say("La impresora no imprime");
+    const button = (await screen.findByRole("button", { name: "Confirmar y enviar" })) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+  });
+
+  const queuedTurn = () =>
+    withProposals([{ kind: "add_participants", names: ["Luis Herrera"], ticket_ref: null }], readyTurn());
+
+  it("participants proposed before sending are queued and added right after the ticket is sent", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(queuedTurn()),
+      "/api/tickets": () => json({ id: "INC0001061" }, 201),
+      "/api/tickets/INC0001061/participants": () =>
+        json({ ticket: {}, added: ["Luis Herrera"], ambiguous: [], unknown: [], over_limit: [] }),
+    });
+    open(f);
+    say("agrega a Luis");
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar" }));
+    expect((await screen.findByRole("status")).textContent).toContain("cuando envíes tu solicitud");
+    expect(f).toHaveBeenCalledTimes(1); // nothing sent yet
+    fireEvent.click(screen.getByRole("button", { name: "Revisar y enviar" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Enviar solicitud" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/solicitud/enviada/INC0001061"));
+    expect(bodyOf(f, 2)).toEqual({ names: ["Luis Herrera"], confirmed: true });
+  });
+
+  it("if adding the queued people fails the ticket stays sent and an amber notice appears", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(queuedTurn()),
+      "/api/tickets": () => json({ id: "INC0001061" }, 201),
+      "/api/tickets/INC0001061/participants": () => json({ detail: "boom" }, 500),
+    });
+    open(f);
+    say("agrega a Luis");
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar" }));
+    await screen.findByRole("status");
+    fireEvent.click(screen.getByRole("button", { name: "Revisar y enviar" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Enviar solicitud" }));
+    const notice = await screen.findByText(/no pudimos agregar a las personas/);
+    expect(notice.closest(".tone-warning")).not.toBeNull();
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByRole("link", { name: "Ver el ticket" }).getAttribute("href")).toBe("/solicitud/enviada/INC0001061");
   });
 });

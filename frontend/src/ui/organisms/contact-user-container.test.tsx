@@ -30,6 +30,7 @@ const base: Record = {
   updated_at: "2026-01-14T16:00:00Z",
   events: [{ id: "1060-1", kind: "created", body: null, author_name: "Ana Ruiz", visible_to_requester: true, created_at: "2026-01-14T14:00:00Z" }],
   receipt: null,
+  participants: [],
 };
 
 const after: Record = {

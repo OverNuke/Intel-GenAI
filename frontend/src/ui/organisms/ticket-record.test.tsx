@@ -28,6 +28,7 @@ export const record = (over: Partial<Record> = {}): Record => ({
   sla_state: "overdue",
   created_at: "2026-01-08T17:00:00Z",
   updated_at: "2026-01-08T20:00:00Z",
+  participants: [],
   events: [
     { id: "1056-1", kind: "created", body: null, author_name: "Ana Ruiz", visible_to_requester: true, created_at: "2026-01-08T17:00:00Z" },
     { id: "1056-2", kind: "assigned", body: null, author_name: "Luis Herrera", visible_to_requester: true, created_at: "2026-01-08T17:30:00Z" },
@@ -154,5 +155,37 @@ describe("TicketRecord (T2)", () => {
   it("a finished ticket cannot be contacted", () => {
     render(<TicketRecord ticket={record({ status: "closed", sla_state: null })} onContact={noop} />);
     expect(screen.getByRole("button", { name: "Contactar al usuario" }).getAttribute("aria-disabled")).toBe("true");
+  });
+});
+
+describe("TicketRecord agent v2 (T2)", () => {
+  it("renders the new event kinds in the timeline and the log", () => {
+    const ticket = record({
+      events: [
+        {
+          id: "e1",
+          kind: "updated",
+          body: JSON.stringify({ summary: { before: "Red lenta", after: "Red caída" } }),
+          author_name: "Ana Ruiz",
+          visible_to_requester: true,
+          created_at: "2026-01-08T18:00:00Z",
+        },
+        { id: "e2", kind: "closed", body: null, author_name: "Ana Ruiz", visible_to_requester: true, created_at: "2026-01-08T19:00:00Z" },
+      ],
+    });
+    render(<TicketRecord ticket={ticket} onContact={noop} />);
+    fireEvent.click(screen.getByRole("tab", { name: "Línea de tiempo" }));
+    const timeline = within(screen.getByRole("list", { name: "Línea de tiempo" })).getAllByRole("listitem");
+    expect(timeline[0]!.textContent).toContain("Cambió Resumen: Red lenta → Red caída");
+    expect(timeline[1]!.textContent).toContain("Ticket cerrado");
+    fireEvent.click(screen.getByRole("tab", { name: "Bitácora" }));
+    const log = within(screen.getByRole("list", { name: "Bitácora" })).getAllByRole("listitem");
+    expect(log[0]!.textContent).toContain("Ana Ruiz · Se actualizó el ticket");
+    expect(log[0]!.textContent).toContain("Cambió Resumen: Red lenta → Red caída");
+  });
+
+  it("shows participants in the data block when present", () => {
+    render(<TicketRecord ticket={record({ participants: ["Luis Herrera"] })} onContact={noop} />);
+    expect(screen.getByText("Participantes").closest(".rail-row")!.textContent).toContain("Luis Herrera");
   });
 });

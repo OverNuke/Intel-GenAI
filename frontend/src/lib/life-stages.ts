@@ -19,8 +19,8 @@ type LifeInput = {
 };
 
 /**
- * The five life stages of a ticket for U3 (UI mapping only): events only cover created and assigned,
- * so later stages read "Sin fecha" instead of an invented date.
+ * The five life stages of a ticket for U3 (UI mapping only): events cover created, assigned, resolved and closed;
+ * in-progress (and any stage without an event) reads "Sin fecha" instead of an invented date.
  */
 export function lifeStages(ticket: LifeInput): LifeStage[] {
   const created = ticket.events.find((e) => e.kind === "created");
@@ -28,6 +28,10 @@ export function lifeStages(ticket: LifeInput): LifeStage[] {
   const dateOf: Partial<Record<TicketStatus, string>> = {};
   if (created) dateOf.new = formatDate(created.created_at);
   if (assigned) dateOf.assigned = formatDate(assigned.created_at);
+  const resolved = ticket.events.find((e) => e.kind === "resolved");
+  const closed = ticket.events.find((e) => e.kind === "closed");
+  if (resolved) dateOf.resolved = formatDate(resolved.created_at);
+  if (closed) dateOf.closed = formatDate(closed.created_at);
 
   return stageSteps(ticket.status, COPY.stages).map((step) => {
     const reached = step.state !== "upcoming";

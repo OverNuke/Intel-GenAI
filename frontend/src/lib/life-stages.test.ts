@@ -63,3 +63,20 @@ describe("lifeStages (REQ-UT-D5)", () => {
     expect(stages[3]!.note).toBeUndefined();
   });
 });
+
+describe("lifeStages resolved/closed dates (agent v2)", () => {
+  it("dates the Resuelto and Cerrado stages from their events", () => {
+    const stages = lifeStages({
+      ...base,
+      status: "closed",
+      events: [
+        ...base.events,
+        { kind: "resolved", created_at: "2026-01-10T10:00:00Z" },
+        { kind: "closed", created_at: "2026-01-11T10:00:00Z" },
+      ],
+    });
+    expect(stages[3]!.word).not.toBe("Sin fecha");
+    expect(stages[4]!.word).not.toBe("Sin fecha");
+    expect(stages[3]!.word).not.toBe(stages[4]!.word);
+  });
+});

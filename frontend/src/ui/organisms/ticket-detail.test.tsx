@@ -36,6 +36,7 @@ const detail = (over: Partial<Detail> = {}): Detail => ({
   ],
   contact_notice: null,
   receipt: null,
+  participants: [],
   ...over,
 });
 
@@ -358,5 +359,60 @@ describe("AriadnaReceipt", () => {
     );
     expect(screen.queryByRole("list", { name: "Dónde participó una persona" })).toBeNull();
     expect(screen.queryByText("Datos que faltaban")).toBeNull();
+  });
+});
+
+describe("agent v2 events and participants (U3)", () => {
+  it("renders updated / participants_added / resolved events in the Timeline", () => {
+    render(
+      <Timeline
+        events={[
+          {
+            id: "u",
+            kind: "updated",
+            body: JSON.stringify({ urgency: { before: "low", after: "high" } }),
+            created_at: "2026-01-08T19:00:00Z",
+          },
+          { id: "p", kind: "participants_added", body: "Luis Herrera", created_at: "2026-01-08T19:30:00Z" },
+          { id: "r", kind: "resolved", body: null, created_at: "2026-01-08T20:00:00Z" },
+        ]}
+      />,
+    );
+    const items = within(screen.getByRole("list", { name: "Línea de tiempo" })).getAllByRole("listitem");
+    expect(items[0]!.textContent).toContain("Cambió Urgencia: Puede esperar → No puedo trabajar");
+    expect(items[1]!.textContent).toContain("Se agregó a: Luis Herrera");
+    expect(items[2]!.textContent).toContain("Ticket resuelto");
+  });
+
+  it("falls back to plain text when an updated body is not JSON", () => {
+    render(<Timeline events={[{ id: "u", kind: "updated", body: "texto libre", created_at: "2026-01-08T19:00:00Z" }]} />);
+    expect(screen.getByText("texto libre")).toBeTruthy();
+  });
+
+  it("lists participants in the data block only when there are some", () => {
+    const { rerender } = render(<TicketDetail ticket={detail()} requesterName="Ana Ruiz" />);
+    expect(screen.queryByText("Participantes")).toBeNull();
+    rerender(<TicketDetail ticket={detail({ participants: ["Luis Herrera", "Marta Díaz"] })} requesterName="Ana Ruiz" />);
+    const term = screen.getByText("Participantes");
+    expect(term.closest(".rail-row")!.textContent).toContain("Luis Herrera, Marta Díaz");
+  });
+
+  it("shows the changes made through Ariadna below the life stages", () => {
+    render(
+      <TicketDetail
+        ticket={detail({
+          events: [
+            { id: "1", kind: "created", body: null, created_at: "2026-01-08T17:00:00Z" },
+            { id: "2", kind: "participants_added", body: "Luis Herrera", created_at: "2026-01-08T18:00:00Z" },
+          ],
+        })}
+        requesterName="Ana Ruiz"
+      />,
+    );
+    const changes = screen.getAllByRole("list", { name: "Cambios en tu ticket" })[0]!;
+    expect(within(changes).getAllByRole("listitem")).toHaveLength(1);
+    expect(changes.textContent).toContain("Se agregó a: Luis Herrera");
+    // The life-stage list keeps its own name.
+    expect(screen.getAllByRole("list", { name: "Línea de tiempo" })).toHaveLength(1);
   });
 });

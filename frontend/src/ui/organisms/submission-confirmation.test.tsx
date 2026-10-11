@@ -26,6 +26,7 @@ const ticket = (over: Partial<Detail> = {}): Detail => ({
   assignee_name: null,
   events: [{ id: "1061-1", kind: "created", body: null, created_at: "2026-10-09T18:00:00Z" }],
   contact_notice: null,
+  participants: [],
   receipt: {
     understood: "La impresora no imprime.",
     reviewed: ["Datos obligatorios completos"],
