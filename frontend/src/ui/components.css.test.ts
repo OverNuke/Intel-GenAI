@@ -170,6 +170,17 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(css).toMatch(/@keyframes tg-draw\s*\{/);
     });
 
+    it("collapses pseudo-element motion and delays under reduced motion", () => {
+      const block = css.match(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}\n/);
+      expect(block).not.toBeNull();
+      const body = (block as RegExpMatchArray)[1] as string;
+      const selectors = (body.match(/([^{}]+)\{/) as RegExpMatchArray)[1] as string;
+      const list = selectors.split(",").map((s) => s.trim());
+      expect(list).toEqual(expect.arrayContaining(["*", "*::before", "*::after"]));
+      expect(body).toMatch(/animation-delay:\s*0s\s*!important/);
+      expect(body).toMatch(/transition-delay:\s*0s\s*!important/);
+    });
+
     it("uses only duration and easing tokens: no raw ms/s literals outside the reduced-motion block", () => {
       expect(withoutReducedMotion).not.toMatch(/\b\d*\.?\d+m?s\b/);
       expect(motion.length).toBeGreaterThan(8);
