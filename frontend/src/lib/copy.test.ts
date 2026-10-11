@@ -34,4 +34,25 @@ describe("COPY (verbatim es-MX strings extracted from the mock)", () => {
       high: "No puedo trabajar",
     });
   });
+
+  it("provides the strings of the ticket detail and chat refinements", () => {
+    expect(COPY.detail.stagesLabel).toBe("Etapas del ticket");
+    expect(COPY.detail.viewLabel).toBe("Vista del ticket");
+    expect(COPY.detail.railLabel).toBe("Datos del ticket");
+    expect(COPY.detail.attachments).toBe("Adjuntos");
+    expect(COPY.detail.noAttachments).toBe("Ninguno");
+    expect(COPY.detail.noDate).toBe("Sin fecha");
+    expect(COPY.detail.tookBy).toBe("Lo tomó");
+    expect(COPY.detail.needDataSince).toBe("Necesitamos un dato de tu parte desde");
+    expect(COPY.chat.sendReply).toBe("Enviar respuesta a Ariadna");
+    expect(COPY.chat.back).toBe("Volver");
+    expect(COPY.request.notSentYet).toBe("Todavía no se ha enviado nada.");
+    expect(COPY.request.bandSteps).toEqual(["Qué pasa", "Detalles", "Revisión", "Enviado"]);
+    expect(COPY.request.bandLabel).toBe("Pasos de tu solicitud");
+    expect(COPY.request.readOnly).toBe("Solo lectura");
+    expect(COPY.request.impactHint).toBe("¿A quién afecta?");
+    expect(COPY.request.urgencyHint).toBe("¿Qué tan urgente es?");
+    expect(COPY.request.impactDesc.medium).toBe("Impacto medio");
+    expect(COPY.request.urgencyDesc.high).toBe("Urgencia alta");
+  });
 });

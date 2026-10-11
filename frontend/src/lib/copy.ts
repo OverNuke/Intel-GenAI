@@ -69,6 +69,15 @@ export const COPY = {
     number: "Número",
     seeMyTickets: "Ver mis tickets",
     seeTicket: "Ver el ticket",
+    notSentYet: "Todavía no se ha enviado nada.",
+    // adapted: the mock's band also has "Adjuntos", which is out of scope for the prototype
+    bandSteps: ["Qué pasa", "Detalles", "Revisión", "Enviado"],
+    bandLabel: "Pasos de tu solicitud",
+    readOnly: "Solo lectura",
+    impactHint: "¿A quién afecta?",
+    urgencyHint: "¿Qué tan urgente es?",
+    impactDesc: { low: "Impacto bajo", medium: "Impacto medio", high: "Impacto alto" },
+    urgencyDesc: { low: "Urgencia baja", medium: "Urgencia media", high: "Urgencia alta" },
   },
   it: {
     queueTitle: "Seguimiento de tickets",
@@ -144,6 +153,9 @@ export const COPY = {
     typing: "Ariadna está escribiendo…",
     yourAnswer: "Tu respuesta para Ariadna",
     reply: "Responder",
+    sendReply: "Enviar respuesta a Ariadna",
+    replyPlaceholder: "Escribe tu respuesta",
+    back: "Volver",
     ariadna: "Ariadna",
     you: "Tú",
     understood: "Esto es lo que entendí",
@@ -179,5 +191,14 @@ export const COPY = {
     asset: "Activo relacionado",
     noAsset: "Ninguno",
     help: "Ayuda con este ticket",
+    stagesLabel: "Etapas del ticket", // adapted: accessible name of the stage stepper
+    viewLabel: "Vista del ticket",
+    railLabel: "Datos del ticket",
+    assetShort: "Activo",
+    attachments: "Adjuntos",
+    noAttachments: "Ninguno",
+    noDate: "Sin fecha", // adapted: the mock says "Sin fecha de ejemplo"; here the date is real or missing
+    tookBy: "Lo tomó",
+    needDataSince: "Necesitamos un dato de tu parte desde",
   },
 } as const;

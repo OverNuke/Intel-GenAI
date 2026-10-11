@@ -759,3 +759,561 @@ th[aria-sort="descending"] .sort-button::after {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===== Shared primitives (REQ-VF-2). Ported from the stylesheet of the mock; token names only. ===== */
+
+.sr {
+  position: absolute;
+  width: var(--border-hairline);
+  height: var(--border-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Icons (decorative; Lucide outline). Stroke/fill live here because the paths carry no attributes. */
+.icon {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke-md);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-16 {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  stroke-width: var(--icon-stroke-sm);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: var(--radius-full);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--color-field);
+}
+
+/* Status pill: text + icon, tone only tints it (never colour-only). */
+.pill {
+  --tint: var(--status-neutral-tint);
+  --ink: var(--status-neutral-text);
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--size-pill);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--tint);
+  color: var(--ink);
+  white-space: nowrap;
+  font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--text-label-family);
+}
+
+.tone-error {
+  --tint: var(--status-error-tint);
+  --ink: var(--status-error-text);
+}
+
+.tone-warning {
+  --tint: var(--status-warning-tint);
+  --ink: var(--status-warning-text);
+}
+
+.tone-info {
+  --tint: var(--status-info-tint);
+  --ink: var(--status-info-text);
+}
+
+.tone-success {
+  --tint: var(--status-success-tint);
+  --ink: var(--status-success-text);
+}
+
+.tone-neutral {
+  --tint: var(--status-neutral-tint);
+  --ink: var(--status-neutral-text);
+}
+
+.tone-muted {
+  --tint: transparent;
+  --ink: var(--color-muted);
+  padding: 0;
+}
+
+.assist-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-text);
+  font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--text-label-family);
+  white-space: nowrap;
+}
+
+.todo-tag {
+  color: var(--color-muted);
+  font: var(--text-meta-weight) var(--text-meta-size) / var(--text-meta-line) var(--text-meta-family);
+  white-space: nowrap;
+}
+
+/* Alert: tone-* sets the tint; the body keeps normal ink for contrast. */
+.alert {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--tint);
+  color: var(--color-ink);
+}
+
+.alert > .icon {
+  margin-top: var(--space-1);
+  color: var(--ink);
+}
+
+.alert p {
+  margin: 0;
+}
+
+/* Stepper: full (horizontal on wide, vertical on compact) and vertical. */
+.stepper {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.step-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--size-node);
+  height: var(--size-node);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+/* connector to the next step */
+.step::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--size-node) / 2 - var(--size-connector) / 2);
+  left: var(--size-node);
+  right: 0;
+  height: var(--size-connector);
+  background: var(--color-border-control);
+}
+
+.step:last-child::before {
+  display: none;
+}
+
+.step.is-done::before {
+  background: var(--color-accent);
+}
+
+.step.is-done .step-node,
+.step.is-current .step-node {
+  color: var(--color-accent);
+}
+
+.step-text {
+  display: grid;
+  gap: 0;
+}
+
+.step-label {
+  font: var(--text-body-weight) var(--text-label-size) / var(--text-label-line) var(--text-label-family);
+  color: var(--color-ink);
+}
+
+.step-num {
+  font-family: var(--text-label-family);
+  font-weight: var(--text-label-weight);
+}
+
+.step.is-current .step-label {
+  font-weight: var(--text-label-weight);
+}
+
+.step.is-upcoming .step-label {
+  color: var(--color-muted);
+}
+
+.step-state {
+  font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+  color: var(--color-muted);
+}
+
+.step.is-current .step-state {
+  color: var(--color-accent-text);
+  font-weight: var(--text-label-weight);
+}
+
+/* "Pendiente" flag: attached to a stage, not a stage itself. */
+.step-flag {
+  position: absolute;
+  z-index: 2;
+  right: calc(var(--space-2) * -1);
+  top: calc(var(--space-2) * -1);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--status-warning-tint);
+  color: var(--status-warning-text);
+}
+
+.step-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+}
+
+.step-note.tone-warning,
+.step-note.tone-error {
+  background: none;
+  color: var(--ink);
+}
+
+.stepper--vertical {
+  grid-auto-flow: row;
+  gap: var(--space-4);
+}
+
+.stepper--vertical .step {
+  grid-template-columns: var(--size-node) minmax(0, 1fr);
+  justify-items: stretch;
+  column-gap: var(--space-3);
+  padding: 0;
+}
+
+.stepper--vertical .step::before {
+  top: var(--size-node);
+  bottom: calc(var(--space-4) * -1);
+  left: calc(var(--size-node) / 2 - var(--size-connector) / 2);
+  right: auto;
+  width: var(--size-connector);
+  height: auto;
+}
+
+.band {
+  background: var(--color-container);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* Record header (U3 / T2), breadcrumb and section header. */
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rec-head {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  padding: var(--space-5);
+  gap: var(--space-5);
+}
+
+.rec-head > div + div {
+  padding-left: var(--space-5);
+  box-shadow: inset var(--border-hairline) 0 0 var(--color-hairline);
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Data rail: a definition list with an icon per row. */
+.rail-rows {
+  display: grid;
+  margin: 0;
+}
+
+.rail-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  padding: var(--space-3) 0;
+  border-top: var(--border-hairline) solid var(--color-hairline);
+}
+
+.rail-row:first-child {
+  border-top: 0;
+}
+
+.rail-row > .icon {
+  color: var(--color-muted);
+  margin-top: var(--space-1);
+}
+
+.rail-row dt {
+  font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+  color: var(--color-muted);
+}
+
+.rail-row dd {
+  grid-column: 2;
+  margin: 0;
+}
+
+/* Form panel: field head (label + assist/todo tag), input wrap, option tiles. */
+.form-panel {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-xl);
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--size-pill);
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrap > .icon {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.input-wrap > .icon + .input {
+  padding-left: calc(var(--space-4) + var(--size-icon-md) + var(--space-2));
+}
+
+.opt-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The native radio stays in the tab order and the accessibility tree; the tile shows its state. */
+.opt-tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  align-content: start;
+  text-align: left;
+  min-height: var(--size-control);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: var(--border-hairline) solid var(--color-border-control);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.opt-tile input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.opt-tile:hover {
+  background: var(--color-field);
+}
+
+.opt-tile .opt-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--text-label-family);
+}
+
+.opt-tile .opt-desc {
+  grid-column: 1 / -1;
+  font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+  color: var(--color-muted);
+}
+
+.opt-tile:has(input:checked) {
+  background: var(--color-accent-tint);
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 var(--border-hairline) var(--color-accent);
+}
+
+.opt-tile:has(input:checked) .opt-desc {
+  color: var(--color-ink);
+}
+
+.opt-tile:has(input:focus-visible) {
+  outline: var(--border-focus) solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.opt-tile:has(input:disabled) {
+  color: var(--color-muted);
+  background: var(--color-field);
+  border-color: var(--color-hairline);
+  cursor: not-allowed;
+}
+
+/* Chat messages and composer. */
+.msg {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 80%;
+}
+
+.msg-who {
+  font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+  color: var(--color-muted);
+}
+
+.msg-text {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-field);
+}
+
+.msg--user {
+  justify-self: end;
+  justify-items: end;
+}
+
+.msg--user .msg-text {
+  background: var(--color-accent-tint);
+}
+
+.composer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-top: var(--border-hairline) solid var(--color-hairline);
+}
+
+.composer .input {
+  flex: 1 1 calc(var(--size-card-min) * 0.75);
+}
+
+.composer .input {
+  padding-block: var(--space-3);
+  resize: none;
+  field-sizing: content;
+  max-height: calc(var(--size-control) * 3);
+}
+
+.icon-btn--outline {
+  border: var(--border-hairline) solid var(--color-border-control);
+}
+
+.msg-who {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 767px = --bp-compact. On compact screens the full stepper reflows to vertical and
+   panels not selected in the tab view are hidden. */
+@media (max-width: 767px) {
+  .rec-head,
+  .form-grid,
+  .opt-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rec-head > div + div {
+    padding-left: 0;
+    box-shadow: none;
+  }
+
+  .msg {
+    max-width: 100%;
+  }
+
+  .composer {
+    flex-wrap: wrap;
+  }
+
+  .stepper--full {
+    grid-auto-flow: row;
+    gap: var(--space-4);
+  }
+
+  .stepper--full .step {
+    grid-template-columns: var(--size-node) minmax(0, 1fr);
+    justify-items: stretch;
+    column-gap: var(--space-3);
+    padding: 0;
+  }
+
+  .stepper--full .step::before {
+    top: var(--size-node);
+    bottom: calc(var(--space-4) * -1);
+    left: calc(var(--size-node) / 2 - var(--size-connector) / 2);
+    right: auto;
+    width: var(--size-connector);
+    height: auto;
+  }
+
+  .is-inactive {
+    display: none;
+  }
+}
+

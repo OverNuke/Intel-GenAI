@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { firstName, formatDate, stageSteps, stateIndicator } from "./ticket-labels";
+import { COPY } from "./copy";
+import { STAGE_ORDER, firstName, formatDate, pendingPill, stageSteps, stateIndicator, statusPill } from "./ticket-labels";
 
 describe("stateIndicator", () => {
   it("returns the plain stage label with a glyph (never colour only)", () => {
@@ -50,5 +51,44 @@ describe("formatDate and firstName", () => {
   it("takes the first word of a display name", () => {
     expect(firstName("Ana Ruiz")).toBe("Ana");
     expect(firstName("Luis")).toBe("Luis");
+  });
+});
+
+describe("statusPill (REQ-VF-3: one mapping, text AND icon)", () => {
+  it("maps the five statuses to tone and icon with the user wording by default", () => {
+    expect(statusPill("new")).toEqual({ label: "Recibido", tone: "info", icon: "inbox" });
+    expect(statusPill("assigned")).toEqual({
+      label: "Ya lo tiene un especialista",
+      tone: "neutral",
+      icon: "user-check",
+    });
+    expect(statusPill("in_progress")).toEqual({ label: "En revisión por TI", tone: "info", icon: "wrench" });
+    expect(statusPill("resolved")).toEqual({ label: "Resuelto", tone: "success", icon: "circle-check" });
+    expect(statusPill("closed")).toEqual({ label: "Cerrado", tone: "neutral", icon: "archive" });
+  });
+
+  it("uses the IT wording when given the IT labels (S-VF-1: En curso with a wrench)", () => {
+    expect(statusPill("in_progress", COPY.it.statuses)).toEqual({
+      label: "En curso",
+      tone: "info",
+      icon: "wrench",
+    });
+    expect(statusPill("new", COPY.it.statuses).label).toBe("Nuevo");
+  });
+
+  it("never returns empty text or an empty icon for any status (S-VF-2)", () => {
+    for (const status of STAGE_ORDER) {
+      const pill = statusPill(status);
+      expect(pill.label.length).toBeGreaterThan(0);
+      expect(pill.icon.length).toBeGreaterThan(0);
+    }
+    expect(STAGE_ORDER).toHaveLength(5);
+  });
+});
+
+describe("pendingPill", () => {
+  it("is the additional warning flag with the given text, not a stage", () => {
+    expect(pendingPill("Pendiente")).toEqual({ label: "Pendiente", tone: "warning", icon: "circle-alert" });
+    expect(pendingPill(COPY.needData).label).toBe("Necesitamos un dato de tu parte");
   });
 });
