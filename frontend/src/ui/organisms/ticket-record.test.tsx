@@ -64,6 +64,27 @@ describe("TicketRecord (T2)", () => {
     expect(screen.getByText("Pendiente")).toBeTruthy();
   });
 
+  it("S-IT-D1: the status is a pill with IT wording, icon and tone, next to a single warning Pendiente pill", () => {
+    render(<TicketRecord ticket={record({ awaiting_user: true })} onContact={noop} />);
+    const status = screen.getByText("En curso", { selector: ".pill" });
+    expect(status.className).toContain("tone-info");
+    expect(status.querySelector('svg[data-icon="wrench"]')).not.toBeNull();
+    const pending = screen.getAllByText("Pendiente");
+    expect(pending).toHaveLength(1);
+    expect(pending[0]!.className).toContain("tone-warning");
+    expect(pending[0]!.querySelector('svg[data-icon="circle-alert"]')).not.toBeNull();
+    // the id appears once as text; the head card uses the shared RecordHeader
+    expect(screen.getAllByText("INC0001056")).toHaveLength(1);
+  });
+
+  it("S-IT-D1: the data rail is a complementary 'Datos del ticket' definition list with the six rows", () => {
+    render(<TicketRecord ticket={record()} onContact={noop} />);
+    const rail = screen.getByRole("complementary", { name: "Datos del ticket" });
+    expect(rail.querySelectorAll("dl.rail-rows > .rail-row")).toHaveLength(6);
+    expect(within(rail).getByText("Soporte de redes")).toBeTruthy();
+    expect(within(rail).getByText("Luis Herrera")).toBeTruthy();
+  });
+
   it("tabs switch between Resumen, Línea de tiempo and Bitácora", () => {
     render(<TicketRecord ticket={record()} onContact={noop} />);
     expect(screen.getByRole("tab", { name: "Resumen" }).getAttribute("aria-selected")).toBe("true");

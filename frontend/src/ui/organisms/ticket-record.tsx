@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
 import { formatDate } from "@/lib/ticket-labels";
+import { Icon, type IconName } from "../atoms/icon";
+import { StatusPill } from "../molecules/status-pill";
 import { AriadnaReceipt } from "./ariadna-receipt";
+import { RecordHeader } from "./record-header";
 import { StageTracker } from "./stage-tracker";
 import { KIND_LABELS, Timeline } from "./timeline";
 
@@ -22,50 +24,54 @@ const FINISHED = new Set(["resolved", "closed"]);
 export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact: () => void }) {
   const [tab, setTab] = useState<TabKey>("summary");
   const finished = FINISHED.has(ticket.status);
-  const rows: [string, string][] = [
-    [COPY.detail.impact, COPY.impact[ticket.impact]],
-    [COPY.detail.urgency, COPY.urgency[ticket.urgency]],
-    [COPY.detail.group, ticket.assigned_group],
-    [COPY.it.columns.assignee, ticket.assignee_name ?? COPY.it.unassigned],
-    [COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
-    [COPY.detail.created, formatDate(ticket.created_at)],
+  const rows: [IconName, string, string][] = [
+    ["users", COPY.detail.impact, COPY.impact[ticket.impact]],
+    ["signal-medium", COPY.detail.urgency, COPY.urgency[ticket.urgency]],
+    ["signpost", COPY.detail.group, ticket.assigned_group],
+    ["user-check", COPY.it.columns.assignee, ticket.assignee_name ?? COPY.it.unassigned],
+    ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
+    // adapted: the mock's "clock" icon is not in the extracted sprite; file-check stands in (as on U3).
+    ["file-check", COPY.detail.created, formatDate(ticket.created_at)],
   ];
   const visibleEvents = ticket.events.filter((e) => e.visible_to_requester);
 
   return (
     <div className="stack">
-      <Link href="/ti/seguimiento">{COPY.it.backToQueue}</Link>
-      <div className="page-head">
+      <RecordHeader
+        crumb={{ href: "/ti/seguimiento", label: COPY.it.backToQueue }}
+        id={ticket.id}
+        title={ticket.summary}
+        subtitle={`${COPY.it.requester}: ${ticket.requester_name}`}
+        crumbId={false}
+      >
         <div>
-          <p className="t-id">{ticket.id}</p>
-          <h1 tabIndex={-1}>{ticket.summary}</h1>
-          <p className="t-meta">{`${COPY.it.requester}: ${ticket.requester_name}`}</p>
+          <span className="t-meta">{COPY.detail.state}</span>
+          <div className="chip-row">
+            <StatusPill
+              status={ticket.status}
+              awaitingUser={ticket.awaiting_user}
+              labels={COPY.it.statuses}
+              pendingLabel={COPY.it.pending}
+            />
+          </div>
         </div>
-      </div>
-
-      <ul aria-label="Estado del ticket" className="plain-list">
-        <li>
-          <span className="t-meta">{COPY.detail.state} </span>
-          <span>{COPY.it.statuses[ticket.status]}</span>
-          {ticket.awaiting_user ? <span className="flag-pending">{COPY.it.pending}</span> : null}
-        </li>
-        <li>
-          <span className="t-meta">{COPY.it.priority} </span>
-          <span>{COPY.it.priorities[ticket.priority]}</span>
-        </li>
-        <li>
-          <span className="t-meta">{COPY.it.sla} </span>
+        <div>
+          <span className="t-meta">{COPY.it.priority}</span>
+          <strong>{COPY.it.priorities[ticket.priority]}</strong>
+          <span className="t-meta">{COPY.it.sla}</span>
           <span>{ticket.sla_state ? COPY.it.slaStates[ticket.sla_state] : COPY.it.noSla}</span>
-          {ticket.sla_due_at ? <span className="t-meta"> {formatDate(ticket.sla_due_at)}</span> : null}
-        </li>
-      </ul>
+          {ticket.sla_due_at ? <span className="t-meta">{formatDate(ticket.sla_due_at)}</span> : null}
+        </div>
+      </RecordHeader>
 
-      <StageTracker
-        status={ticket.status}
-        awaitingUser={ticket.awaiting_user}
-        labels={COPY.it.statuses}
-        pendingLabel={null}
-      />
+      <div className="band">
+        <StageTracker
+          status={ticket.status}
+          awaitingUser={ticket.awaiting_user}
+          labels={COPY.it.statuses}
+          pendingLabel={null}
+        />
+      </div>
 
       <div className="stack">
         <div className="actions">
@@ -107,17 +113,23 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
       <div role="tabpanel" id="rec-panel" aria-labelledby={`rec-tab-${tab}`} className="stack">
         {tab === "summary" ? (
           <>
-            <section aria-labelledby="rec-desc" className="stack">
-              <h2 id="rec-desc">{COPY.detail.description}</h2>
-              <p>{ticket.description}</p>
-            </section>
-            <ul aria-label="Datos del ticket" className="plain-list data-rows">
-              {rows.map(([label, value]) => (
-                <li key={label}>
-                  <span className="t-meta">{label}</span> <span>{value}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="rec-body">
+              <section aria-labelledby="rec-desc" className="stack">
+                <h2 id="rec-desc">{COPY.detail.description}</h2>
+                <p>{ticket.description}</p>
+              </section>
+              <aside className="card" aria-label={COPY.detail.railLabel}>
+                <dl className="rail-rows">
+                  {rows.map(([icon, label, value]) => (
+                    <div key={label} className="rail-row">
+                      <Icon name={icon} size="sm" />
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </aside>
+            </div>
             {ticket.receipt ? (
               <AriadnaReceipt receipt={ticket.receipt} />
             ) : (

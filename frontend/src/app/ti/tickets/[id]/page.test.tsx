@@ -61,6 +61,7 @@ describe("/ti/tickets/[id] (T2)", () => {
     );
     expect(screen.getByRole("heading", { level: 1, name: "Red lenta" })).toBeTruthy();
     expect(screen.getByText("Pendiente")).toBeTruthy();
+    expect(screen.getAllByText("INC0001056")).toHaveLength(1);
     expect(screen.getByRole("link", { name: "Seguimiento de tickets" })).toBeTruthy();
   });
 
