@@ -110,6 +110,135 @@ describe("ConversationContainer (U6)", () => {
     expect(screen.getByRole("link", { name: "Volver" }).getAttribute("href")).toBe("/tickets/INC0001056");
   });
 
+  it("S-AC-S3: the IT actions live under the composer in the chat shell, never in the chat head", () => {
+    open(fetcher({}));
+    for (const name of ["Hablar con TI", "Pasar con TI"]) {
+      const button = screen.getByRole("button", { name });
+      expect(button.closest(".chat-head")).toBeNull();
+      const shell = button.closest(".conversation") as HTMLElement;
+      expect(shell).not.toBeNull();
+      const composer = shell.querySelector(".composer") as HTMLElement;
+      expect(composer.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+    expect(document.querySelector(".chat-head-actions")).toBeNull();
+  });
+
+  it("S-AC-S1: the summary column is visible and the form stays mounted but hidden", () => {
+    open(fetcher({}));
+    expect(screen.getByRole("heading", { name: "Esto es lo que entendí" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Revisar y enviar" })).toBeTruthy();
+    const panel = screen.getByLabelText("Resumen").closest("#u6-form") as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.hasAttribute("hidden")).toBe(true);
+    expect(screen.getByLabelText("Resumen").closest("#u6-summary")).toBeNull();
+    expect(screen.getByRole("heading", { name: "Esto es lo que entendí" }).closest("#u6-summary")!.hasAttribute("hidden")).toBe(false);
+    expect(screen.queryByRole("button", { name: "Volver al resumen" })).toBeNull();
+  });
+
+  it("S-AC-S2: 'Editar solicitud' opens the form in place and 'Volver al resumen' restores the summary", () => {
+    open(fetcher({}));
+    const toggle = screen.getByRole("button", { name: "Editar solicitud" });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.getAttribute("aria-controls")).toBe("u6-form");
+    expect(toggle.querySelector('[data-icon="maximize-2"]')).not.toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(toggle.querySelector('[data-icon="minimize-2"]')).not.toBeNull();
+    expect(document.getElementById("u6-form")!.hasAttribute("hidden")).toBe(false);
+    expect(document.getElementById("u6-summary")!.hasAttribute("hidden")).toBe(true);
+    expect(screen.getByRole("heading", { name: "Tu solicitud" })).toBeTruthy();
+    // the footer actions are outside the toggled region and stay available
+    expect(toggle.closest("#u6-summary, #u6-form")).toBeNull();
+    expect(screen.getByRole("button", { name: "Revisar y enviar" }).closest("#u6-summary, #u6-form")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Volver al resumen" }));
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.getElementById("u6-form")!.hasAttribute("hidden")).toBe(true);
+    expect(document.getElementById("u6-summary")!.hasAttribute("hidden")).toBe(false);
+    expect(document.activeElement).toBe(toggle);
+  });
+
+  it("the same toggle also closes the form (disclosure) and keeps focus on itself", () => {
+    open(fetcher({}));
+    const toggle = screen.getByRole("button", { name: "Editar solicitud" });
+    toggle.focus();
+    fireEvent.click(toggle);
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(document.getElementById("u6-form")!.hasAttribute("hidden")).toBe(true);
+    expect(document.activeElement).toBe(toggle);
+  });
+
+  it("the typed chat text survives opening and closing the form panel", () => {
+    open(fetcher({}));
+    const box = screen.getByLabelText("Tu respuesta para Ariadna") as HTMLTextAreaElement;
+    fireEvent.change(box, { target: { value: "borrador a medias" } });
+    fireEvent.click(screen.getByRole("button", { name: "Editar solicitud" }));
+    fireEvent.click(screen.getByRole("button", { name: "Volver al resumen" }));
+    expect((screen.getByLabelText("Tu respuesta para Ariadna") as HTMLTextAreaElement).value).toBe("borrador a medias");
+    expect(screen.getByLabelText("Tu respuesta para Ariadna")).toBe(box);
+  });
+
+  it("S-TS-S1: a blocked review names every missing field next to the button and describes it", () => {
+    open(fetcher({}));
+    const review = screen.getByRole("button", { name: "Revisar y enviar" }) as HTMLButtonElement;
+    expect(review.disabled).toBe(true);
+    const reason = screen.getByText("Para revisar y enviar falta: Servicio, Resumen, Descripción, Impacto, Urgencia");
+    expect(review.getAttribute("aria-describedby")).toBe(reason.id);
+    expect(reason.id).not.toBe("");
+    expect(screen.queryByText(/Te falta/)).toBeNull();
+    expect(screen.queryByText(/Completa Servicio/)).toBeNull();
+  });
+
+  it("S-TS-S2: 'Completar en el formulario' opens the panel and focuses the first missing field", async () => {
+    open(fetcher({}));
+    fireEvent.click(screen.getByRole("button", { name: "Completar en el formulario" }));
+    expect(document.getElementById("u6-form")!.hasAttribute("hidden")).toBe(false);
+    expect(document.activeElement).toBe(document.getElementById("f-service"));
+    await act(async () => {});
+  });
+
+  it("S-TS-S2: with only impact and urgency missing the first radio of Impacto gets focus", async () => {
+    const f = fetcher({ "/api/assistant/turn": () => json(turn()) });
+    open(f);
+    say("La impresora no imprime");
+    await waitFor(() => expect(screen.getByText("Para revisar y enviar falta: Impacto, Urgencia")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "Completar en el formulario" }));
+    const group = document.getElementById("impact-group") as HTMLElement;
+    expect(group.hasAttribute("hidden")).toBe(false);
+    expect(document.activeElement).toBe(group.querySelector("input[type=radio]"));
+    // already open: the opener still moves focus to the first missing field
+    (document.activeElement as HTMLElement).blur();
+    fireEvent.click(screen.getByRole("button", { name: "Completar en el formulario" }));
+    expect(document.activeElement).toBe(group.querySelector("input[type=radio]"));
+  });
+
+  it("S-TS-S3: a complete draft shows no reason and no opener, and only the confirmation step submits", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(readyTurn()),
+      "/api/tickets": () => json({ id: "INC0001061" }, 201),
+    });
+    open(f);
+    say("La impresora no imprime");
+    await waitFor(() => expect((screen.getByRole("button", { name: "Revisar y enviar" }) as HTMLButtonElement).disabled).toBe(false));
+    expect(screen.queryByText(/Para revisar y enviar falta/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Completar en el formulario" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Revisar y enviar" }).getAttribute("aria-describedby")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Revisar y enviar" }));
+    expect(screen.getByRole("button", { name: "Enviar solicitud" })).toBeTruthy();
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("S-AC-S4: after a handoff the IT actions stay enabled and the draft survives", () => {
+    open(fetcher({}));
+    fireEvent.change(screen.getByLabelText("Resumen"), { target: { value: "VPN caída" } });
+    fireEvent.click(screen.getByRole("button", { name: "Pasar con TI" }));
+    expect((screen.getByRole("button", { name: "Pasar con TI" }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByRole("button", { name: "Hablar con TI" }) as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByLabelText("Resumen") as HTMLInputElement).value).toBe("VPN caída");
+    // impact and urgency are optional once handed off, so the reason no longer lists them
+    expect(screen.getByText("Para revisar y enviar falta: Servicio, Descripción")).toBeTruthy();
+  });
+
   it("greets according to the entry and keeps both IT actions available from the start", () => {
     open(fetcher({}));
     expect(screen.getByText("Hola, Ana. Cuéntame qué está pasando y te ayudo a preparar tu solicitud.")).toBeTruthy();

@@ -93,11 +93,25 @@ export function reducer(state: ConversationState, action: Action): ConversationS
   }
 }
 
-/** Ariadna path needs every field; after a handoff the person may send without impact/urgency. */
-export function canReview(state: ConversationState): boolean {
+/**
+ * What still blocks the review, in form order. The Ariadna path needs every field; after a
+ * handoff the person may send without impact/urgency, so those two are not reported then.
+ */
+export function missingFields(state: ConversationState): DraftField[] {
   const { service, summary, description, impact, urgency } = state.draft;
-  const base = Boolean(service) && summary.trim() !== "" && description.trim() !== "";
-  return state.degraded ? base : base && impact !== null && urgency !== null;
+  const missing: DraftField[] = [];
+  if (!service) missing.push("service");
+  if (summary.trim() === "") missing.push("summary");
+  if (description.trim() === "") missing.push("description");
+  if (!state.degraded) {
+    if (impact === null) missing.push("impact");
+    if (urgency === null) missing.push("urgency");
+  }
+  return missing;
+}
+
+export function canReview(state: ConversationState): boolean {
+  return missingFields(state).length === 0;
 }
 
 /** The receipt only exists for conversations Ariadna actually prepared (never after a handoff). */

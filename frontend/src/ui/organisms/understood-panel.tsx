@@ -1,5 +1,6 @@
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { Icon } from "../atoms/icon";
 
 type Turn = components["schemas"]["AssistantTurn"];
 
@@ -20,7 +21,10 @@ export function UnderstoodPanel({ turn }: { turn: Turn | null }) {
       ) : null}
       {reviewed.length > 0 ? (
         <div>
-          <h3 className="t-label">{COPY.chat.reviewed}</h3>
+          <h3 className="t-label row">
+            <Icon name="list-checks" size="sm" />
+            {COPY.chat.reviewed}
+          </h3>
           <ul aria-label={COPY.chat.reviewed} className="plain-list">
             {reviewed.map((item) => (
               <li key={item}>{item}</li>

@@ -168,7 +168,10 @@ export const COPY = {
     assistantFilled: "Lo llenó el asistente",
     service: "Servicio",
     review: "Revisar y enviar",
-    reviewHelp: "Completa Servicio, Resumen, Descripción, Impacto y Urgencia para revisar y enviar.", // adapted
+    reviewMissing: "Para revisar y enviar falta", // adapted: the mock has no disabled-state reason; "Te falta" is the understood panel's
+    openForm: "Completar en el formulario", // adapted
+    editRequest: "Editar solicitud", // adapted
+    backToSummary: "Volver al resumen", // adapted
     draftNotSaved: "Prototipo: el borrador no se guarda.",
   },
   catalog: {

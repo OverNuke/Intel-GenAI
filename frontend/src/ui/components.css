@@ -65,7 +65,7 @@ a {
   color: var(--color-on-accent);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
 }
 
@@ -83,6 +83,24 @@ a {
 .btn[aria-busy="true"] {
   opacity: 0.7;
   cursor: progress;
+}
+
+/* Disabled must read as disabled (not as a broken button): flat, muted, not-allowed. */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled {
+  background: var(--color-field);
+  color: var(--color-muted);
+  border-color: var(--color-border-control);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .input {
@@ -811,18 +829,69 @@ a {
 }
 
 /* Conversación (U6) */
+/* Page = head + split grid; it fills the viewport under the topbar so the thread scrolls inside the
+   chat shell and the composer stays pinned (collapses to natural height at 1100px). */
+.conv-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: calc(var(--size-viewport) - var(--size-topbar) - var(--space-5) * 2);
+  min-height: 0;
+}
+
+/* 320-440px summary column (UnderstoodPanel or "Tu solicitud") + fluid chat shell. */
 .conversation-grid {
   display: grid;
-  grid-template-columns: minmax(0, var(--size-chat-max)) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
   gap: var(--space-5);
-  align-items: start;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.conv-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.conv-panels {
+  min-width: 0;
+}
+
+.conv-panel[hidden] {
+  display: none;
+}
+
+.conv-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Chat shell: thread fills and scrolls, composer and IT actions stay pinned under it. */
+.conversation {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  min-width: 0;
+  min-height: 0;
+  background: var(--color-surface);
+  border: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.conversation-footer {
+  padding: var(--space-3) var(--space-5);
+  border-top: var(--border-hairline) solid var(--color-hairline);
 }
 
 .chat-thread {
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  max-height: var(--size-chart);
+  min-height: 0;
+  padding: var(--space-5);
   overflow-y: auto;
 }
 
@@ -1430,10 +1499,6 @@ th[aria-sort="descending"] .sort-button::after {
   margin: 0;
 }
 
-.chat-head-actions {
-  margin-left: auto;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1523,8 +1588,20 @@ th[aria-sort="descending"] .sort-button::after {
     white-space: nowrap;
   }
 
+  .conv-page {
+    height: auto;
+  }
+
   .conversation-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .conv-side {
+    overflow-y: visible;
+  }
+
+  .conversation {
+    height: max(var(--size-chat-min), 60dvh);
   }
 
   .rec-head {
@@ -1625,6 +1702,11 @@ th[aria-sort="descending"] .sort-button::after {
 
   .app .app-main {
     padding-bottom: calc(var(--nav-h) + var(--space-4));
+  }
+
+  /* U6: the topbar scrolls away, so the chat shell is the viewport minus the bar and page padding. */
+  .conversation {
+    height: max(var(--size-chat-min), calc(var(--size-viewport) - var(--nav-h) - var(--space-4) * 2));
   }
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { components } from "@/lib/api-types";
-import { canReview, initialState, receiptFrom, reducer } from "./conversation-reducer";
+import { canReview, initialState, missingFields, receiptFrom, reducer } from "./conversation-reducer";
 
 type Turn = components["schemas"]["AssistantTurn"];
 
@@ -118,6 +118,26 @@ describe("canReview and receiptFrom", () => {
     const degraded = { ...start(), degraded: { reason: "timeout" as const }, draft: { ...filled, impact: null, urgency: null } };
     expect(canReview(degraded)).toBe(true);
     expect(canReview({ ...degraded, draft: { ...degraded.draft, service: null } })).toBe(false);
+  });
+
+  it("missingFields lists what blocks the review in form order and agrees with canReview", () => {
+    expect(missingFields(start())).toEqual(["service", "summary", "description", "impact", "urgency"]);
+    expect(missingFields({ ...start(), draft: { ...filled, summary: "  ", impact: null } })).toEqual(["summary", "impact"]);
+    expect(missingFields({ ...start(), draft: filled })).toEqual([]);
+    const cases = [
+      start(),
+      { ...start(), draft: filled },
+      { ...start(), draft: { ...filled, urgency: null } },
+      { ...start(), draft: { ...filled, description: "" } },
+      { ...start(), degraded: { reason: "requested" as const }, draft: { ...filled, impact: null, urgency: null } },
+      { ...start(), degraded: { reason: "requested" as const }, draft: { ...filled, service: null } },
+    ];
+    for (const state of cases) expect(canReview(state)).toBe(missingFields(state).length === 0);
+  });
+
+  it("missingFields drops impact and urgency once degraded (they become optional)", () => {
+    const degraded = { ...start(), degraded: { reason: "timeout" as const }, draft: { ...filled, service: null, impact: null, urgency: null } };
+    expect(missingFields(degraded)).toEqual(["service"]);
   });
 
   it("builds the receipt from the latest turn and omits it once degraded", () => {

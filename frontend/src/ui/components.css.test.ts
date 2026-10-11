@@ -111,6 +111,53 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(css).toMatch(/\.table-scroll\s*\{[^}]*overflow-x:\s*auto/);
   });
 
+  describe("U6 split layout (REQ-AC-S1..S3, REQ-TS-S1)", () => {
+    it("defines the page, side column, swappable panel and chat shell selectors", () => {
+      for (const selector of [".conv-page", ".conv-side", ".conv-panel", ".conv-actions", ".conversation"]) {
+        expect(hasSelector(selector), selector).toBe(true);
+      }
+    });
+
+    it("splits the grid into a bounded summary column and a fluid chat column", () => {
+      const grid = /\.conversation-grid\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+      expect(grid).toMatch(/grid-template-columns:\s*minmax\(320px, 440px\) minmax\(0, 1fr\)/);
+      expect(grid).not.toMatch(/--size-chat-min/);
+    });
+
+    it("lets the hidden attribute win over the panel display and keeps the form out of the layout", () => {
+      expect(css).toMatch(/\.conv-panel\[hidden\]\s*\{[^}]*display:\s*none/);
+    });
+
+    it("styles the chat shell as a hairline surface with --radius-xl whose thread scrolls and composer stays pinned", () => {
+      const shell = /(^|\n)\.conversation\s*\{([^}]*)\}/.exec(css)?.[2] ?? "";
+      expect(shell).toMatch(/border:\s*var\(--border-hairline\) solid var\(--color-hairline\)/);
+      expect(shell).toMatch(/border-radius:\s*var\(--radius-xl\)/);
+      expect(shell).toMatch(/grid-template-rows:\s*minmax\(0, 1fr\) auto auto/);
+      const thread = /\.chat-thread\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+      expect(thread).toMatch(/min-height:\s*0/);
+      expect(thread).toMatch(/overflow-y:\s*auto/);
+      expect(thread).not.toMatch(/max-height/);
+      expect(thread).toMatch(/padding:\s*var\(--space-5\)/);
+    });
+
+    it("gives a disabled .btn a visibly distinct, tokens-only look (S-TS-S4)", () => {
+      const rule = /\.btn:disabled[^{]*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+      expect(rule).toMatch(/opacity:/);
+      expect(rule).toMatch(/cursor:\s*not-allowed/);
+      expect(rule).not.toMatch(/#|rgb/);
+    });
+
+    it("collapses to one column at 1100px with a bounded chat height, and subtracts the bottom bar at 767px", () => {
+      const medium = [...css.matchAll(/@media \(max-width: 1100px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+      expect(medium).toMatch(/\.conv-page\s*\{[^}]*height:\s*auto/);
+      expect(medium).toMatch(/\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), 60dvh\)/);
+      const compact = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+      expect(compact).toMatch(
+        /\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), calc\(var\(--size-viewport\) - var\(--nav-h\) - var\(--space-4\) \* 2\)\)/,
+      );
+    });
+  });
+
   describe("motion (REQ-MO-1..5)", () => {
     const withoutReducedMotion = css.replace(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}\n/, "");
     const motion = [...withoutReducedMotion.matchAll(/(?:^|[;{\s])(transition|animation)\s*:\s*([^;]+);/g)].map(

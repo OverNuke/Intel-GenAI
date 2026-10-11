@@ -60,6 +60,44 @@ describe("Chat", () => {
     expect(items[1]!.classList.contains("msg--user")).toBe(true);
   });
 
+  it("is the .conversation shell and renders the footer slot after the composer", () => {
+    const { container } = render(
+      <Chat messages={messages} busy={false} onSend={vi.fn()} footer={<p data-testid="slot">pie</p>} />,
+    );
+    const shell = container.firstElementChild as HTMLElement;
+    expect(shell.classList.contains("conversation")).toBe(true);
+    const composer = shell.querySelector(".composer") as HTMLElement;
+    const slot = screen.getByTestId("slot");
+    expect(shell.contains(slot)).toBe(true);
+    expect(composer.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(composer.contains(slot)).toBe(false);
+  });
+
+  it("renders no footer wrapper content when no slot is given", () => {
+    const { container } = render(<Chat messages={messages} busy={false} onSend={vi.fn()} />);
+    expect(container.querySelector(".conversation-footer")).toBeNull();
+  });
+
+  it("shows the typing indicator as an assistant bubble inside the polite log", () => {
+    render(<Chat messages={messages} busy={true} onSend={vi.fn()} />);
+    const log = screen.getByRole("log");
+    expect(log.getAttribute("aria-live")).toBe("polite");
+    const typing = within(log).getByText("Ariadna está escribiendo…");
+    const bubble = typing.closest("li") as HTMLElement;
+    expect(bubble.classList.contains("msg")).toBe(true);
+    expect(typing.classList.contains("msg-text")).toBe(true);
+    expect(bubble.querySelector('[data-icon="sparkles"]')).not.toBeNull();
+  });
+
+  it("marks only the newest message as new (fade-in), not the greeting alone", () => {
+    const { rerender } = render(<Chat messages={messages.slice(0, 1)} busy={false} onSend={vi.fn()} />);
+    expect(document.querySelector(".msg.is-new")).toBeNull();
+    rerender(<Chat messages={messages} busy={false} onSend={vi.fn()} />);
+    const items = within(screen.getByRole("log")).getAllByRole("listitem");
+    expect(items[0]!.classList.contains("is-new")).toBe(false);
+    expect(items[1]!.classList.contains("is-new")).toBe(true);
+  });
+
   it("uses a one-line composer with a named icon send button (no 'Responder' text button)", () => {
     render(<Chat messages={messages} busy={false} onSend={vi.fn()} />);
     const box = screen.getByRole("textbox", { name: "Tu respuesta para Ariadna" }) as HTMLTextAreaElement;
@@ -197,6 +235,15 @@ describe("RequestDraftForm (Tu solicitud)", () => {
     expect(onEdit).toHaveBeenLastCalledWith("urgency", "low");
   });
 
+  it("gives the impact and urgency groups stable ids so the opener can focus the first missing field", () => {
+    render(<RequestDraftForm draft={draft} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
+    expect(screen.getByRole("radiogroup", { name: "Impacto" }).id).toBe("impact-group");
+    expect(screen.getByRole("radiogroup", { name: "Urgencia" }).id).toBe("urgency-group");
+    expect(screen.getByLabelText("Servicio").id).toBe("f-service");
+    expect(screen.getByLabelText("Resumen").id).toBe("f-summary");
+    expect(screen.getByLabelText("Descripción").id).toBe("f-desc");
+  });
+
   it("offers impact and urgency as radio groups in the user's language", () => {
     const onEdit = vi.fn();
     render(<RequestDraftForm draft={EMPTY_DRAFT} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={onEdit} />);
@@ -231,6 +278,13 @@ describe("UnderstoodPanel", () => {
     const reviewed = screen.getByRole("list", { name: "Lo que revisé" });
     expect(within(reviewed).getAllByRole("listitem")).toHaveLength(2);
     expect(screen.getByRole("note").textContent).toContain("autorización de tu jefe o encargado");
+  });
+
+  it("marks the reviewed list with the list-checks icon without changing the list name", () => {
+    render(<UnderstoodPanel turn={turn} />);
+    const heading = screen.getByRole("heading", { level: 3, name: "Lo que revisé" });
+    expect(heading.querySelector('[data-icon="list-checks"]')).not.toBeNull();
+    expect(screen.getByRole("list", { name: "Lo que revisé" })).toBeTruthy();
   });
 
   it("always states that Ariadna sends nothing", () => {

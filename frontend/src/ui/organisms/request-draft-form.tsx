@@ -75,6 +75,7 @@ function LevelGroup({
         {hint}
       </p>
       <div
+        id={`${prefix}-group`}
         role="radiogroup"
         aria-labelledby={`${prefix}-label`}
         aria-describedby={`${prefix}-hint`}
