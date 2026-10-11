@@ -136,3 +136,29 @@ async def test_request_contact_flags_pending_keeps_status_and_logs_the_event(
     assert record.events[-1].body == "Confirma la extensión"
     assert record.people["luis"] == "Luis Herrera"
     assert await repo.request_contact(999999, "luis", None, at) is None
+
+
+@writes
+async def test_confirmed_writes_participants_update_and_close_round_trip(
+    repo: SqlAlchemyTicketRepository,
+) -> None:
+    """MUTATES the target DB (tickets 1057 and 1054): throwaway branch only; re-seed to reset."""
+    at = datetime(2026, 10, 11, 12, 0, tzinfo=UTC)
+    added = await repo.add_participants(1057, ["sara", "sara"], "ana", "Sara Molina", at)
+    assert added is not None
+    assert added.participants == ("sara",)
+    assert added.people["sara"] == "Sara Molina"
+    assert added.events[-1].kind == "participants_added"
+
+    changes = {"summary": "Acceso a la carpeta de finanzas"}
+    updated = await repo.update_ticket(1057, changes, "ana", '{"summary": {}}', at)
+    assert updated is not None
+    assert updated.view.ticket.summary == "Acceso a la carpeta de finanzas"
+    assert updated.events[-1].kind == "updated"
+
+    assert await repo.close(1057, "ana", at) is None  # not Resuelto
+    closed = await repo.close(1054, "ana", at)
+    assert closed is not None
+    assert closed.view.ticket.status == "closed"
+    assert closed.events[-1].kind == "closed"
+    assert await repo.update_ticket(1054, changes, "ana", "{}", at) is None  # closed now

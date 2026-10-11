@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    PrimaryKeyConstraint,
     Sequence,
     String,
     Text,
@@ -84,4 +85,16 @@ class TicketEventRow(Base):
     author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
     body: Mapped[str | None] = mapped_column(Text)
     visible_to_requester: Mapped[bool] = mapped_column(Boolean, server_default=true())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class TicketParticipantRow(Base):
+    """A user added to a ticket besides requester and assignee (the domain caps them at 8)."""
+
+    __tablename__ = "ticket_participants"
+    __table_args__ = (PrimaryKeyConstraint("ticket_number", "user_id"),)
+
+    ticket_number: Mapped[int] = mapped_column(ForeignKey("tickets.number", ondelete="CASCADE"))
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    added_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

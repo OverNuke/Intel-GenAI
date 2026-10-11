@@ -1,6 +1,8 @@
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import aliased
@@ -12,10 +14,15 @@ from app.modules.tickets.domain.receipt import AriadnaReceipt, receipt_from_json
 from app.modules.tickets.domain.ticket import (
     Ticket,
     TicketEvent,
+    TicketEventKind,
     TicketRecord,
     TicketView,
 )
-from app.modules.tickets.infrastructure.models import TicketEventRow, TicketRow
+from app.modules.tickets.infrastructure.models import (
+    TicketEventRow,
+    TicketParticipantRow,
+    TicketRow,
+)
 
 
 def to_ticket(row: TicketRow) -> Ticket:
@@ -67,6 +74,33 @@ def _with_names() -> Select[TicketRow, str, str]:
     )
 
 
+async def _append_event(
+    session: AsyncSession,
+    number: int,
+    kind: TicketEventKind,
+    by: str,
+    body: str | None,
+    at: datetime,
+) -> None:
+    """Next "{number}-{seq}" event, inside the caller's transaction (row already locked)."""
+    existing = await session.scalar(
+        select(func.count())
+        .select_from(TicketEventRow)
+        .where(TicketEventRow.ticket_number == number)
+    )
+    session.add(
+        TicketEventRow(
+            id=f"{number}-{(existing or 0) + 1}",
+            ticket_number=number,
+            kind=kind,
+            author_id=by,
+            body=body,
+            visible_to_requester=True,
+            created_at=at,
+        )
+    )
+
+
 class SqlAlchemyTicketRepository:
     """TicketRepository over Postgres. One short session per call (serverless, NullPool)."""
 
@@ -101,9 +135,19 @@ class SqlAlchemyTicketRepository:
             if row is None:
                 return None
             events = (await session.scalars(events_stmt)).all()
+            participants = tuple(
+                (
+                    await session.scalars(
+                        select(TicketParticipantRow.user_id)
+                        .where(TicketParticipantRow.ticket_number == number)
+                        .order_by(TicketParticipantRow.created_at, TicketParticipantRow.user_id)
+                    )
+                ).all()
+            )
             ticket_row, requester, assignee = row
             wanted = {ticket_row.requester_id, ticket_row.assignee_id}
             wanted |= {e.author_id for e in events}
+            wanted |= set(participants)
             wanted.discard(None)
             names = (
                 await session.execute(
@@ -115,6 +159,7 @@ class SqlAlchemyTicketRepository:
             events=tuple(to_event(e) for e in events),
             receipt=to_receipt(ticket_row),
             people={user_id: name for user_id, name in names},
+            participants=participants,
         )
 
     async def find_by_submission_key(self, key: str) -> TicketRecord | None:
@@ -201,4 +246,49 @@ class SqlAlchemyTicketRepository:
                     created_at=at,
                 )
             )
+        return await self.get(number)
+
+    async def add_participants(
+        self, number: int, user_ids: Sequence[str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        """One transaction under the ticket row lock: rows (repeats skipped), updated_at, event."""
+        async with self._sessions() as session, session.begin():
+            row = await session.get(TicketRow, number, with_for_update=True)
+            if row is None or row.status == "closed":
+                return None
+            await session.execute(
+                insert(TicketParticipantRow)
+                .values(
+                    [
+                        {"ticket_number": number, "user_id": u, "added_by": by, "created_at": at}
+                        for u in user_ids
+                    ]
+                )
+                .on_conflict_do_nothing(index_elements=["ticket_number", "user_id"])
+            )
+            row.updated_at = at
+            await _append_event(session, number, "participants_added", by, body, at)
+        return await self.get(number)
+
+    async def update_ticket(
+        self, number: int, changes: Mapping[str, str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        async with self._sessions() as session, session.begin():
+            row = await session.get(TicketRow, number, with_for_update=True)
+            if row is None or row.status == "closed":
+                return None
+            for field, value in changes.items():
+                setattr(row, field, value)
+            row.updated_at = at
+            await _append_event(session, number, "updated", by, body, at)
+        return await self.get(number)
+
+    async def close(self, number: int, by: str, at: datetime) -> TicketRecord | None:
+        async with self._sessions() as session, session.begin():
+            row = await session.get(TicketRow, number, with_for_update=True)
+            if row is None or row.status != "resolved":
+                return None
+            row.status = "closed"
+            row.updated_at = at
+            await _append_event(session, number, "closed", by, None, at)
         return await self.get(number)

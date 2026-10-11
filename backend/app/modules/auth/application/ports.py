@@ -21,3 +21,11 @@ class SessionCodec(Protocol):
     def read(self, token: str) -> str | None:
         """The user id, or None when the token is malformed, tampered with or expired."""
         ...
+
+
+class UserDirectory(Protocol):
+    """Read-only lookup of people by what a person types (the three demo accounts)."""
+
+    async def find_by_name(self, name: str) -> list[User]:
+        """Case- and diacritic-insensitive whole-word match; several users means ambiguous."""
+        ...
