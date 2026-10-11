@@ -111,6 +111,49 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(css).toMatch(/\.table-scroll\s*\{[^}]*overflow-x:\s*auto/);
   });
 
+  describe("motion (REQ-MO-1..5)", () => {
+    const withoutReducedMotion = css.replace(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}\n/, "");
+    const motion = [...withoutReducedMotion.matchAll(/(?:^|[;{\s])(transition|animation)\s*:\s*([^;]+);/g)].map(
+      (m) => ({ prop: m[1] as string, value: (m[2] as string).trim() }),
+    );
+
+    it("keeps a reduced-motion block and defines the tg-fade and tg-draw keyframes", () => {
+      expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?animation-duration:[\s\S]*?transition-duration:/);
+      expect(css).toMatch(/@keyframes tg-fade\s*\{/);
+      expect(css).toMatch(/@keyframes tg-draw\s*\{/);
+    });
+
+    it("uses only duration and easing tokens: no raw ms/s literals outside the reduced-motion block", () => {
+      expect(withoutReducedMotion).not.toMatch(/\b\d*\.?\d+m?s\b/);
+      expect(motion.length).toBeGreaterThan(8);
+      for (const { value } of motion) {
+        // every comma-separated transition item and every animation names a duration and an easing token
+        for (const part of value.split(/,(?![^(]*\))/)) {
+          expect(part).toMatch(/var\(--duration-[\w-]+\)/);
+          expect(part).toMatch(/var\(--easing-[\w-]+\)/);
+        }
+      }
+    });
+
+    it("transitions hover/focus on buttons, icon buttons, rail items, option tiles, inputs, menu items and ticket rows (REQ-MO-1)", () => {
+      for (const selector of [".btn", ".icon-btn", ".rail-item", ".opt-tile", ".input", ".menu-item", ".ticket-row-link"]) {
+        const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        expect(css, selector).toMatch(new RegExp(`(^|\\n)${escaped}\\s*\\{[^}]*transition:`));
+      }
+    });
+
+    it("fades new messages, menus, panels and tooltips in; draws the option check; fills the stepper connector (REQ-MO-2)", () => {
+      expect(css).toMatch(/\.msg\.is-new\s*\{[^}]*animation:\s*tg-fade var\(--duration-micro\)/);
+      expect(css).toMatch(/\.menu\s*\{[^}]*animation:\s*tg-fade/);
+      expect(css).toMatch(/\.conv-panel\s*\{[^}]*animation:\s*tg-fade/);
+      expect(css).toMatch(/\.opt-check \.icon\s*\{[^}]*animation:\s*tg-draw/);
+      expect(css).toMatch(/\.step::before\s*\{[^}]*transition:/);
+      expect(css).toMatch(
+        /\[data-tooltip\]:hover::after,\s*\[data-tooltip\]:focus-visible::after\s*\{[^}]*animation:\s*tg-fade[^;]*var\(--duration-intent\)/,
+      );
+    });
+  });
+
   describe("mobile bottom tab bar (REQ-NS-M1..M8)", () => {
     const compactBlocks = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)];
     const bar = compactBlocks.find((m) => /\.app \.nav-sections\s*\{/.test(m[1] as string));

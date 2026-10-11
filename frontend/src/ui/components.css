@@ -54,6 +54,10 @@ a {
   font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--font-ui);
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-out),
+    border-color var(--duration-fast) var(--easing-out),
+    color var(--duration-fast) var(--easing-out);
 }
 
 .btn-primary {
@@ -90,6 +94,13 @@ a {
   color: var(--color-ink);
   font: inherit;
   flex: 1;
+  transition:
+    border-color var(--duration-fast) var(--easing-out),
+    background-color var(--duration-fast) var(--easing-out);
+}
+
+.input:focus-visible {
+  border-color: var(--color-accent);
 }
 
 .input[aria-invalid="true"] {
@@ -280,6 +291,13 @@ a {
   text-decoration: none;
   font: inherit;
   color: var(--color-ink);
+  transition:
+    background-color var(--duration-fast) var(--easing-out),
+    color var(--duration-fast) var(--easing-out);
+}
+
+.rail-item:hover:not([aria-current="page"]):not([aria-disabled="true"]) {
+  background: var(--color-field);
 }
 
 .rail-item[aria-current="page"] {
@@ -326,6 +344,7 @@ a {
 [data-tooltip]:hover::after,
 [data-tooltip]:focus-visible::after {
   display: block;
+  animation: tg-fade var(--duration-fast) var(--easing-out) var(--duration-intent) both;
 }
 
 /* 1101px = --bp-medium + 1: the labelled rail already shows the name, so no tooltip. */
@@ -373,6 +392,7 @@ a {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-e1);
+  animation: tg-fade var(--duration-island-in) var(--easing-out);
 }
 
 .menu-item {
@@ -387,6 +407,7 @@ a {
   color: var(--color-ink);
   font: inherit;
   cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-out);
 }
 
 .menu-item:hover {
@@ -595,6 +616,7 @@ a {
   padding: var(--space-3) var(--space-4);
   color: inherit;
   text-decoration: none;
+  transition: background-color var(--duration-fast) var(--easing-out);
 }
 
 .ticket-row-link:hover {
@@ -923,6 +945,7 @@ th[aria-sort="descending"] .sort-button::after {
   color: var(--color-ink);
   text-decoration: none;
   cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-out);
 }
 
 .icon-btn:hover {
@@ -1055,6 +1078,7 @@ th[aria-sort="descending"] .sort-button::after {
   right: 0;
   height: var(--size-connector);
   background: var(--color-border-control);
+  transition: background-color var(--duration-value) var(--easing-out);
 }
 
 .step:last-child::before {
@@ -1283,6 +1307,9 @@ th[aria-sort="descending"] .sort-button::after {
   background: var(--color-surface);
   color: var(--color-ink);
   cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--easing-out),
+    border-color var(--duration-fast) var(--easing-out);
 }
 
 .opt-tile input {
@@ -1428,6 +1455,41 @@ th[aria-sort="descending"] .sort-button::after {
 
 .opt-tile:has(input:checked) .opt-check {
   display: inline-flex;
+}
+
+.opt-check .icon {
+  animation: tg-draw var(--duration-micro) var(--easing-out);
+}
+
+/* Motion (REQ-MO): only --duration-* / --easing-* tokens; the reduced-motion block above and the
+   token overrides in tokens.css collapse every duration. */
+@keyframes tg-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tg-draw {
+  from {
+    stroke-dasharray: 0 100;
+  }
+
+  to {
+    stroke-dasharray: 100 0;
+  }
+}
+
+.msg.is-new {
+  animation: tg-fade var(--duration-micro) var(--easing-out);
+}
+
+/* Panel swapped in place on U6 (summary column <-> "Tu solicitud" form). */
+.conv-panel {
+  animation: tg-fade var(--duration-chat) var(--easing-out);
 }
 
 /* 1100px = --bp-medium (custom properties cannot be used in media queries). The rail collapses to
