@@ -1,9 +1,8 @@
 import { COPY } from "@/lib/copy";
 import { stageSteps, type TicketStatus } from "@/lib/ticket-labels";
+import { Stepper } from "../molecules/stepper";
 
-const GLYPH = { done: "✓", current: "●", upcoming: "○" } as const;
-
-/** The five user-language stages with the current one marked (text + glyph, not colour only). */
+/** The five stages as the full stepper: number, state word and, while Pendiente, a flag on the current one. */
 export function StageTracker({
   status,
   awaitingUser,
@@ -17,22 +16,12 @@ export function StageTracker({
   /** Text shown on the current stage while Pendiente; `null` to omit (T2 shows the flag itself). */
   pendingLabel?: string | null;
 }) {
-  return (
-    <ol aria-label="Etapas del ticket" className="stage-tracker">
-      {stageSteps(status, labels).map((step) => (
-        <li
-          key={step.status}
-          className={`stage is-${step.state}`}
-          aria-current={step.state === "current" ? "step" : undefined}
-        >
-          <span aria-hidden="true">{GLYPH[step.state]}</span>
-          <span className="stage-label">{step.label}</span>
-          <span className="t-meta">{step.word}</span>
-          {awaitingUser && pendingLabel && step.state === "current" ? (
-            <span className="t-meta">{pendingLabel}</span>
-          ) : null}
-        </li>
-      ))}
-    </ol>
-  );
+  const steps = stageSteps(status, labels).map((step, index) => ({
+    label: step.label,
+    state: step.state,
+    word: step.word,
+    num: index + 1,
+    ...(awaitingUser && pendingLabel && step.state === "current" ? { pending: pendingLabel } : {}),
+  }));
+  return <Stepper steps={steps} variant="full" label={COPY.detail.stagesLabel} />;
 }

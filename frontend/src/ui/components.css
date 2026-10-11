@@ -1317,3 +1317,27 @@ th[aria-sort="descending"] .sort-button::after {
   }
 }
 
+/* U3 record body: description card + data rail; wide/compact visibility helpers. */
+.rec-body {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* 768px = --bp-compact + 1: the tab view and the vertical timeline exist only on compact screens. */
+@media (min-width: 768px) {
+  .compact-only {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .rec-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wide-only {
+    display: none;
+  }
+}

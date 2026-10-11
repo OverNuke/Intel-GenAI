@@ -1,72 +1,88 @@
-import Link from "next/link";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
-import { formatDate, stateIndicator } from "@/lib/ticket-labels";
+import { lifeStages } from "@/lib/life-stages";
+import { formatDate } from "@/lib/ticket-labels";
+import { Icon, type IconName } from "../atoms/icon";
+import { StatusPill } from "../molecules/status-pill";
 import { AriadnaReceipt } from "./ariadna-receipt";
+import { DetailViewTabs } from "./detail-view-tabs";
+import { LifeTimeline } from "./life-timeline";
 import { NeedDataNotice } from "./need-data-notice";
+import { RecordHeader } from "./record-header";
 import { StageTracker } from "./stage-tracker";
-import { Timeline } from "./timeline";
 
 type Detail = components["schemas"]["TicketDetailOut"];
 
 /** U3 presentational: the whole ticket arrives from the API; nothing is derived server-side here. */
 export function TicketDetail({ ticket, requesterName }: { ticket: Detail; requesterName: string }) {
-  const state = stateIndicator(ticket.status, ticket.awaiting_user);
-  const rows: [string, string][] = [
-    [COPY.detail.requester, requesterName],
-    [COPY.detail.impact, COPY.impact[ticket.impact]],
-    [COPY.detail.urgency, COPY.urgency[ticket.urgency]],
-    [COPY.detail.group, ticket.assigned_group],
-    [COPY.detail.assignee, ticket.assignee_name ?? COPY.detail.unassigned],
-    [COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
+  const rows: [IconName, string, string][] = [
+    ["user", COPY.detail.requester, requesterName],
+    ["users", COPY.detail.impact, COPY.impact[ticket.impact]],
+    ["signal-medium", COPY.detail.urgency, COPY.urgency[ticket.urgency]],
+    ["signpost", COPY.detail.group, ticket.assigned_group],
+    ["user-check", COPY.detail.assignee, ticket.assignee_name ?? COPY.detail.unassigned],
+    ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
+    ["paperclip", COPY.detail.attachments, COPY.detail.noAttachments],
+    // adapted: the mock's "clock" icon is not in the extracted sprite; file-check stands in.
+    ["file-check", COPY.detail.created, formatDate(ticket.created_at)],
   ];
 
   return (
     <div className="stack">
-      <Link href="/tickets">{COPY.myTickets}</Link>
-      <div className="page-head">
+      <RecordHeader
+        crumb={{ href: "/tickets", label: COPY.myTickets }}
+        id={ticket.id}
+        title={ticket.summary}
+        subtitle={ticket.service_label}
+        help={{ href: `/solicitud/conversacion?ticket=${ticket.id}`, label: COPY.detail.help }}
+        sample
+      >
         <div>
-          <p className="t-id">{ticket.id}</p>
-          <h1 tabIndex={-1}>{ticket.summary}</h1>
-          <p className="t-meta">{ticket.service_label}</p>
+          <span className="t-meta">{COPY.detail.state}</span>
+          <div className="chip-row">
+            <StatusPill status={ticket.status} awaitingUser={ticket.awaiting_user} />
+          </div>
         </div>
-        <Link
-          className="btn btn-secondary"
-          href={`/solicitud/conversacion?ticket=${ticket.id}`}
-          aria-label={COPY.detail.help}
-        >
-          (?)
-        </Link>
-      </div>
-
-      <p className="ticket-state">
-        <span className="t-meta">{COPY.detail.state}: </span>
-        <span aria-hidden="true">{state.glyph}</span> {state.label}
-      </p>
-      <p className="t-meta">Creado: {formatDate(ticket.created_at)}</p>
-      <p className="t-meta">Última actualización: {formatDate(ticket.updated_at)}</p>
+        <div>
+          <span className="t-meta">{COPY.detail.lastUpdate}</span>
+          <strong>{formatDate(ticket.updated_at)}</strong>
+          <span className="t-meta">{`${COPY.detail.created}: ${formatDate(ticket.created_at)}`}</span>
+        </div>
+      </RecordHeader>
 
       {ticket.awaiting_user ? <NeedDataNotice message={ticket.contact_notice} /> : null}
 
-      <StageTracker status={ticket.status} awaitingUser={ticket.awaiting_user} />
+      <div className="band wide-only">
+        <StageTracker status={ticket.status} awaitingUser={ticket.awaiting_user} />
+      </div>
 
-      <section aria-labelledby="detail-description" className="stack">
-        <h2 id="detail-description">{COPY.detail.description}</h2>
-        <p>{ticket.description}</p>
-      </section>
-
-      <ul aria-label="Datos del ticket" className="plain-list data-rows">
-        {rows.map(([label, value]) => (
-          <li key={label}>
-            <span className="t-meta">{label}</span> <span>{value}</span>
-          </li>
-        ))}
-      </ul>
-
-      <section aria-labelledby="detail-timeline" className="stack">
-        <h2 id="detail-timeline">{COPY.detail.timeline}</h2>
-        <Timeline events={ticket.events} />
-      </section>
+      <div className="rec-body">
+        <DetailViewTabs
+          summary={
+            <section aria-labelledby="detail-description" className="stack">
+              <h2 id="detail-description">{COPY.detail.description}</h2>
+              <p>{ticket.description}</p>
+            </section>
+          }
+          timeline={
+            <section aria-labelledby="detail-timeline" className="stack">
+              <h2 id="detail-timeline">{COPY.detail.timeline}</h2>
+              <LifeTimeline stages={lifeStages(ticket)} />
+            </section>
+          }
+        />
+        <aside className="card" aria-label={COPY.detail.railLabel}>
+          <dl className="rail-rows">
+            {rows.map(([icon, label, value]) => (
+              <div key={label} className="rail-row">
+                <Icon name={icon} size="sm" />
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </aside>
+      </div>
 
       {ticket.receipt ? <AriadnaReceipt receipt={ticket.receipt} /> : null}
     </div>

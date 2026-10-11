@@ -46,7 +46,7 @@ describe("TicketRecord (T2)", () => {
     expect(screen.getByText("INC0001056")).toBeTruthy();
     expect(screen.getByText("Solicitante: Ana Ruiz")).toBeTruthy();
     const steps = within(screen.getByRole("list", { name: "Etapas del ticket" })).getAllByRole("listitem");
-    expect(steps.map((s) => s.querySelector(".stage-label")?.textContent)).toEqual([
+    expect(steps.map((s) => s.querySelector(".step-label")?.textContent)).toEqual([
       "Nuevo",
       "Asignado",
       "En curso",
