@@ -51,6 +51,9 @@ describe("components.css primitives (REQ-VF-2)", () => {
       ".rail-label",
       ".table-scroll",
       "[data-tooltip]",
+      ".shot",
+      ".shot-frame",
+      ".shot-caption",
     ];
     const missing = required.filter((selector) => !hasSelector(selector));
     expect(missing).toEqual([]);
@@ -105,6 +108,16 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(grid).toMatch(/grid-template-columns/);
     expect(grid).not.toMatch(/minmax\(420px/);
     expect(grid).not.toMatch(/--size-chat-min/);
+  });
+
+  it("styles .shot as a flat hairline frame: 4/3, 16/9 at 1100px, natural height at 767px", () => {
+    const shot = /(?:^|\n)\.shot\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(shot).toMatch(/aspect-ratio:\s*4 \/ 3/);
+    expect(shot).toMatch(/overflow:\s*hidden/);
+    expect(shot).toMatch(/border-radius:\s*var\(--radius-xl\)/);
+    expect(shot).not.toMatch(/shadow/);
+    const medium = [...css.matchAll(/@media \(max-width: 1100px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+    expect(medium).toMatch(/\.shot\s*\{[^}]*aspect-ratio:\s*16 \/ 9/);
   });
 
   it("scrolls wide tables inside a .table-scroll region, not the page (REQ-RL-2)", () => {
