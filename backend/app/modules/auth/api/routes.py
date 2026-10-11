@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 
 from app.modules.auth.api.deps import get_cookie_secure, get_session_codec, get_user_repository
+from app.modules.auth.api.errors import NO_SESSION
 from app.modules.auth.api.schemas import (
     AccessAllowed,
     AccessDenied,
@@ -40,7 +41,7 @@ Secure = Annotated[bool, Depends(get_cookie_secure)]
 
 # Errors that mean "those credentials/account do not work" (401); the rest are input errors (400).
 _REJECTED_CODES = {"invalid_credentials", "unknown_account"}
-_NO_SESSION = ErrorBody(detail="No hay una sesión activa.")
+_NO_SESSION = NO_SESSION
 
 
 def _no_session() -> JSONResponse:

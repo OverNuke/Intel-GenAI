@@ -1,0 +1,12 @@
+version: 2
+
+# Prototype with a fictional org: the only credential in the repo is the
+# public demo login (ana.ruiz@ejemplo.mx / demo2026). It protects nothing real.
+secret:
+  ignored-paths:
+    - backend/app/modules/auth/domain/login.py
+    - backend/tests/modules/auth/**
+    - frontend/src/ui/organisms/sign-in-form.tsx
+    - frontend/src/ui/organisms/sign-in-form.test.tsx
+    - frontend/src/lib/api-client.test.ts
+    - mock/**

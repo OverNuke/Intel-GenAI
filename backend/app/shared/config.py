@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,6 +19,12 @@ class Settings(BaseSettings):
     database_url_unpooled: str | None = None
     session_secret: str | None = None
     vercel_env: str | None = None  # set by Vercel (production | preview | development)
+    # Assistant (any OpenAI-compatible endpoint). All optional: the fake adapter needs none.
+    llm_base_url: str | None = None
+    llm_model: str | None = None
+    llm_api_key: str | None = None
+    assistant_adapter: str | None = None  # "openai" | "fake"; unset = openai when fully configured
+    llm_timeout_seconds: float = 20.0
 
 
 @lru_cache
@@ -52,3 +59,12 @@ def resolve_session_secret(settings: Settings) -> str:
     if on_vercel(settings):
         raise RuntimeError("SESSION_SECRET is required when VERCEL_ENV is set")
     return DEV_SESSION_SECRET
+
+
+def resolve_assistant_adapter(settings: Settings) -> Literal["openai", "fake"]:
+    """openai only when requested (or unset) AND base url, model and key are all present."""
+    requested = (settings.assistant_adapter or "").strip().lower()
+    if requested not in ("", "openai"):
+        return "fake"
+    configured = all((settings.llm_base_url, settings.llm_model, settings.llm_api_key))
+    return "openai" if configured else "fake"

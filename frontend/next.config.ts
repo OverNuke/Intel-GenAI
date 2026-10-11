@@ -3,7 +3,7 @@ import { devApiRewrites } from "./src/lib/dev-proxy";
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return devApiRewrites(process.env.NODE_ENV);
+    return devApiRewrites(process.env.NODE_ENV, process.env.API_ORIGIN);
   },
 };
 

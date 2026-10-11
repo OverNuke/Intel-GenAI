@@ -23,6 +23,16 @@ describe("/entrar page", () => {
     expect(screen.getByText("Prototipo académico. Datos de ejemplo.")).toBeTruthy();
   });
 
+  it("shows a brand-only aside: dashed logo slot, wordmark, tagline, banner", async () => {
+    fetchAccounts.mockResolvedValue([]);
+    const { container } = render(await EntrarPage());
+    const aside = container.querySelector("aside.brand-aside")!;
+    expect(aside.querySelector(".logo-slot")?.getAttribute("aria-hidden")).toBe("true");
+    expect(aside.textContent).toContain("Ariadna");
+    expect(aside.textContent).toContain("Tu guía para solicitudes de TI");
+    expect(aside.querySelector("img, picture, video")).toBeNull();
+  });
+
   it("still renders the form (picker disabled, notice shown) when the accounts request fails", async () => {
     fetchAccounts.mockRejectedValue(new Error("Accounts request failed (status 503)."));
     render(await EntrarPage());

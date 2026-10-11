@@ -95,6 +95,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tickets/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Tickets */
+        get: operations["get_my_tickets_api_tickets_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Ticket
+         * @description Creates a ticket for the session user from a draft the person confirmed.
+         *
+         *     The requester is never read from the body and Ariadna has no route to this endpoint.
+         */
+        post: operations["post_ticket_api_tickets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/{display_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ticket */
+        get: operations["get_ticket_api_tickets__display_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Services */
+        get: operations["list_services_api_catalog_services_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/catalog/services/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Service */
+        get: operations["read_service_api_catalog_services__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assistant/turn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Turn
+         * @description Stateless: nothing is stored. LLM failures answer 200 with a handoff, never 5xx.
+         */
+        post: operations["post_turn_api_assistant_turn_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/it/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Queue
+         * @description Full queue plus its counters; tabs, filters and sorting are applied client-side.
+         */
+        get: operations["get_queue_api_it_tickets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/it/tickets/{display_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Record */
+        get: operations["get_record_api_it_tickets__display_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/it/tickets/{display_id}/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Contact
+         * @description "Contactar al usuario": sets Pendiente, logs the contact, never changes the status.
+         */
+        post: operations["post_contact_api_it_tickets__display_id__contact_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/metrics/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Agent Metrics
+         * @description Static sample metrics (7 or 30 days). Supervisor only; any other period is a 422.
+         */
+        get: operations["get_agent_metrics_api_metrics_agent_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -138,10 +325,163 @@ export interface components {
             section: components["schemas"]["SectionOut"];
             required_role: components["schemas"]["RoleOut"] | null;
         };
+        /** AgentMetricsOut */
+        AgentMetricsOut: {
+            /**
+             * Period
+             * @enum {integer}
+             */
+            period: 7 | 30;
+            /**
+             * Sample
+             * @default true
+             * @constant
+             */
+            sample: true;
+            /** Measured */
+            measured: components["schemas"]["MeasuredMetricOut"][];
+            estimated: components["schemas"]["EstimatedBlockOut"];
+            /** Trend */
+            trend: components["schemas"]["TrendPointOut"][];
+        };
+        /**
+         * AssistantTurn
+         * @description One turn: a single question (or a "draft is ready" statement) plus the draft so far.
+         */
+        AssistantTurn: {
+            /** Message */
+            message: string;
+            /**
+             * Understood
+             * @default
+             */
+            understood: string;
+            /** Reviewed */
+            reviewed?: string[];
+            draft?: components["schemas"]["TurnDraft"];
+            /** Missing Data */
+            missing_data?: string[];
+            /** Target Group */
+            target_group?: string | null;
+            /**
+             * Needs Authorization
+             * @default false
+             */
+            needs_authorization: boolean;
+            /** Permissions Notice */
+            permissions_notice?: string | null;
+            /**
+             * Ready
+             * @default false
+             */
+            ready: boolean;
+        };
+        /** ContactErrorOut */
+        ContactErrorOut: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "ticket-finished" | "message-too-long";
+        };
+        /** ContactIn */
+        ContactIn: {
+            /** Message */
+            message?: string | null;
+        };
+        /** ConversationIn */
+        ConversationIn: {
+            entry: components["schemas"]["EntryIn"];
+            /** History */
+            history?: components["schemas"]["MessageIn"][];
+            draft?: components["schemas"]["DraftIn"];
+        };
+        /** DraftIn */
+        DraftIn: {
+            /** Service */
+            service?: string | null;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Impact */
+            impact?: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency?: ("high" | "medium" | "low") | null;
+        };
+        /** DraftOut */
+        DraftOut: {
+            /** Service */
+            service: string | null;
+            /** Summary */
+            summary: string;
+            /** Description */
+            description: string;
+            /** Impact */
+            impact: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency: ("high" | "medium" | "low") | null;
+        };
+        /** EntryIn */
+        EntryIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "new" | "ticket" | "service";
+            /** Ref */
+            ref?: string | null;
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Detail */
             detail: string;
+        };
+        /**
+         * EstimatedBlockOut
+         * @description Estimates live in their own block, always labelled.
+         */
+        EstimatedBlockOut: {
+            /**
+             * Label
+             * @default Estimaciones, no son resultados medidos
+             */
+            label: string;
+            /** Metrics */
+            metrics: components["schemas"]["EstimatedMetricOut"][];
+        };
+        /** EstimatedMetricOut */
+        EstimatedMetricOut: {
+            /**
+             * Kind
+             * @default estimated
+             * @constant
+             */
+            kind: "estimated";
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "minutes" | "score" | "mxn";
+            /** Basis */
+            basis: string;
+            /**
+             * Disclaimer
+             * @default no son resultados medidos
+             */
+            disclaimer: string;
         };
         /** FieldErrorBody */
         FieldErrorBody: {
@@ -161,6 +501,106 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HandoffResult */
+        HandoffResult: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "handoff";
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "rate_limited" | "timeout" | "connection_error" | "http_error" | "invalid_output";
+            draft: components["schemas"]["DraftOut"];
+        };
+        /**
+         * ItEventOut
+         * @description Bitácora entry: includes events the requester cannot see and who wrote them.
+         */
+        ItEventOut: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Body */
+            body: string | null;
+            /** Author Name */
+            author_name: string | null;
+            /** Visible To Requester */
+            visible_to_requester: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * ItTicketOut
+         * @description T2 record. Names only: no requester or assignee ids.
+         */
+        ItTicketOut: {
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Description */
+            description: string;
+            /** Service */
+            service: string;
+            /** Service Label */
+            service_label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "assigned" | "in_progress" | "resolved" | "closed";
+            /** Awaiting User */
+            awaiting_user: boolean;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "critical" | "high" | "medium" | "low";
+            /**
+             * Impact
+             * @enum {string}
+             */
+            impact: "high" | "medium" | "low";
+            /**
+             * Urgency
+             * @enum {string}
+             */
+            urgency: "high" | "medium" | "low";
+            /** Assigned Group */
+            assigned_group: string;
+            /** Assignee Name */
+            assignee_name: string | null;
+            /** Requester Name */
+            requester_name: string;
+            /** Asset */
+            asset: string | null;
+            /** Via Ariadna */
+            via_ariadna: boolean;
+            /** Sla Due At */
+            sla_due_at: string | null;
+            /** Sla State */
+            sla_state: ("overdue" | "due_soon" | "on_time") | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Events */
+            events: components["schemas"]["ItEventOut"][];
+            receipt: components["schemas"]["ReceiptOut"] | null;
+        };
         /** LoginErrors */
         LoginErrors: {
             /** Errors */
@@ -179,6 +619,152 @@ export interface components {
             /** Password */
             password?: string | null;
         };
+        /** MeasuredMetricOut */
+        MeasuredMetricOut: {
+            /**
+             * Kind
+             * @default measured
+             * @constant
+             */
+            kind: "measured";
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: number;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "count" | "percent";
+            /** Description */
+            description: string;
+        };
+        /** MessageIn */
+        MessageIn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+        };
+        /** MySummaryOut */
+        MySummaryOut: {
+            /** Open */
+            open: number;
+            /** Awaiting */
+            awaiting: number;
+            /** Resolved */
+            resolved: number;
+            /** Closed */
+            closed: number;
+        };
+        /** MyTicketsOut */
+        MyTicketsOut: {
+            summary: components["schemas"]["MySummaryOut"];
+            /** Tickets */
+            tickets: components["schemas"]["TicketOut"][];
+        };
+        /** QueueOut */
+        QueueOut: {
+            summary: components["schemas"]["QueueSummaryOut"];
+            /** Tickets */
+            tickets: components["schemas"]["QueueRowOut"][];
+        };
+        /**
+         * QueueRowOut
+         * @description One row of T1. Names only: no requester or assignee ids.
+         */
+        QueueRowOut: {
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Requester Name */
+            requester_name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "assigned" | "in_progress" | "resolved" | "closed";
+            /** Awaiting User */
+            awaiting_user: boolean;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "critical" | "high" | "medium" | "low";
+            /** Sla Due At */
+            sla_due_at: string | null;
+            /** Sla State */
+            sla_state: ("overdue" | "due_soon" | "on_time") | null;
+            /** Assignee Name */
+            assignee_name: string | null;
+            /** Assigned To Me */
+            assigned_to_me: boolean;
+            /** Via Ariadna */
+            via_ariadna: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** QueueSummaryOut */
+        QueueSummaryOut: {
+            /** Open */
+            open: number;
+            /** Unassigned */
+            unassigned: number;
+            /** Assigned To Me */
+            assigned_to_me: number;
+            /** Sla At Risk */
+            sla_at_risk: number;
+        };
+        /** ReceiptIn */
+        ReceiptIn: {
+            /** Understood */
+            understood: string;
+            /** Reviewed */
+            reviewed?: string[];
+            /** Not Done */
+            not_done?: string[];
+            /** Permissions Notice */
+            permissions_notice?: string | null;
+            /** Missing Data */
+            missing_data?: string[];
+            /**
+             * Target Group
+             * @default
+             */
+            target_group: string;
+        };
+        /**
+         * ReceiptOut
+         * @description The "Constancia de Ariadna", stored as submitted.
+         */
+        ReceiptOut: {
+            /** Understood */
+            understood: string;
+            /** Reviewed */
+            reviewed: string[];
+            /** Not Done */
+            not_done: string[];
+            /** Permissions Notice */
+            permissions_notice: string | null;
+            /** Missing Data */
+            missing_data: string[];
+            /** Target Group */
+            target_group: string;
+        };
         /** RoleOut */
         RoleOut: {
             /**
@@ -195,6 +781,198 @@ export interface components {
             key: string;
             /** Label */
             label: string | null;
+        };
+        /** ServiceOut */
+        ServiceOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
+            /** Examples */
+            examples: string[];
+            /** Have At Hand */
+            have_at_hand: string[];
+            /** Handled By */
+            handled_by: string;
+            /** Requires Manager Authorization */
+            requires_manager_authorization: boolean;
+        };
+        /** SubmitDraftIn */
+        SubmitDraftIn: {
+            /** Service */
+            service: string;
+            /** Summary */
+            summary: string;
+            /** Description */
+            description: string;
+            /** Impact */
+            impact?: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency?: ("high" | "medium" | "low") | null;
+        };
+        /** SubmitErrorOut */
+        SubmitErrorOut: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "missing-human-confirmation" | "confirmation-not-from-requester" | "incomplete-draft" | "unknown-service";
+        };
+        /**
+         * SubmitTicketIn
+         * @description The requester is the session user: there is deliberately no requester or `by` field.
+         */
+        SubmitTicketIn: {
+            draft: components["schemas"]["SubmitDraftIn"];
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+            receipt?: components["schemas"]["ReceiptIn"] | null;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** TicketDetailOut */
+        TicketDetailOut: {
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Service */
+            service: string;
+            /** Service Label */
+            service_label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "assigned" | "in_progress" | "resolved" | "closed";
+            /** Awaiting User */
+            awaiting_user: boolean;
+            /** Via Ariadna */
+            via_ariadna: boolean;
+            /** Asset */
+            asset: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Description */
+            description: string;
+            /**
+             * Impact
+             * @enum {string}
+             */
+            impact: "high" | "medium" | "low";
+            /**
+             * Urgency
+             * @enum {string}
+             */
+            urgency: "high" | "medium" | "low";
+            /** Assigned Group */
+            assigned_group: string;
+            /** Assignee Name */
+            assignee_name: string | null;
+            /** Events */
+            events: components["schemas"]["TicketEventOut"][];
+            /** Contact Notice */
+            contact_notice: string | null;
+            receipt: components["schemas"]["ReceiptOut"] | null;
+        };
+        /** TicketEventOut */
+        TicketEventOut: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Body */
+            body: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * TicketOut
+         * @description One row of U1/U2. Never carries requester or assignee ids.
+         */
+        TicketOut: {
+            /** Id */
+            id: string;
+            /** Summary */
+            summary: string;
+            /** Service */
+            service: string;
+            /** Service Label */
+            service_label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "assigned" | "in_progress" | "resolved" | "closed";
+            /** Awaiting User */
+            awaiting_user: boolean;
+            /** Via Ariadna */
+            via_ariadna: boolean;
+            /** Asset */
+            asset: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** TrendPointOut */
+        TrendPointOut: {
+            /** Day */
+            day: number;
+            /** Adoption */
+            adoption: number;
+            /** Corrected */
+            corrected: number;
+        };
+        /** TurnDraft */
+        TurnDraft: {
+            /** Service */
+            service?: string | null;
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Impact */
+            impact?: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency?: ("high" | "medium" | "low") | null;
+        };
+        /** TurnResult */
+        TurnResult: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "turn";
+            turn: components["schemas"]["AssistantTurn"];
         };
         /** UserOut */
         UserOut: {
@@ -397,6 +1175,543 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"][];
+                };
+            };
+        };
+    };
+    get_my_tickets_api_tickets_mine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTicketsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+        };
+    };
+    post_ticket_api_tickets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitTicketIn"];
+            };
+        };
+        responses: {
+            /** @description Earlier submission with the same key */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailOut"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitErrorOut"];
+                };
+            };
+        };
+    };
+    get_ticket_api_tickets__display_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_services_api_catalog_services_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+        };
+    };
+    read_service_api_catalog_services__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_turn_api_assistant_turn_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TurnResult"] | components["schemas"]["HandoffResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_queue_api_it_tickets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+        };
+    };
+    get_record_api_it_tickets__display_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItTicketOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_contact_api_it_tickets__display_id__contact_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItTicketOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactErrorOut"];
+                };
+            };
+        };
+    };
+    get_agent_metrics_api_metrics_agent_get: {
+        parameters: {
+            query?: {
+                period?: 7 | 30;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentMetricsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDenied"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

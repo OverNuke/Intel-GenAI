@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveApiOrigin, serverFetch } from "./server-api";
+import { resolveApiOrigin, serverFetch, serverGet } from "./server-api";
 
 const headers = (entries: Record<string, string>) => ({
   get: (name: string) => entries[name.toLowerCase()] ?? null,
@@ -51,6 +51,29 @@ describe("serverFetch", () => {
     const f = vi.fn(async () => Response.json({}));
     await serverFetch("/api/auth/access?section=home", { origin: "http://o", cookie: null }, f);
     expect(f).toHaveBeenCalledWith("http://o/api/auth/access?section=home", {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+  });
+});
+
+describe("serverGet", () => {
+  it("fills path params, forwards the cookie and calls the absolute URL uncached", async () => {
+    const f = vi.fn(async () => Response.json({ id: "INC0001056" }));
+    const ctx = { origin: "http://127.0.0.1:8000", cookie: "ariadna_session=abc" };
+    const result = await serverGet("/api/tickets/{display_id}", { display_id: "INC0001056" }, ctx, f);
+    expect(result).toEqual({ ok: true, data: { id: "INC0001056" } });
+    expect(f).toHaveBeenCalledWith("http://127.0.0.1:8000/api/tickets/INC0001056", {
+      headers: { Accept: "application/json", Cookie: "ariadna_session=abc" },
+      cache: "no-store",
+    });
+  });
+
+  it("omits the Cookie header without a session and surfaces a 404 as ok:false", async () => {
+    const f = vi.fn(async () => new Response("{}", { status: 404 }));
+    const result = await serverGet("/api/tickets/mine", undefined, { origin: "http://o", cookie: null }, f);
+    expect(result).toEqual({ ok: false, status: 404 });
+    expect(f).toHaveBeenCalledWith("http://o/api/tickets/mine", {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });

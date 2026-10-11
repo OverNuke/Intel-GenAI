@@ -3,7 +3,15 @@
 from datetime import UTC, datetime, timedelta
 
 from app.modules.auth.domain.user import User
-from app.modules.tickets.domain.ticket import Impact, Priority, Ticket, TicketStatus, Urgency
+from app.modules.tickets.domain.receipt import SUBMITTED_BY_PERSON, AriadnaReceipt
+from app.modules.tickets.domain.ticket import (
+    Impact,
+    Priority,
+    Ticket,
+    TicketEvent,
+    TicketStatus,
+    Urgency,
+)
 
 ORGANIZATION = "Centro Administrativo Regional Sur"
 
@@ -198,3 +206,97 @@ TICKETS: tuple[Ticket, ...] = (
         sla_hours=8,
     ),
 )
+
+
+def _events() -> tuple[TicketEvent, ...]:
+    """created for every ticket, assigned where assignee_id is set, one contact on 1056.
+
+    Ids are "{number}-{seq}" and fixed, so a re-seed (ON CONFLICT DO NOTHING) adds nothing.
+    """
+    events: list[TicketEvent] = []
+    for ticket in TICKETS:
+        events.append(
+            TicketEvent(
+                id=f"{ticket.number}-1",
+                ticket_number=ticket.number,
+                kind="created",
+                author_id=ticket.requester_id,
+                body=None,
+                visible_to_requester=True,
+                created_at=ticket.created_at,
+            )
+        )
+        if ticket.assignee_id is not None:
+            events.append(
+                TicketEvent(
+                    id=f"{ticket.number}-2",
+                    ticket_number=ticket.number,
+                    kind="assigned",
+                    author_id=ticket.assignee_id,
+                    body=None,
+                    visible_to_requester=True,
+                    created_at=ticket.created_at + timedelta(minutes=30),
+                )
+            )
+    pending = next(t for t in TICKETS if t.awaiting_user)
+    events.append(
+        TicketEvent(
+            id=f"{pending.number}-3",
+            ticket_number=pending.number,
+            kind="contact_requested",
+            author_id="luis",
+            body="Confirma desde qué equipos de la sala de captura se ve lenta la red.",
+            visible_to_requester=True,
+            created_at=pending.created_at + timedelta(hours=2),
+        )
+    )
+    return tuple(events)
+
+
+EVENTS: tuple[TicketEvent, ...] = _events()
+
+# Receipts of the tickets that went through Ariadna (via_ariadna), as submitted.
+RECEIPTS: dict[int, AriadnaReceipt] = {
+    1055: AriadnaReceipt(
+        understood="El correo institucional dejó de llegar al celular desde el lunes.",
+        reviewed=(
+            "Datos obligatorios completos",
+            "Destino sugerido: Soporte de cuentas y accesos",
+            "Permisos: tu perfil puede pedir esto",
+            "Adjuntos: ninguno (opcional)",
+        ),
+        not_done=(
+            "No cambié ninguna configuración de tu cuenta.",
+            SUBMITTED_BY_PERSON,
+        ),
+        permissions_notice=None,
+        missing_data=(),
+        target_group="Soporte de cuentas y accesos",
+    ),
+    1057: AriadnaReceipt(
+        understood="Necesitas permisos de lectura para la carpeta de reportes mensuales.",
+        reviewed=(
+            "Datos obligatorios completos",
+            "Destino sugerido: Soporte de cuentas y accesos",
+            "Permisos: tu perfil puede pedir esto",
+            "Adjuntos: ninguno (opcional)",
+        ),
+        not_done=("No otorgué ningún permiso.", SUBMITTED_BY_PERSON),
+        permissions_notice=None,
+        missing_data=(),
+        target_group="Soporte de cuentas y accesos",
+    ),
+    1059: AriadnaReceipt(
+        understood="Hay que instalar el programa de firma electrónica en un equipo nuevo.",
+        reviewed=(
+            "Datos obligatorios completos",
+            "Destino sugerido: Soporte de software",
+            "Permisos: falta la autorización de tu jefe o encargado, anotado",
+            "Adjuntos: ninguno (opcional)",
+        ),
+        not_done=("No pude dar ni saltar la autorización de tu jefe.", SUBMITTED_BY_PERSON),
+        permissions_notice="Instalar programas necesita la autorización de tu jefe o encargado.",
+        missing_data=("Autorización del jefe o encargado",),
+        target_group="Soporte de software",
+    ),
+}

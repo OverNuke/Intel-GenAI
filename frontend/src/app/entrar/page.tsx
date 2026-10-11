@@ -1,5 +1,6 @@
 import { fetchAccounts } from "@/lib/accounts";
 import { readServerContext } from "@/lib/server-context";
+import { Icon } from "@/ui/atoms/icon";
 import { PrototypeBanner } from "@/ui/atoms/prototype-banner";
 import { SignInContainer } from "./sign-in-container";
 
@@ -19,8 +20,15 @@ export default async function EntrarPage() {
   return (
     <div className="split-page">
       <aside aria-label="Ariadna" className="brand-aside">
-        <p className="wordmark">Ariadna</p>
-        <p>Tu guía para solicitudes de TI</p>
+        <div className="brand-aside-top">
+          <span className="logo-slot logo-slot--on-inverted" aria-hidden="true">
+            <Icon name="image" />
+          </span>
+          <div>
+            <p className="wordmark">Ariadna</p>
+            <p className="brand-aside-tagline">Tu guía para solicitudes de TI</p>
+          </div>
+        </div>
         <PrototypeBanner />
       </aside>
       <main className="split-main">

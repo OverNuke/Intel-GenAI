@@ -76,6 +76,7 @@
   --size-form-panel: 560px;
   --size-chat-max: 760px;
   --size-record-rail: 360px;
+  --size-landing-max: 1320px; /* P1 landing: max width of the centered page container (header, main, footer) */
   --size-chart: 176px;
   --size-tooltip-gap: 8px;
   --size-card-min: 240px;

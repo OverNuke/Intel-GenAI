@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { ROLE_HOME, ROLE_LABELS } from "@/lib/access-labels";
 import type { components } from "@/lib/api-types";
+import { COPY } from "@/lib/copy";
+import { Icon, type IconName } from "../atoms/icon";
 
 type User = components["schemas"]["UserOut"];
 type Role = User["role"];
+type Variant = "default" | "chat";
 
 const ORG = "Centro Administrativo Regional Sur";
-const OWN_TICKETS = ["Mis tickets", "¿Qué necesitas?", "Mi equipo"] as const;
 
 const LIVE_SECTION: Record<Role, { key: string; label: string }> = {
   user: { key: "home", label: "Inicio" },
@@ -34,44 +36,68 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function Disabled({ label }: { label: string }) {
+const LIVE_ICON: Record<Role, IconName> = { user: "house", it: "inbox", supervisor: "chart-column" };
+
+/**
+ * Icon + visible label. The label stays in the accessibility tree at every width (it is only
+ * visually hidden when the rail collapses); `data-tooltip` is a CSS-only hint, never a second name.
+ */
+function RailLink({ href, label, icon, current }: { href: string; label: string; icon: IconName; current: boolean }) {
   return (
     <li>
-      <span className="rail-item" aria-disabled="true">
-        {label}
-      </span>
+      <Link href={href} className="rail-item" data-tooltip={label} aria-current={current ? "page" : undefined}>
+        <Icon name={icon} />
+        <span className="rail-label">{label}</span>
+      </Link>
     </li>
   );
 }
 
-function Rail({ user, active }: { user: User; active: string }) {
+/** Focusable but inert: keyboard users reach the tooltip and hear the next-stage description. */
+function Disabled({ label, icon }: { label: string; icon: IconName }) {
+  return (
+    <li>
+      <button type="button" className="rail-item" data-tooltip={label} aria-disabled="true" aria-describedby="rail-next">
+        <Icon name={icon} />
+        <span className="rail-label">{label}</span>
+      </button>
+    </li>
+  );
+}
+
+/** Own-ticket destinations, live for every role; "Mi equipo" (U5) stays a placeholder. */
+function OwnItems({ active }: { active: string }) {
+  return (
+    <>
+      <RailLink href="/tickets" label={COPY.myTickets} icon="ticket" current={active === "my-tickets"} />
+      <RailLink href="/solicitud" label={COPY.whatDoYouNeed} icon="layout-grid" current={active === "new-request"} />
+      <Disabled label={COPY.myTeam} icon="laptop" />
+      <li id="rail-next" className="t-meta">
+        {COPY.nextStage}
+      </li>
+    </>
+  );
+}
+
+/**
+ * The single "Secciones" landmark. Same markup in both variants: the default is the sticky rail,
+ * the chat variant (U6) is the floating `.islands` pill. Never rendered twice.
+ */
+function Rail({ user, active, variant }: { user: User; active: string; variant: Variant }) {
   const live = LIVE_SECTION[user.role];
   return (
-    <nav aria-label="Secciones" className="rail">
+    <nav aria-label="Secciones" className={`${variant === "chat" ? "islands" : "rail"} nav-sections`}>
       <ul>
-        <li>
-          <Link
-            href={ROLE_HOME[user.role]}
-            className="rail-item"
-            aria-current={active === live.key ? "page" : undefined}
-          >
-            {live.label}
-          </Link>
-        </li>
+        <RailLink href={ROLE_HOME[user.role]} label={live.label} icon={LIVE_ICON[user.role]} current={active === live.key} />
         {user.role === "user" ? (
-          OWN_TICKETS.map((label) => <Disabled key={label} label={label} />)
+          <OwnItems active={active} />
         ) : (
           <li>
-            <ul role="group" aria-labelledby="rail-own" aria-describedby="rail-own-note">
+            <ul role="group" aria-labelledby="rail-own">
               <li id="rail-own" className="t-meta">
                 Tus propios tickets
               </li>
-              {OWN_TICKETS.map((label) => (
-                <Disabled key={label} label={label} />
-              ))}
-              <li id="rail-own-note" className="t-meta">
-                Próxima etapa del prototipo
-              </li>
+              <OwnItems active={active} />
             </ul>
           </li>
         )}
@@ -86,16 +112,18 @@ export type AppShellProps = {
   active: string;
   /** Slot for the sign-out menu item (a container). */
   logout: ReactNode;
+  /** `chat` (U6 only): the rail becomes a floating icon pill so the conversation gets the width. */
+  variant?: Variant;
   children: ReactNode;
 };
 
-export function AppShell({ user, active, logout, children }: AppShellProps) {
+export function AppShell({ user, active, logout, variant = "default", children }: AppShellProps) {
   const [open, setOpen] = useState(false);
   const title = ROLE_TITLE[user.role];
 
   return (
-    <div className="app">
-      <Rail user={user} active={active} />
+    <div className={variant === "chat" ? "app is-chat" : "app"}>
+      <Rail user={user} active={active} variant={variant} />
       <header className="topbar">
         <div>
           <p className="wordmark">Ariadna</p>
@@ -116,6 +144,7 @@ export function AppShell({ user, active, logout, children }: AppShellProps) {
             </span>
             {user.name}
             {user.role === "user" ? null : <span className="t-meta"> {ROLE_LABELS[user.role]}</span>}
+            <Icon name={open ? "chevron-up" : "chevron-down"} size="sm" />
           </button>
           {open ? (
             <div

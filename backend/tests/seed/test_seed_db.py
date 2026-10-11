@@ -11,6 +11,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import text
 
+from app.seed.data import EVENTS
 from app.seed.run import run
 from app.shared.config import get_settings, migration_url
 from app.shared.db import sync_engine
@@ -22,13 +23,14 @@ pytestmark = pytest.mark.skipif(
 BACKEND = Path(__file__).resolve().parents[2]
 
 
-def _counts(url: str) -> tuple[int, int]:
+def _counts(url: str) -> tuple[int, int, int]:
     engine = sync_engine(url)
     try:
         with engine.connect() as connection:
             users = connection.execute(text("SELECT count(*) FROM users")).scalar_one()
             tickets = connection.execute(text("SELECT count(*) FROM tickets")).scalar_one()
-        return users, tickets
+            events = connection.execute(text("SELECT count(*) FROM ticket_events")).scalar_one()
+        return users, tickets, events
     finally:
         engine.dispose()
 
@@ -92,5 +94,5 @@ def test_upgrade_then_seed_twice_has_no_duplicates_and_next_id_is_1061() -> None
     run(url)
     second = _counts(url)
 
-    assert first == second == (3, 8)
+    assert first == second == (3, 8, len(EVENTS))
     assert _next_sequence_value(url) == 1061

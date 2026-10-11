@@ -98,3 +98,73 @@ describe("apiPost", () => {
     });
   });
 });
+
+describe("path params and query", () => {
+  it("fills {display_id} (URL-encoded) and appends the query string", async () => {
+    const f = fakeFetch(Response.json({}));
+    await apiGet("/api/tickets/{display_id}", f, {
+      params: { display_id: "INC 0001056/x" },
+      query: { periodo: "7" },
+    });
+    expect(f).toHaveBeenCalledWith("/api/tickets/INC%200001056%2Fx?periodo=7", {
+      headers: { Accept: "application/json" },
+    });
+  });
+
+  it("leaves a path without placeholders untouched", async () => {
+    const f = fakeFetch(Response.json({}));
+    await apiGet("/api/tickets/mine", f, { params: { unused: "1" } });
+    expect(f).toHaveBeenCalledWith("/api/tickets/mine", { headers: { Accept: "application/json" } });
+  });
+});
+
+describe("apiPost ticket submission", () => {
+  it("sends the typed submit body and returns the created ticket (201 is ok)", async () => {
+    const created = { id: "INC0001061" };
+    const f = fakeFetch(Response.json(created, { status: 201 }));
+    const result = await apiPost(
+      "/api/tickets",
+      {
+        draft: { service: "printing", summary: "La impresora no imprime", description: "En cola" },
+        confirmed: true,
+        idempotency_key: "k-1",
+      },
+      f,
+    );
+    expect(result).toEqual({ ok: true, data: created });
+    const [, init] = f.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      draft: { service: "printing", summary: "La impresora no imprime", description: "En cola" },
+      confirmed: true,
+      idempotency_key: "k-1",
+    });
+  });
+
+  it("surfaces a 422 as ok:false with the status so the UI keeps the draft", async () => {
+    const f = fakeFetch(Response.json({ reason: "incomplete-draft" }, { status: 422 }));
+    const result = await apiPost(
+      "/api/tickets",
+      { draft: { service: "printing", summary: " ", description: "x" }, confirmed: true },
+      f,
+    );
+    expect(result).toEqual({ ok: false, status: 422 });
+  });
+});
+
+describe("abort signal", () => {
+  it("forwards a signal to fetch so callers can enforce a timeout", async () => {
+    const f = fakeFetch(Response.json({}));
+    const controller = new AbortController();
+    await apiPost("/api/auth/login", { method: "account", email: "a@b.mx" }, f, { signal: controller.signal });
+    const [, init] = f.mock.calls[0] as unknown as [string, RequestInit];
+    expect(init.signal).toBe(controller.signal);
+  });
+
+  it("an aborted request resolves to {ok:false,status:0} instead of throwing", async () => {
+    const f = vi.fn(async () => {
+      throw new DOMException("aborted", "AbortError");
+    });
+    const result = await apiPost("/api/auth/login", { method: "account", email: "a@b.mx" }, f);
+    expect(result).toEqual({ ok: false, status: 0 });
+  });
+});

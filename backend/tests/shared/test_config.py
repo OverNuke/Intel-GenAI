@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from app.shared.config import (
@@ -6,6 +8,7 @@ from app.shared.config import (
     get_settings,
     migration_url,
     on_vercel,
+    resolve_assistant_adapter,
     resolve_session_secret,
     to_psycopg_url,
 )
@@ -17,6 +20,14 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DATABASE_URL_UNPOOLED", raising=False)
     monkeypatch.delenv("SESSION_SECRET", raising=False)
     monkeypatch.delenv("VERCEL_ENV", raising=False)
+    for name in (
+        "LLM_BASE_URL",
+        "LLM_MODEL",
+        "LLM_API_KEY",
+        "ASSISTANT_ADAPTER",
+        "LLM_TIMEOUT_SECONDS",
+    ):
+        monkeypatch.delenv(name, raising=False)
     get_settings.cache_clear()
 
 
@@ -75,7 +86,7 @@ def test_migration_url_without_any_url_raises() -> None:
         migration_url(Settings(_env_file=None))  # type: ignore[call-arg]
 
 
-def _settings(**values: str) -> Settings:
+def _settings(**values: Any) -> Settings:
     return Settings(_env_file=None, **values)  # type: ignore[call-arg]
 
 
@@ -118,3 +129,57 @@ def test_on_vercel_is_true_for_any_vercel_env_value() -> None:
     assert on_vercel(_settings(vercel_env="preview")) is True
     assert on_vercel(_settings()) is False
     assert on_vercel(_settings(vercel_env="")) is False
+
+
+# --- assistant adapter selection (REQ-AC-4, S-AC-1)
+
+_FULL = {"llm_base_url": "https://llm.example/v1", "llm_model": "m", "llm_api_key": "k"}
+
+
+def test_llm_settings_default_to_nothing_and_a_20s_timeout() -> None:
+    settings = _settings()
+    assert settings.llm_base_url is None
+    assert settings.llm_model is None
+    assert settings.llm_api_key is None
+    assert settings.assistant_adapter is None
+    assert settings.llm_timeout_seconds == 20.0
+
+
+def test_llm_settings_read_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_BASE_URL", "https://llm.example/v1")
+    monkeypatch.setenv("LLM_MODEL", "gemini")
+    monkeypatch.setenv("LLM_API_KEY", "secret")
+    monkeypatch.setenv("ASSISTANT_ADAPTER", "openai")
+    monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "12.5")
+    settings = Settings(_env_file=None)  # type: ignore[call-arg]
+    assert (settings.llm_base_url, settings.llm_model, settings.llm_api_key) == (
+        "https://llm.example/v1",
+        "gemini",
+        "secret",
+    )
+    assert settings.assistant_adapter == "openai"
+    assert settings.llm_timeout_seconds == 12.5
+
+
+def test_adapter_is_fake_when_nothing_is_configured() -> None:
+    assert resolve_assistant_adapter(_settings()) == "fake"
+
+
+def test_adapter_is_openai_when_unset_but_fully_configured() -> None:
+    assert resolve_assistant_adapter(_settings(**_FULL)) == "openai"
+
+
+def test_explicit_fake_wins_even_with_full_config() -> None:
+    assert resolve_assistant_adapter(_settings(assistant_adapter="fake", **_FULL)) == "fake"
+
+
+def test_openai_requested_without_the_key_falls_back_to_fake() -> None:
+    incomplete = {"llm_base_url": "https://llm.example/v1", "llm_model": "m"}
+    openai = _settings(assistant_adapter="openai", **incomplete)
+    assert resolve_assistant_adapter(openai) == "fake"
+    blank_key = _settings(assistant_adapter="openai", llm_api_key="")
+    assert resolve_assistant_adapter(blank_key) == "fake"
+
+
+def test_unknown_adapter_value_falls_back_to_fake() -> None:
+    assert resolve_assistant_adapter(_settings(assistant_adapter="bogus", **_FULL)) == "fake"

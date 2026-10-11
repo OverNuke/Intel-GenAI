@@ -77,18 +77,34 @@ def test_user_is_frozen() -> None:
         user.role = "it"  # type: ignore[misc]
 
 
+# Stored on the ticket row but modelled outside `Ticket`: the receipt lives on TicketRecord and
+# the submission key is only an idempotency detail of the repository.
+_ROW_ONLY_COLUMNS = {"ariadna_receipt", "submission_key"}
+
+
 def test_ticket_fields_match_the_orm_columns() -> None:
     domain_fields = {f.name for f in fields(Ticket)}
-    assert domain_fields == {column.name for column in TicketRow.__table__.columns}
+    columns = {column.name for column in TicketRow.__table__.columns}
+    assert domain_fields == columns - _ROW_ONLY_COLUMNS
+    assert columns >= _ROW_ONLY_COLUMNS
 
 
 def test_user_fields_match_the_orm_columns() -> None:
     assert {f.name for f in fields(User)} == {column.name for column in UserRow.__table__.columns}
 
 
-def test_metadata_tables_are_exactly_users_and_tickets() -> None:
+def test_metadata_tables_are_users_tickets_and_ticket_events() -> None:
     assert UserRow.__tablename__ == "users"
-    assert set(Base.metadata.tables) == {"users", "tickets"}
+    assert set(Base.metadata.tables) == {"users", "tickets", "ticket_events"}
+
+
+def test_ticket_event_columns_match_the_domain_event() -> None:
+    from app.modules.tickets.domain.ticket import TicketEvent
+    from app.modules.tickets.infrastructure.models import TicketEventRow
+
+    columns = {column.name for column in TicketEventRow.__table__.columns}
+    assert {f.name for f in fields(TicketEvent)} == columns
+    assert TicketEventRow.__table__.c.ticket_number.foreign_keys
 
 
 def test_ticket_number_sequence_starts_at_1061_and_is_the_pk_default() -> None:
@@ -122,3 +138,32 @@ def test_awaiting_user_defaults_to_false_and_requester_is_required() -> None:
     assert table.c.awaiting_user.server_default is not None
     assert table.c.requester_id.nullable is False
     assert table.c.assignee_id.nullable is True
+
+
+def test_event_kinds_include_assigned_and_the_reserved_note() -> None:
+    from app.modules.tickets.domain.ticket import TicketEventKind
+
+    assert get_args(TicketEventKind) == ("created", "assigned", "contact_requested", "note")
+
+
+def test_ticket_event_and_record_are_frozen_values() -> None:
+    from app.modules.tickets.domain.ticket import TicketEvent, TicketRecord, TicketView
+
+    ticket = _ticket()
+    event = TicketEvent(
+        id="1053-1",
+        ticket_number=1053,
+        kind="created",
+        author_id="ana",
+        body=None,
+        visible_to_requester=True,
+        created_at=ticket.created_at,
+    )
+    record = TicketRecord(
+        view=TicketView(ticket=ticket, requester_name="Ana Ruiz", assignee_name=None),
+        events=(event,),
+    )
+    assert record.events[0].kind == "created"
+    assert record.view.ticket.display_id == "INC0001053"
+    with pytest.raises(FrozenInstanceError):
+        event.kind = "note"  # type: ignore[misc]

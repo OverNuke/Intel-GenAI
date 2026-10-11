@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PICKER_ROLE_LABELS } from "@/lib/access-labels";
 import type { ApiResult } from "@/lib/api-client";
 import type { components } from "@/lib/api-types";
+import { initialsOf } from "@/lib/initials";
 import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
 import { ErrorSummary, type SummaryItem } from "../molecules/error-summary";
@@ -56,6 +57,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
   const [failure, setFailure] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [busyEmail, setBusyEmail] = useState<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const viewChanged = useRef(false);
 
@@ -72,9 +74,11 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
 
   async function run(body: LoginBody) {
     setBusy(true);
+    setBusyEmail(body.method === "account" ? (body.email ?? null) : null);
     setFailure(null);
     const result = await login(body);
     setBusy(false);
+    setBusyEmail(null);
     if (result.ok) {
       onSignedIn(result.data);
       return;
@@ -110,22 +114,31 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
         <p role="note">Esto es un prototipo: son cuentas de ejemplo.</p>
         {failure ? <ErrorSummary key={attempt} message={failure} /> : null}
         <ul aria-label="Cuentas de ejemplo" className="account-list">
-          {(accounts ?? []).map((account) => (
-            <li key={account.id}>
-              <button
-                type="button"
-                className="account-option"
-                disabled={busy}
-                onClick={() => void run({ method: "account", email: account.email })}
-              >
-                <span className="account-name">{account.name}</span>
-                <span className="t-meta">
-                  {account.email} · {account.area}
-                </span>
-                <Badge>{PICKER_ROLE_LABELS[account.role]}</Badge>
-              </button>
-            </li>
-          ))}
+          {(accounts ?? []).map((account) => {
+            const chosen = busy && busyEmail === account.email;
+            return (
+              <li key={account.id}>
+                <button
+                  type="button"
+                  className="account-option"
+                  disabled={busy}
+                  aria-busy={chosen ? "true" : undefined}
+                  onClick={() => void run({ method: "account", email: account.email })}
+                >
+                  <span className="account-avatar" aria-hidden="true">
+                    {initialsOf(account.name)}
+                  </span>
+                  <span className="account-body">
+                    <span className="account-name">{account.name}</span>
+                    <span className="t-meta">
+                      {account.email} · {account.area}
+                    </span>
+                  </span>
+                  {chosen ? <span className="t-meta">Entrando…</span> : <Badge>{PICKER_ROLE_LABELS[account.role]}</Badge>}
+                </button>
+              </li>
+            );
+          })}
         </ul>
         <Button variant="secondary" onClick={() => switchView("login")}>
           Usar otra cuenta

@@ -45,9 +45,10 @@ def test_offline_upgrade_declares_check_constraints_and_pending_flag() -> None:
     assert "awaiting_user BOOLEAN DEFAULT false NOT NULL" in sql
 
 
-def test_revisions_form_a_linear_chain_ending_at_0002() -> None:
+def test_revisions_form_a_linear_chain_ending_at_0003() -> None:
     script = ScriptDirectory.from_config(_config())
-    assert script.get_heads() == ["0002"]
+    assert script.get_heads() == ["0003"]
+    assert script.get_revision("0003").down_revision == "0002"
     assert script.get_revision("0002").down_revision == "0001"
     assert script.get_revision("0001").down_revision is None
 
@@ -74,3 +75,32 @@ def test_offline_downgrade_drops_tables_and_sequence() -> None:
     assert "DROP TABLE tickets" in sql
     assert "DROP TABLE users" in sql
     assert "DROP SEQUENCE ticket_number_seq" in sql
+
+
+def test_offline_upgrade_creates_ticket_events_with_kind_check_and_index() -> None:
+    sql = _upgrade_sql()
+    assert "CREATE TABLE ticket_events" in sql
+    assert "id VARCHAR(16) NOT NULL" in sql
+    assert "ck_ticket_events_kind" in sql
+    for kind in ("'created'", "'assigned'", "'contact_requested'", "'note'"):
+        assert kind in sql
+    assert "ON DELETE CASCADE" in sql
+    assert "CREATE INDEX ix_ticket_events_ticket_number_created_at" in sql
+
+
+def test_offline_upgrade_adds_the_receipt_and_submission_key_columns() -> None:
+    sql = _upgrade_sql()
+    assert "ALTER TABLE tickets ADD COLUMN ariadna_receipt JSONB" in sql
+    assert "ALTER TABLE tickets ADD COLUMN submission_key VARCHAR(64)" in sql
+    assert "uq_tickets_submission_key" in sql
+
+
+def test_offline_downgrade_of_0003_removes_events_receipt_and_key() -> None:
+    buffer = StringIO()
+    command.downgrade(_config(buffer), "0003:0002", sql=True)
+    sql = buffer.getvalue()
+    assert "DROP TABLE ticket_events" in sql
+    assert "ALTER TABLE tickets DROP COLUMN ariadna_receipt" in sql
+    assert "ALTER TABLE tickets DROP COLUMN submission_key" in sql
+    # 0002 state remains: the users.area column is untouched by this downgrade.
+    assert "DROP COLUMN area" not in sql

@@ -15,6 +15,13 @@ describe("A4 /sesion-cerrada", () => {
     expect(screen.getByText("Prototipo académico. Datos de ejemplo.")).toBeTruthy();
   });
 
+  it("shows a decorative success circle-check icon", () => {
+    render(<SesionCerradaPage />);
+    const icon = document.querySelector(".state-icon.state-icon--success");
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+    expect(icon?.querySelector('svg[data-icon="circle-check"]')).not.toBeNull();
+  });
+
   it("S-A4-2: 'Volver a entrar' leads to A1", () => {
     render(<SesionCerradaPage />);
     expect(screen.getByRole("link", { name: "Volver a entrar" }).getAttribute("href")).toBe("/entrar");
