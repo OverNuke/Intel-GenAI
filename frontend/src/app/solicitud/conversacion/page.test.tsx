@@ -52,6 +52,15 @@ describe("/solicitud/conversacion (U6)", () => {
     expect(screen.getByText("Hola, Ana. Cuéntame qué está pasando y te ayudo a preparar tu solicitud.")).toBeTruthy();
   });
 
+  it("renders inside the chat shell: .is-chat root and a single Secciones nav as .islands, no rail (REQ-NS-5)", async () => {
+    const { container } = render(await ConversacionPage({ searchParams: search({}) }));
+    expect(container.querySelector(".app.is-chat")).not.toBeNull();
+    const navs = screen.getAllByRole("navigation", { name: "Secciones" });
+    expect(navs).toHaveLength(1);
+    expect(navs[0]!.classList.contains("islands")).toBe(true);
+    expect(container.querySelector(".rail")).toBeNull();
+  });
+
   it("?servicio= opens the conversation scoped to a known service", async () => {
     render(await ConversacionPage({ searchParams: search({ servicio: "network" }) }));
     expect(screen.getByText("Elegiste «Red e internet». ¿Qué está pasando?")).toBeTruthy();

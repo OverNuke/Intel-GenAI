@@ -1557,6 +1557,68 @@ th[aria-sort="descending"] .sort-button::after {
   animation: tg-fade var(--duration-chat) var(--easing-out);
 }
 
+/* U6 chat shell (AppShell variant="chat"): the same Secciones nav as a floating icon pill. Column 0
+   keeps the rail out of the layout; the pill overflows it and main is padded to clear it.
+   Single-class selectors on purpose: the 767px bottom bar below must win without !important. */
+.app.is-chat {
+  grid-template-columns: 0 minmax(0, 1fr);
+  grid-template-areas:
+    "top top"
+    "isl main";
+}
+
+.app.is-chat .app-main {
+  padding-left: calc(var(--size-island-rail) + var(--space-5) * 2);
+}
+
+.islands {
+  grid-area: isl;
+  position: sticky;
+  top: var(--space-5);
+  z-index: var(--z-island);
+  align-self: start;
+  justify-self: start;
+  width: var(--size-island-rail);
+  margin: var(--space-5) 0 0 var(--space-5);
+  padding: calc((var(--size-island-rail) - var(--size-control)) / 2) 0;
+  border-radius: var(--radius-full);
+  border: var(--border-hairline) solid var(--color-hairline);
+  background: var(--color-surface);
+}
+
+.islands ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Icon-only at every width >=768px: the label stays in the accessibility tree (clip recipe). */
+.islands .rail-item {
+  width: var(--size-control);
+  justify-content: center;
+  padding: 0;
+}
+
+.islands .rail-label,
+.islands .t-meta {
+  position: absolute;
+  width: var(--border-hairline);
+  height: var(--border-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The tooltip is the only visible name, so it stays on above 1100px too (the global rule turns it off). */
+.islands [data-tooltip]:hover::after,
+.islands [data-tooltip]:focus-visible::after {
+  display: block;
+}
+
 /* 1100px = --bp-medium (custom properties cannot be used in media queries). The rail collapses to
    icons (labels stay in the accessibility tree, tooltip on hover/focus) and wide grids relax. */
 @media (max-width: 1100px) {
@@ -1621,7 +1683,8 @@ th[aria-sort="descending"] .sort-button::after {
    bottom tab bar: 4 equal cells, icon above a one-line label. Declared after the 1100px block so
    it wins the cascade. Height: 4 + (4 + 20 + 4 + 20 + 4) + 4 = --size-island-rail, plus the inset. */
 @media (max-width: 767px) {
-  .app {
+  .app,
+  .app.is-chat {
     --nav-h: calc(var(--size-island-rail) + env(safe-area-inset-bottom));
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: var(--size-topbar) minmax(0, 1fr);
@@ -1648,6 +1711,19 @@ th[aria-sort="descending"] .sort-button::after {
     border-top: var(--border-hairline) solid var(--color-hairline);
     border-radius: 0;
     box-shadow: none;
+  }
+
+  /* Chat variant: undo the floating pill so the same nav is the bar (never display:none). */
+  .app .islands {
+    margin: 0;
+    align-self: auto;
+    justify-self: stretch;
+    border-left: 0;
+    border-bottom: 0;
+  }
+
+  .app.is-chat .app-main {
+    padding-left: var(--space-5);
   }
 
   .app .nav-sections ul {

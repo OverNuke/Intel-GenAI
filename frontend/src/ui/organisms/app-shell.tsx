@@ -9,6 +9,7 @@ import { Icon, type IconName } from "../atoms/icon";
 
 type User = components["schemas"]["UserOut"];
 type Role = User["role"];
+type Variant = "default" | "chat";
 
 const ORG = "Centro Administrativo Regional Sur";
 
@@ -78,10 +79,14 @@ function OwnItems({ active }: { active: string }) {
   );
 }
 
-function Rail({ user, active }: { user: User; active: string }) {
+/**
+ * The single "Secciones" landmark. Same markup in both variants: the default is the sticky rail,
+ * the chat variant (U6) is the floating `.islands` pill. Never rendered twice.
+ */
+function Rail({ user, active, variant }: { user: User; active: string; variant: Variant }) {
   const live = LIVE_SECTION[user.role];
   return (
-    <nav aria-label="Secciones" className="rail nav-sections">
+    <nav aria-label="Secciones" className={`${variant === "chat" ? "islands" : "rail"} nav-sections`}>
       <ul>
         <RailLink href={ROLE_HOME[user.role]} label={live.label} icon={LIVE_ICON[user.role]} current={active === live.key} />
         {user.role === "user" ? (
@@ -107,16 +112,18 @@ export type AppShellProps = {
   active: string;
   /** Slot for the sign-out menu item (a container). */
   logout: ReactNode;
+  /** `chat` (U6 only): the rail becomes a floating icon pill so the conversation gets the width. */
+  variant?: Variant;
   children: ReactNode;
 };
 
-export function AppShell({ user, active, logout, children }: AppShellProps) {
+export function AppShell({ user, active, logout, variant = "default", children }: AppShellProps) {
   const [open, setOpen] = useState(false);
   const title = ROLE_TITLE[user.role];
 
   return (
-    <div className="app">
-      <Rail user={user} active={active} />
+    <div className={variant === "chat" ? "app is-chat" : "app"}>
+      <Rail user={user} active={active} variant={variant} />
       <header className="topbar">
         <div>
           <p className="wordmark">Ariadna</p>

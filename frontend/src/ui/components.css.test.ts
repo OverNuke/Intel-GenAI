@@ -247,4 +247,49 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(css).not.toMatch(/grid-template-areas:\s*"top"\s*"rail"\s*"main"/);
     });
   });
+
+  describe("U6 islands (REQ-NS-5, S-NS-6)", () => {
+    const base = /(?:^|\n)\.islands\s*\{([^}]*)\}/.exec(css);
+    const baseCss = base?.[1] ?? "";
+    const barCss =
+      [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)]
+        .map((m) => m[1] as string)
+        .find((block) => /\.app \.nav-sections\s*\{/.test(block)) ?? "";
+
+    it("styles .islands as a sticky floating pill sized by --size-island-rail with --radius-full", () => {
+      expect(base).not.toBeNull();
+      expect(baseCss).toMatch(/position:\s*sticky/);
+      expect(baseCss).toMatch(/width:\s*var\(--size-island-rail\)/);
+      expect(baseCss).toMatch(/border-radius:\s*var\(--radius-full\)/);
+      expect(baseCss).toMatch(/z-index:\s*var\(--z-island\)/);
+      expect(baseCss).not.toMatch(/display:\s*none/);
+    });
+
+    it("collapses the grid for the chat root: 0 + 1fr, topbar over the islands and main", () => {
+      const rule = /(?:^|\n)\.app\.is-chat\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+      expect(rule).toMatch(/grid-template-columns:\s*0\s+minmax\(0,\s*1fr\)/);
+      expect(rule).toMatch(/"top top"/);
+      expect(rule).toMatch(/"isl main"/);
+      expect(baseCss).toMatch(/grid-area:\s*isl/);
+    });
+
+    it("keeps the labels in the accessibility tree (clip recipe) and the tooltip on at every width", () => {
+      expect(css).toMatch(/\.islands \.rail-label[^{]*\{[^}]*clip-path:\s*inset\(50%\)/);
+      expect(css).toMatch(/\.islands \[data-tooltip\]:hover::after[^{]*\{[^}]*display:\s*block/);
+    });
+
+    it("declares the .islands base rules ABOVE the 767px bottom bar, with lower specificity (single class)", () => {
+      const baseAt = css.search(/(?:^|\n)\.islands\s*\{/);
+      const barAt = css.indexOf(".app .nav-sections {");
+      expect(baseAt).toBeGreaterThan(-1);
+      expect(barAt).toBeGreaterThan(baseAt);
+    });
+
+    it("resets the pill and the chat grid inside the 767px bar block, never hiding it", () => {
+      expect(barCss).toMatch(/\.app\.is-chat\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+      expect(barCss).toMatch(/\.app \.islands\s*\{[^}]*margin:\s*0/);
+      expect(barCss).toMatch(/\.app\.is-chat \.app-main\s*\{[^}]*padding-left:\s*var\(--space-5\)/);
+      expect(barCss).not.toMatch(/\.islands[^{]*\{[^}]*display:\s*none/);
+    });
+  });
 });

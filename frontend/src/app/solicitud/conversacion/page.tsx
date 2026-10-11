@@ -43,7 +43,7 @@ export default async function ConversacionPage({ searchParams }: { searchParams:
   }
 
   return (
-    <AppShell user={user} active="new-request" logout={<LogoutButton />}>
+    <AppShell user={user} active="new-request" variant="chat" logout={<LogoutButton />}>
       <ConversationContainer user={user} entry={entry} services={catalog.data} ticketSummary={ticketSummary} />
     </AppShell>
   );

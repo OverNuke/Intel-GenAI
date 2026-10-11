@@ -133,6 +133,72 @@ describe("AppShell rail", () => {
   });
 });
 
+describe("AppShell variant=\"chat\" (U6 islands, REQ-NS-5)", () => {
+  const chat = (user: User, active: string) =>
+    render(
+      <AppShell user={user} active={active} variant="chat" logout={<button role="menuitem">Cerrar sesión (stub)</button>}>
+        <p>contenido</p>
+      </AppShell>,
+    );
+
+  it("S-NS-4: the default variant renders no .islands and no .is-chat root", () => {
+    const { container } = shell(ana, "new-request");
+    expect(container.querySelector(".islands")).toBeNull();
+    expect(container.querySelector(".app.is-chat")).toBeNull();
+    expect(screen.getByRole("navigation", { name: "Secciones" }).classList.contains("rail")).toBe(true);
+  });
+
+  it("S-NS-3: marks the root .is-chat and renders the SAME nav as .islands instead of .rail", () => {
+    const { container } = chat(ana, "new-request");
+    expect(container.querySelector(".app")?.classList.contains("is-chat")).toBe(true);
+    const navs = screen.getAllByRole("navigation", { name: "Secciones" });
+    expect(navs).toHaveLength(1);
+    expect(navs[0]!.classList.contains("islands")).toBe(true);
+    expect(navs[0]!.classList.contains("nav-sections")).toBe(true);
+    expect(navs[0]!.classList.contains("rail")).toBe(false);
+    expect(container.querySelectorAll(".rail")).toHaveLength(0);
+  });
+
+  it("keeps the rail items: 3 links + disabled Mi equipo, icons, names from .rail-label, no aria-label", () => {
+    chat(ana, "new-request");
+    const nav = screen.getByRole("navigation", { name: "Secciones" });
+    expect(within(nav).getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+      ["Inicio", "/inicio"],
+      ["Mis tickets", "/tickets"],
+      ["¿Qué necesitas?", "/solicitud"],
+    ]);
+    expect(within(nav).getByRole("link", { name: "Mis tickets" })).toBeTruthy();
+    expect(within(nav).getByRole("link", { name: "¿Qué necesitas?" }).getAttribute("aria-current")).toBe("page");
+    const mine = within(nav).getByRole("button", { name: "Mi equipo" });
+    expect(mine.getAttribute("aria-disabled")).toBe("true");
+    expect(document.getElementById(mine.getAttribute("aria-describedby") ?? "")?.textContent).toBe(
+      "Próxima etapa del prototipo",
+    );
+    const items = [...nav.querySelectorAll(".rail-item")];
+    expect(items.map((el) => el.querySelector("svg")?.getAttribute("data-icon"))).toEqual([
+      "house",
+      "ticket",
+      "layout-grid",
+      "laptop",
+    ]);
+    expect(nav.querySelectorAll("[aria-label]")).toHaveLength(0);
+  });
+
+  it("still exposes one Secciones landmark with 4 items for TI and Supervisor", () => {
+    for (const [user, active] of [
+      [luis, "new-request"],
+      [sara, "new-request"],
+    ] as const) {
+      chat(user, active);
+      const navs = screen.getAllByRole("navigation", { name: "Secciones" });
+      expect(navs).toHaveLength(1);
+      expect(navs[0]!.querySelectorAll(".rail-item")).toHaveLength(4);
+      expect(navs[0]!.classList.contains("islands")).toBe(true);
+      cleanup();
+    }
+  });
+});
+
 describe("AppShell header", () => {
   it("shows the per-role context line", () => {
     shell(ana, "home");
