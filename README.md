@@ -145,6 +145,7 @@ Set in `.env.local` / Vercel.
 | `LLM_TIMEOUT_SECONDS` | Per-request timeout of the LLM call (default `20`; keep it below the platform function limit) | yes |
 | `SESSION_SECRET` | Signs the demo session cookie. Optional locally (public dev default when `VERCEL_ENV` is unset); **required on Vercel** (the first use raises if missing) | yes |
 | `API_ORIGIN` | Absolute backend origin (e.g. `https://my-app.vercel.app`) used by Next **server components** to call `/api/auth/access` (Node `fetch` needs an absolute URL). Optional: falls back to `http://127.0.0.1:8000` outside production and to the request's own origin (`x-forwarded-proto` + host) in production. Outside production it is also the target of the dev `/api` rewrite (the Docker stack sets it to `http://backend:8000`) | yes |
+| `ASSISTANT_MODE` | `single` (default) or `agent`. `agent` lets Ariadna run a bounded loop of read-only checks (catalog, required data, your similar tickets, people by name, permissions) and *propose* actions that you confirm; any other value means `single`. Document only: set it in `.env.local` / Vercel | yes |
 | `ASSISTANT_ADAPTER` | `openai` or `fake`. Unset = `openai` only when `LLM_BASE_URL`, `LLM_MODEL` and `LLM_API_KEY` are all set, otherwise `fake` (a missing key never fails the app) | yes |
 
 ## Status

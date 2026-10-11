@@ -15,7 +15,7 @@ Each phase ends with passing tests and conventional commits. Domain/use cases ar
 
 **Deferred** (out of prototype scope): U5 Mi equipo (RF-09), real T4 email delivery (RF-15; only the view), formal assistant evals, full a11y audit, Playwright E2E. T3 Cierre con Ariadna (RF-14) is no longer dropped: it is planned as Phase 7, after the first publish.
 
-Phase 7 notes: only IT closes a ticket (ADR-0003, the human confirms); Ariadna prepares the closing checklist and never closes. Depends on `ticket_events` (migration 0003 of phases 2–5) and on the `awaiting_user` flag from T2.
+Phase 7 notes: a ticket is closed by IT or by its requester once it is Resuelto (ADR-0003 amended, delivered in Agent v2); Ariadna prepares the closing and never closes by herself. Depends on `ticket_events` (migration 0003 of phases 2–5) and on the `awaiting_user` flag from T2.
 
 Current state: Phase 0 implemented, with two items unverified.
 
@@ -55,3 +55,22 @@ Pending verification (manual, throwaway Neon branch only):
 - Confirm what "Hablar con TI" / "Pasar con TI" does in U6 (assumed: it opens the confirmation of the captured draft when it is sendable, and the person submits it without a receipt).
 
 Known follow-up: TypeScript is pinned to `^6.0.3` until `typescript-eslint` supports TS 7.
+
+## Agent v2 (propose and confirm)
+
+Implemented after phases 2-5; automated checks green, manual verification pending. See ADR-0003 (amended) and ADR-0014.
+
+Shipped:
+- **Tools (read-only, bounded to 4 steps per turn):** `search_catalog`, `check_required_data`, `find_similar_tickets` (own tickets), `find_user` (display names), `check_permissions`. Each step is returned in `steps` and feeds "Lo que revisé"; a failed step shows as an amber item.
+- **Flags:** `flags` with `blocking` (computed by the domain from the draft) and `warning` (model or domain, e.g. missing asset number). UI: red `.alert tone-error` "Falta: …" and amber `.alert tone-warning` "Conviene revisar: …", icon plus text. "Revisar y enviar" stays driven by the live draft, so the person's edits clear red items at once.
+- **One-sentence intake:** the first message can fill service, summary, description, impact and urgency; "Tu solicitud" fills and user edits still win.
+- **Proposals:** `create_ticket`, `add_participants`, `update_ticket`, `close_ticket`. Cards in U6 with "Confirmar" / "Ahora no"; confirming calls the tickets endpoints with `confirmed: true` and the session identity. Participants proposed before the request is sent are kept in the conversation and added right after the ticket is sent.
+- **Confirmed writes (tickets module):** `POST /api/tickets/{id}/participants`, `PATCH /api/tickets/{id}` (summary, description, impact, urgency while not closed), `POST /api/tickets/{id}/close` (requester or IT, only from Resuelto). Migration `0004_ticket_participants`; new timeline events `participants_added`, `updated`, `resolved`, `closed`; `participants` on the ticket detail.
+- **`ASSISTANT_MODE`:** `single` (default, the ADR-0002 behavior) or `agent` (tool loop). The fake adapter runs a scripted trail in `agent` mode.
+
+Decisions to keep in mind:
+- The agent holds no write capability: `AssistantPort` still exposes only `next_turn`; proposals are value objects with display names, never ids.
+- Closing by the requester answers open question 4 (see `requirements.md`).
+- Pasar con TI / handoff clears the proposals; the draft stays.
+
+Pending verification: real-model quality of tool calling on free-tier endpoints (evals are deferred), and a manual walk-through of the one-sentence intake, participants, update and close with the fake adapter in `agent` mode.
