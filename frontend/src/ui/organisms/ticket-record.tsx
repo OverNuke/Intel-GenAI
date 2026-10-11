@@ -30,8 +30,8 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
     ["signpost", COPY.detail.group, ticket.assigned_group],
     ["user-check", COPY.it.columns.assignee, ticket.assignee_name ?? COPY.it.unassigned],
     ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
-    // adapted: the mock's "clock" icon is not in the extracted sprite; file-check stands in (as on U3).
-    ["file-check", COPY.detail.created, formatDate(ticket.created_at)],
+    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (as on U3).
+    ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
   const visibleEvents = ticket.events.filter((e) => e.visible_to_requester);
 

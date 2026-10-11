@@ -83,6 +83,9 @@ describe("TrendChart and TrendTable (S-AM-5)", () => {
     const plotted = [...chart.querySelectorAll("title")].map((t) => t.textContent);
     expect(plotted).toHaveLength(14); // 7 days x (adoption + corrected)
     const table = screen.getByRole("table", { name: /Tendencia/ });
+    const region = screen.getByRole("region", { name: "Tabla de la tendencia diaria" });
+    expect(region.getAttribute("tabindex")).toBe("0");
+    expect(within(region).getByRole("table", { name: /Tendencia/ })).toBe(table);
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(7);
     trend.forEach((point, index) => {

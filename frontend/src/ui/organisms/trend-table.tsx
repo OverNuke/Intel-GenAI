@@ -6,24 +6,26 @@ type Point = components["schemas"]["TrendPointOut"];
 /** The same series as the chart, as a table (the chart is never the only way to read it). */
 export function TrendTable({ trend }: { trend: Point[] }) {
   return (
-    <table className="queue-table">
-      <caption>{COPY.metrics.trendTitle}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{COPY.metrics.day}</th>
-          <th scope="col">{`${COPY.metrics.adoption} (%)`}</th>
-          <th scope="col">{`${COPY.metrics.corrected} (%)`}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {trend.map((point) => (
-          <tr key={point.day}>
-            <td>{point.day}</td>
-            <td>{`${point.adoption} %`}</td>
-            <td>{`${point.corrected} %`}</td>
+    <div className="table-scroll" role="region" aria-label={COPY.metrics.trendTableRegion} tabIndex={0}>
+      <table className="queue-table">
+        <caption>{COPY.metrics.trendTitle}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{COPY.metrics.day}</th>
+            <th scope="col">{`${COPY.metrics.adoption} (%)`}</th>
+            <th scope="col">{`${COPY.metrics.corrected} (%)`}</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {trend.map((point) => (
+            <tr key={point.day}>
+              <td>{point.day}</td>
+              <td>{`${point.adoption} %`}</td>
+              <td>{`${point.corrected} %`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

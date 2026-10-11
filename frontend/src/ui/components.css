@@ -235,16 +235,25 @@ a {
 
 .app {
   display: grid;
-  grid-template: "rail top" var(--size-topbar) "rail main" 1fr / auto 1fr;
+  grid-template-columns: calc(var(--size-rail) * 3) minmax(0, 1fr);
+  grid-template-rows: var(--size-topbar) minmax(0, 1fr);
+  grid-template-areas:
+    "rail top"
+    "rail main";
   min-height: var(--size-viewport);
 }
 
+/* Sticky full-height rail. `overflow` stays visible so the tooltip can leave the rail. */
 .rail {
   grid-area: rail;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-island);
+  align-self: start;
+  height: var(--size-viewport);
   background: var(--color-surface);
   border-right: var(--border-hairline) solid var(--color-hairline);
-  padding: var(--space-4);
-  min-width: var(--size-rail);
+  padding: var(--space-4) var(--space-3);
 }
 
 .rail ul {
@@ -257,10 +266,19 @@ a {
 }
 
 .rail-item {
-  display: block;
-  padding: var(--space-2) var(--space-3);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--size-control);
+  padding: 0 var(--space-3);
+  border: 0;
   border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
   text-decoration: none;
+  font: inherit;
   color: var(--color-ink);
 }
 
@@ -273,6 +291,50 @@ a {
 .rail-item[aria-disabled="true"] {
   color: var(--color-muted);
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rail-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Tooltip: CSS-only hint from data-tooltip. The alt-text form keeps it out of the accessible name. */
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  content: attr(data-tooltip) / "";
+  position: absolute;
+  z-index: var(--z-tooltip);
+  display: none;
+  left: calc(100% + var(--size-tooltip-gap));
+  top: 50%;
+  transform: translateY(-50%);
+  width: max-content;
+  max-width: calc(var(--size-viewport-w) - var(--space-7));
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-inverted);
+  color: var(--color-on-inverted);
+  box-shadow: var(--shadow-e1);
+  font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--font-ui);
+  text-align: left;
+  pointer-events: none;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  display: block;
+}
+
+/* 1101px = --bp-medium + 1: the labelled rail already shows the name, so no tooltip. */
+@media (min-width: 1101px) {
+  [data-tooltip]::after,
+  [data-tooltip]:hover::after,
+  [data-tooltip]:focus-visible::after {
+    display: none;
+  }
 }
 
 .topbar {
@@ -314,6 +376,9 @@ a {
 }
 
 .menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   text-align: left;
   min-height: var(--size-row);
   border: 0;
@@ -726,7 +791,7 @@ a {
 /* Conversación (U6) */
 .conversation-grid {
   display: grid;
-  grid-template-columns: minmax(var(--size-chat-min), var(--size-chat-max)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--size-chat-max)) minmax(0, 1fr);
   gap: var(--space-5);
   align-items: start;
 }
@@ -764,6 +829,12 @@ a {
 }
 
 /* Cola de TI (T1) */
+/* Wide tables scroll inside this focusable region, never the page. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .queue-table {
   width: 100%;
   border-collapse: collapse;
@@ -1357,6 +1428,54 @@ th[aria-sort="descending"] .sort-button::after {
 
 .opt-tile:has(input:checked) .opt-check {
   display: inline-flex;
+}
+
+/* 1100px = --bp-medium (custom properties cannot be used in media queries). The rail collapses to
+   icons (labels stay in the accessibility tree, tooltip on hover/focus) and wide grids relax. */
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: var(--size-rail) minmax(0, 1fr);
+  }
+
+  .rail {
+    padding: var(--space-4) 0;
+  }
+
+  .rail ul {
+    align-items: center;
+  }
+
+  .rail-item {
+    width: var(--size-control);
+    justify-content: center;
+    padding: 0;
+  }
+
+  .rail-label,
+  .rail .t-meta {
+    position: absolute;
+    width: var(--border-hairline);
+    height: var(--border-hairline);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .conversation-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rec-head {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rec-head > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .opt-group {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--size-control) * 4)), 1fr));
+  }
 }
 
 /* 767px = --bp-compact. On compact screens the full stepper reflows to vertical and

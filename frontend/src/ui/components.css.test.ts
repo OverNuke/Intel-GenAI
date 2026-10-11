@@ -47,6 +47,10 @@ describe("components.css primitives (REQ-VF-2)", () => {
       ".icon",
       ".icon-16",
       ".is-inactive",
+      ".rail-item",
+      ".rail-label",
+      ".table-scroll",
+      "[data-tooltip]",
     ];
     const missing = required.filter((selector) => !hasSelector(selector));
     expect(missing).toEqual([]);
@@ -76,5 +80,34 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(css).toMatch(/\.icon-btn\s*\{[^}]*width:\s*var\(--size-control\)[^}]*height:\s*var\(--size-control\)/);
     expect(css).toMatch(/\.opt-tile\s*\{[^}]*min-height:\s*var\(--size-control\)/);
     expect(css).toMatch(/\.opt-tile:has\(input:focus-visible\)/);
+  });
+
+  it("navigation rail: sticky full-height, labelled >=1101px, icon-only <=1100px with a tooltip (REQ-NS-2/3)", () => {
+    expect(css).toMatch(/\.rail\s*\{[^}]*position:\s*sticky[^}]*height:\s*var\(--size-viewport\)/);
+    expect(css).toMatch(/\.app\s*\{[^}]*grid-template-columns:\s*calc\(var\(--size-rail\) \* 3\) minmax\(0, 1fr\)/);
+    expect(css).toMatch(/\[data-tooltip\]::after\s*\{[^}]*content:\s*attr\(data-tooltip\)/);
+    expect(css).toMatch(/@media \(min-width: 1101px\) \{[\s\S]*?\[data-tooltip\]::after[\s\S]*?display:\s*none/);
+  });
+
+  it("1100px block (= --bp-medium) hides rail labels visually and adapts the wide grids (S-NS-6, S-RL-2)", () => {
+    const blocks = [...css.matchAll(/@media \(max-width: 1100px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1] as string);
+    expect(blocks.length).toBeGreaterThan(0);
+    const medium = blocks.join("\n");
+    expect(medium).toMatch(/\.rail-label/);
+    expect(medium).toMatch(/\.conversation-grid/);
+    expect(medium).toMatch(/\.rec-head/);
+    expect(medium).toMatch(/\.opt-group/);
+    expect(medium).not.toMatch(/\.is-inactive/);
+  });
+
+  it("does not impose a 420px minimum on the conversation grid (REQ-RL-3)", () => {
+    const grid = /\.conversation-grid\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(grid).toMatch(/grid-template-columns/);
+    expect(grid).not.toMatch(/minmax\(420px/);
+    expect(grid).not.toMatch(/--size-chat-min/);
+  });
+
+  it("scrolls wide tables inside a .table-scroll region, not the page (REQ-RL-2)", () => {
+    expect(css).toMatch(/\.table-scroll\s*\{[^}]*overflow-x:\s*auto/);
   });
 });

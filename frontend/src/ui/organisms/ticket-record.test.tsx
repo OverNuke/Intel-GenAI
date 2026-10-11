@@ -83,6 +83,9 @@ describe("TicketRecord (T2)", () => {
     expect(rail.querySelectorAll("dl.rail-rows > .rail-row")).toHaveLength(6);
     expect(within(rail).getByText("Soporte de redes")).toBeTruthy();
     expect(within(rail).getByText("Luis Herrera")).toBeTruthy();
+    const createdRow = within(rail).getByText("Creado").closest(".rail-row");
+    expect(createdRow?.querySelector('svg[data-icon="clock"]')).not.toBeNull();
+    expect(rail.querySelector('svg[data-icon="file-check"]')).toBeNull();
   });
 
   it("tabs switch between Resumen, Línea de tiempo and Bitácora", () => {

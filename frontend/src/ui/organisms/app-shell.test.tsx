@@ -34,6 +34,56 @@ describe("AppShell rail", () => {
     expect(within(rail).getByText("Próxima etapa del prototipo")).toBeTruthy();
   });
 
+  it("S-NS-1: every Usuario item shows its icon plus a visible .rail-label, in order", () => {
+    shell(ana, "home");
+    const rail = screen.getByRole("navigation", { name: "Secciones" });
+    const items = [...rail.querySelectorAll(".rail-item")];
+    expect(items.map((el) => [el.querySelector("svg")?.getAttribute("data-icon"), el.querySelector(".rail-label")?.textContent])).toEqual([
+      ["house", "Inicio"],
+      ["ticket", "Mis tickets"],
+      ["layout-grid", "¿Qué necesitas?"],
+      ["laptop", "Mi equipo"],
+    ]);
+    for (const el of items) {
+      expect(el.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+      expect(el.getAttribute("data-tooltip")).toBe(el.querySelector(".rail-label")?.textContent);
+      expect(el.hasAttribute("aria-label")).toBe(false);
+    }
+  });
+
+  it("S-NS-2: TI leads with inbox and Supervisor with chart-column, then the same own-tickets group", () => {
+    shell(luis, "ticket-tracking");
+    let rail = screen.getByRole("navigation", { name: "Secciones" });
+    expect([...rail.querySelectorAll(".rail-item svg")].map((s) => s.getAttribute("data-icon"))).toEqual([
+      "inbox",
+      "ticket",
+      "layout-grid",
+      "laptop",
+    ]);
+    cleanup();
+    shell(sara, "agent-tracking");
+    rail = screen.getByRole("navigation", { name: "Secciones" });
+    expect([...rail.querySelectorAll(".rail-item svg")].map((s) => s.getAttribute("data-icon"))).toEqual([
+      "chart-column",
+      "ticket",
+      "layout-grid",
+      "laptop",
+    ]);
+  });
+
+  it("Mi equipo is a focusable disabled button described by the next-stage text, inert on click", () => {
+    shell(ana, "home");
+    const rail = screen.getByRole("navigation", { name: "Secciones" });
+    const mine = within(rail).getByRole("button", { name: "Mi equipo" });
+    expect(mine.getAttribute("aria-disabled")).toBe("true");
+    expect(mine.hasAttribute("disabled")).toBe(false);
+    const described = document.getElementById(mine.getAttribute("aria-describedby") ?? "");
+    expect(described?.textContent).toBe("Próxima etapa del prototipo");
+    expect(within(rail).getAllByRole("link")).toHaveLength(3);
+    fireEvent.click(mine);
+    expect(screen.getByRole("main").textContent).toBe("contenido");
+  });
+
   it("marks Mis tickets as the current page when that section is active", () => {
     shell(ana, "my-tickets");
     const rail = screen.getByRole("navigation", { name: "Secciones" });
@@ -92,6 +142,17 @@ describe("AppShell header", () => {
     const menu = screen.getByRole("menu");
     expect(within(menu).getAllByRole("menuitem")).toHaveLength(1);
     expect(within(menu).getByText("luis.herrera@ejemplo.mx · Consultor TI")).toBeTruthy();
+  });
+
+  it("S-NS-4: the profile button shows a decorative chevron-down that flips to chevron-up when open", () => {
+    shell(ana, "home");
+    const button = screen.getByRole("button", { name: /Ana Ruiz/ });
+    expect(button.querySelector('svg[data-icon="chevron-down"]')?.getAttribute("aria-hidden")).toBe("true");
+    expect(button.querySelector('svg[data-icon="chevron-up"]')).toBeNull();
+    fireEvent.click(button);
+    expect(button.querySelector('svg[data-icon="chevron-up"]')).not.toBeNull();
+    expect(button.querySelector('svg[data-icon="chevron-down"]')).toBeNull();
+    expect(button.textContent).toContain("Ana Ruiz");
   });
 
   it("Escape closes the menu", () => {

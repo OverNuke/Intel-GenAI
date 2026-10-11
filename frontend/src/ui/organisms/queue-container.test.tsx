@@ -75,6 +75,16 @@ describe("QueueSummaryCards", () => {
   });
 });
 
+describe("QueueTable scroll region (S-RL-1)", () => {
+  it("wraps the table in a focusable, named region so wide tables scroll inside it", () => {
+    render(<QueueContainer queue={QUEUE} />);
+    const region = screen.getByRole("region", { name: "Tabla de tickets" });
+    expect(region.getAttribute("tabindex")).toBe("0");
+    expect(region.className).toContain("table-scroll");
+    expect(within(region).getByRole("table")).toBeTruthy();
+  });
+});
+
 describe("QueueContainer (T1)", () => {
   it("renders the table with status, priority and SLA in text and the Ariadna marker", () => {
     render(<QueueContainer queue={QUEUE} />);

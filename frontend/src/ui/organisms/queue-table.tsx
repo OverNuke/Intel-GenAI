@@ -44,63 +44,65 @@ export function QueueTable({
   onSort: (key: Exclude<SortKey, null>) => void;
 }) {
   return (
-    <table className="queue-table">
-      <thead>
-        <tr>
-          <th scope="col">{COPY.it.columns.id}</th>
-          <th scope="col">{COPY.it.columns.summary}</th>
-          <th scope="col">{COPY.it.columns.requester}</th>
-          <SortableHeader label={COPY.it.columns.priority} sortKey="priority" sort={sort} onSort={onSort} />
-          <th scope="col">{COPY.it.columns.state}</th>
-          <th scope="col">{COPY.it.columns.assignee}</th>
-          <SortableHeader label={COPY.it.columns.sla} sortKey="sla" sort={sort} onSort={onSort} />
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.id}>
-            <td>
-              <Link className="t-id" href={`/ti/tickets/${row.id}`}>
-                {row.id}
-              </Link>
-            </td>
-            <td>
-              <span>{row.summary}</span>
-              {row.via_ariadna ? (
-                <span className="t-meta">
-                  {" "}
-                  <span aria-hidden="true">✦ </span>
-                  {COPY.it.viaAriadna}
-                </span>
-              ) : null}
-            </td>
-            <td>{row.requester_name}</td>
-            <td>
-              <span aria-hidden="true">{PRIORITY_GLYPH[row.priority]} </span>
-              {COPY.it.priorities[row.priority]}
-            </td>
-            <td>
-              {COPY.it.statuses[row.status]}
-              {row.awaiting_user ? (
-                <span className="t-meta">
-                  <span aria-hidden="true"> · </span>
-                  {COPY.it.pending}
-                </span>
-              ) : null}
-            </td>
-            <td>{row.assignee_name ?? COPY.it.unassigned}</td>
-            <td>
-              {row.sla_state ? COPY.it.slaStates[row.sla_state] : COPY.it.noSla}
-              {row.sla_due_at ? (
-                <span className="t-meta">
-                  <span aria-hidden="true"> · </span>
-                  {formatDate(row.sla_due_at)}
-                </span>
-              ) : null}
-            </td>
+    <div className="table-scroll" role="region" aria-label={COPY.it.tableRegion} tabIndex={0}>
+      <table className="queue-table">
+        <thead>
+          <tr>
+            <th scope="col">{COPY.it.columns.id}</th>
+            <th scope="col">{COPY.it.columns.summary}</th>
+            <th scope="col">{COPY.it.columns.requester}</th>
+            <SortableHeader label={COPY.it.columns.priority} sortKey="priority" sort={sort} onSort={onSort} />
+            <th scope="col">{COPY.it.columns.state}</th>
+            <th scope="col">{COPY.it.columns.assignee}</th>
+            <SortableHeader label={COPY.it.columns.sla} sortKey="sla" sort={sort} onSort={onSort} />
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td>
+                <Link className="t-id" href={`/ti/tickets/${row.id}`}>
+                  {row.id}
+                </Link>
+              </td>
+              <td>
+                <span>{row.summary}</span>
+                {row.via_ariadna ? (
+                  <span className="t-meta">
+                    {" "}
+                    <span aria-hidden="true">✦ </span>
+                    {COPY.it.viaAriadna}
+                  </span>
+                ) : null}
+              </td>
+              <td>{row.requester_name}</td>
+              <td>
+                <span aria-hidden="true">{PRIORITY_GLYPH[row.priority]} </span>
+                {COPY.it.priorities[row.priority]}
+              </td>
+              <td>
+                {COPY.it.statuses[row.status]}
+                {row.awaiting_user ? (
+                  <span className="t-meta">
+                    <span aria-hidden="true"> · </span>
+                    {COPY.it.pending}
+                  </span>
+                ) : null}
+              </td>
+              <td>{row.assignee_name ?? COPY.it.unassigned}</td>
+              <td>
+                {row.sla_state ? COPY.it.slaStates[row.sla_state] : COPY.it.noSla}
+                {row.sla_due_at ? (
+                  <span className="t-meta">
+                    <span aria-hidden="true"> · </span>
+                    {formatDate(row.sla_due_at)}
+                  </span>
+                ) : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

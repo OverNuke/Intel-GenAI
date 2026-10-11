@@ -1,6 +1,7 @@
 /**
  * Generated file: the 51 icon symbols (`#ar-*`) of the sprite in `mock/Ariadna — prototipo.html`
- * (board bundle "bundle2", Lucide outline, 24x24 viewBox). Extracted by script; do not hand-edit.
+ * (board bundle "bundle2", Lucide outline, 24x24 viewBox) followed by 7 `// adapted:` Lucide icons
+ * the mock does not ship as symbols. Extracted by script; do not hand-edit.
  * Stroke/fill come from the `.icon` rule in `components.css`.
  */
 import type { ReactElement } from "react";
@@ -350,6 +351,56 @@ export const ICONS = {
       <path d="M7 11h10" />
       <path d="M7 15h6" />
       <path d="M7 7h8" />
+    </>
+  ),
+  "chart-column": (
+    <>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path d="M18 17V9" />
+      <path d="M13 17V5" />
+      <path d="M8 17v-3" />
+    </>
+  ),
+  "clock": (
+    <>
+      <path d="M12 6v6l4 2" />
+      <circle cx="12" cy="12" r="10" />
+    </>
+  ),
+  "maximize-2": (
+    <>
+      <path d="M15 3h6v6" />
+      <path d="m21 3-7 7" />
+      <path d="m3 21 7-7" />
+      <path d="M9 21H3v-6" />
+    </>
+  ),
+  "minimize-2": (
+    <>
+      <path d="m14 10 7-7" />
+      <path d="M20 10h-6V4" />
+      <path d="m3 21 7-7" />
+      <path d="M4 14h6v6" />
+    </>
+  ),
+  "pencil": (
+    <>
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+      <path d="m15 5 4 4" />
+    </>
+  ),
+  "list-checks": (
+    <>
+      <path d="m3 17 2 2 4-4" />
+      <path d="m3 7 2 2 4-4" />
+      <path d="M13 6h8" />
+      <path d="M13 12h8" />
+      <path d="M13 18h8" />
+    </>
+  ),
+  "chevron-up": (
+    <>
+      <path d="m18 15-6-6-6 6" />
     </>
   ),
 } satisfies Record<string, ReactElement>;

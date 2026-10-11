@@ -23,6 +23,14 @@ function click(fetchMock: typeof fetch) {
 }
 
 describe("LogoutButton", () => {
+  it("shows a decorative log-out icon next to the unchanged accessible name", () => {
+    render(<LogoutButton />);
+    const item = screen.getByRole("menuitem", { name: "Cerrar sesión" });
+    const icon = item.querySelector('svg[data-icon="log-out"]');
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+    expect(item.textContent).toBe("Cerrar sesión");
+  });
+
   it("S-A4-1: POSTs /api/auth/logout, then replaces with A4 and refreshes", async () => {
     const f = vi.fn<typeof fetch>(async () => new Response(null, { status: 204 }));
     click(f);

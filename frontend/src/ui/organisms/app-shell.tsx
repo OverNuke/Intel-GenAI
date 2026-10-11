@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { ROLE_HOME, ROLE_LABELS } from "@/lib/access-labels";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { Icon, type IconName } from "../atoms/icon";
 
 type User = components["schemas"]["UserOut"];
 type Role = User["role"];
@@ -34,22 +35,31 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function RailLink({ href, label, current }: { href: string; label: string; current: boolean }) {
+const LIVE_ICON: Record<Role, IconName> = { user: "house", it: "inbox", supervisor: "chart-column" };
+
+/**
+ * Icon + visible label. The label stays in the accessibility tree at every width (it is only
+ * visually hidden when the rail collapses); `data-tooltip` is a CSS-only hint, never a second name.
+ */
+function RailLink({ href, label, icon, current }: { href: string; label: string; icon: IconName; current: boolean }) {
   return (
     <li>
-      <Link href={href} className="rail-item" aria-current={current ? "page" : undefined}>
-        {label}
+      <Link href={href} className="rail-item" data-tooltip={label} aria-current={current ? "page" : undefined}>
+        <Icon name={icon} />
+        <span className="rail-label">{label}</span>
       </Link>
     </li>
   );
 }
 
-function Disabled({ label }: { label: string }) {
+/** Focusable but inert: keyboard users reach the tooltip and hear the next-stage description. */
+function Disabled({ label, icon }: { label: string; icon: IconName }) {
   return (
     <li>
-      <span className="rail-item" aria-disabled="true">
-        {label}
-      </span>
+      <button type="button" className="rail-item" data-tooltip={label} aria-disabled="true" aria-describedby="rail-next">
+        <Icon name={icon} />
+        <span className="rail-label">{label}</span>
+      </button>
     </li>
   );
 }
@@ -58,10 +68,12 @@ function Disabled({ label }: { label: string }) {
 function OwnItems({ active }: { active: string }) {
   return (
     <>
-      <RailLink href="/tickets" label={COPY.myTickets} current={active === "my-tickets"} />
-      <RailLink href="/solicitud" label={COPY.whatDoYouNeed} current={active === "new-request"} />
-      <Disabled label={COPY.myTeam} />
-      <li className="t-meta">{COPY.nextStage}</li>
+      <RailLink href="/tickets" label={COPY.myTickets} icon="ticket" current={active === "my-tickets"} />
+      <RailLink href="/solicitud" label={COPY.whatDoYouNeed} icon="layout-grid" current={active === "new-request"} />
+      <Disabled label={COPY.myTeam} icon="laptop" />
+      <li id="rail-next" className="t-meta">
+        {COPY.nextStage}
+      </li>
     </>
   );
 }
@@ -71,7 +83,7 @@ function Rail({ user, active }: { user: User; active: string }) {
   return (
     <nav aria-label="Secciones" className="rail">
       <ul>
-        <RailLink href={ROLE_HOME[user.role]} label={live.label} current={active === live.key} />
+        <RailLink href={ROLE_HOME[user.role]} label={live.label} icon={LIVE_ICON[user.role]} current={active === live.key} />
         {user.role === "user" ? (
           <OwnItems active={active} />
         ) : (
@@ -125,6 +137,7 @@ export function AppShell({ user, active, logout, children }: AppShellProps) {
             </span>
             {user.name}
             {user.role === "user" ? null : <span className="t-meta"> {ROLE_LABELS[user.role]}</span>}
+            <Icon name={open ? "chevron-up" : "chevron-down"} size="sm" />
           </button>
           {open ? (
             <div

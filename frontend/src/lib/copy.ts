@@ -92,6 +92,7 @@ export const COPY = {
       slaRisk: "SLA por vencer",
       unassigned: "Sin asignar",
     },
+    tableRegion: "Tabla de tickets",
     columns: {
       id: "ID",
       summary: "Resumen",
@@ -140,7 +141,8 @@ export const COPY = {
     estimatesIntro: "Cálculos a partir de supuestos; sirven para conversar, no para presumir resultados.",
     estimatesLabel: "Estimaciones, no son resultados medidos",
     trendTitle: "Tendencia diaria (datos de ejemplo)",
-    trendAria: "Tendencia diaria de adopción y tickets con corrección, datos de ejemplo",
+    trendTableRegion: "Tabla de la tendencia diaria",
+    trendAria:"Tendencia diaria de adopción y tickets con corrección, datos de ejemplo",
     adoption: "Adopción",
     corrected: "Con corrección",
     day: "Día",

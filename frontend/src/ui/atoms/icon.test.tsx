@@ -7,14 +7,24 @@ import { ICONS } from "./icon-paths";
 afterEach(cleanup);
 
 describe("ICONS (generated from the mock sprite)", () => {
-  it("exposes the 51 mock symbols by kebab-case name without the ar- prefix", () => {
+  it("exposes the 51 mock symbols plus 7 adapted ones by kebab-case name without the ar- prefix", () => {
     const names = Object.keys(ICONS);
-    expect(names).toHaveLength(51);
-    expect(new Set(names).size).toBe(51);
+    expect(names).toHaveLength(58);
+    expect(new Set(names).size).toBe(58);
     expect(names).toContain("wrench");
     expect(names).toContain("circle-alert");
     expect(names).toContain("send-horizontal");
     expect(names.some((name) => name.startsWith("ar-"))).toBe(false);
+  });
+
+  it("includes the adapted icons (not in the mock sprite) and each renders an svg with data-icon", () => {
+    const adapted = ["chart-column", "clock", "maximize-2", "minimize-2", "pencil", "list-checks", "chevron-up"] as const;
+    for (const name of adapted) {
+      expect(Object.keys(ICONS)).toContain(name);
+      const { container, unmount } = render(<Icon name={name} />);
+      expect(container.querySelector(`svg[data-icon="${name}"]`)).not.toBeNull();
+      unmount();
+    }
   });
 
   it("draws at least one shape for every icon", () => {

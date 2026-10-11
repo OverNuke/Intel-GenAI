@@ -70,6 +70,9 @@ describe("TicketDetail (U3)", () => {
       "Creado",
     ]);
     expect(aside.querySelectorAll(".rail-row svg")).toHaveLength(8);
+    const createdRow = within(aside).getByText("Creado").closest(".rail-row");
+    expect(createdRow?.querySelector('svg[data-icon="clock"]')).not.toBeNull();
+    expect(aside.querySelector('svg[data-icon="file-check"]')).toBeNull();
     expect(aside.textContent).toContain("Ana Ruiz");
     expect(aside.textContent).toContain("Afecta a toda mi área");
     expect(aside.textContent).toContain("Puedo trabajar con dificultad");

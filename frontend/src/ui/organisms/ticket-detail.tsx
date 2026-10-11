@@ -23,8 +23,8 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
     ["user-check", COPY.detail.assignee, ticket.assignee_name ?? COPY.detail.unassigned],
     ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
     ["paperclip", COPY.detail.attachments, COPY.detail.noAttachments],
-    // adapted: the mock's "clock" icon is not in the extracted sprite; file-check stands in.
-    ["file-check", COPY.detail.created, formatDate(ticket.created_at)],
+    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (see icon-paths.tsx).
+    ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
 
   return (
