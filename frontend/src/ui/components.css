@@ -1842,6 +1842,25 @@ th[aria-sort="descending"] .sort-button::after {
   align-items: start;
 }
 
+/* U3 only (T2 and U7 keep .rec-body): the left stack holds Descripción + Constancia, the data rail is
+   fixed at --size-record-rail. Declared before the 767px block, which collapses it to one column. */
+.rec-body--detail {
+  grid-template-columns: minmax(0, 1fr) var(--size-record-rail);
+}
+
+/* Constancia as the mock's container with one sub-card per part; scoped so T2/U7 stay a plain card. */
+.rec-body--detail .ar-const {
+  background: var(--color-container);
+  border-radius: var(--radius-lg);
+}
+
+.rec-body--detail .ar-const-part {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-md);
+}
+
 /* 768px = --bp-compact + 1: the tab view and the vertical timeline exist only on compact screens. */
 @media (min-width: 768px) {
   .compact-only {
@@ -1850,7 +1869,8 @@ th[aria-sort="descending"] .sort-button::after {
 }
 
 @media (max-width: 767px) {
-  .rec-body {
+  .rec-body,
+  .rec-body--detail {
     grid-template-columns: minmax(0, 1fr);
   }
 

@@ -157,6 +157,31 @@ describe("TicketDetail (U3)", () => {
     expect(screen.queryByRole("heading", { name: "Constancia de Ariadna" })).toBeNull();
   });
 
+  it("S-UT-S1: the receipt sits under Descripción in the left stack of .rec-body--detail, aside as sibling", () => {
+    const receipt = {
+      understood: "No hay red en el área de captura.",
+      reviewed: ["Datos obligatorios completos"],
+      not_done: ["La persona presionó «Enviar solicitud». Ariadna no envía nada."],
+      permissions_notice: null,
+      missing_data: [],
+      target_group: "Soporte de redes",
+    };
+    const { container } = render(<TicketDetail ticket={detail({ receipt })} requesterName="Ana Ruiz" />);
+    const body = container.querySelector(".rec-body.rec-body--detail") as HTMLElement;
+    expect(body).not.toBeNull();
+    const left = body.firstElementChild as HTMLElement;
+    expect(left.classList.contains("stack")).toBe(true);
+    const receiptHeading = screen.getByRole("heading", { name: "Constancia de Ariadna" });
+    const description = screen.getByRole("heading", { name: "Descripción" });
+    expect(left.contains(receiptHeading)).toBe(true);
+    expect(left.contains(description)).toBe(true);
+    const aside = screen.getByRole("complementary", { name: "Datos del ticket" });
+    expect(aside.parentElement).toBe(body);
+    expect(aside.contains(receiptHeading)).toBe(false);
+    expect(receiptHeading.closest("section")?.classList.contains("ar-const")).toBe(true);
+    expect(receiptHeading.closest("section")?.querySelectorAll(".ar-const-part").length).toBeGreaterThan(0);
+  });
+
   it("S-SC-4: an unknown service still renders with the label the API sent", () => {
     render(
       <TicketDetail

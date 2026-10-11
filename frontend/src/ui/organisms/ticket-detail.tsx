@@ -56,21 +56,24 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
         <StageTracker status={ticket.status} awaitingUser={ticket.awaiting_user} />
       </div>
 
-      <div className="rec-body">
-        <DetailViewTabs
-          summary={
-            <section aria-labelledby="detail-description" className="stack">
-              <h2 id="detail-description">{COPY.detail.description}</h2>
-              <p>{ticket.description}</p>
-            </section>
-          }
-          timeline={
-            <section aria-labelledby="detail-timeline" className="stack">
-              <h2 id="detail-timeline">{COPY.detail.timeline}</h2>
-              <LifeTimeline stages={lifeStages(ticket)} />
-            </section>
-          }
-        />
+      <div className="rec-body rec-body--detail">
+        <div className="stack">
+          <DetailViewTabs
+            summary={
+              <section aria-labelledby="detail-description" className="stack">
+                <h2 id="detail-description">{COPY.detail.description}</h2>
+                <p>{ticket.description}</p>
+              </section>
+            }
+            timeline={
+              <section aria-labelledby="detail-timeline" className="stack">
+                <h2 id="detail-timeline">{COPY.detail.timeline}</h2>
+                <LifeTimeline stages={lifeStages(ticket)} />
+              </section>
+            }
+          />
+          {ticket.receipt ? <AriadnaReceipt receipt={ticket.receipt} /> : null}
+        </div>
         <aside className="card" aria-label={COPY.detail.railLabel}>
           <dl className="rail-rows">
             {rows.map(([icon, label, value]) => (
@@ -83,8 +86,6 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
           </dl>
         </aside>
       </div>
-
-      {ticket.receipt ? <AriadnaReceipt receipt={ticket.receipt} /> : null}
     </div>
   );
 }

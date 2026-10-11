@@ -120,6 +120,21 @@ describe("TicketRecord (T2)", () => {
     expect(screen.getByText("Este ticket no se creó con Ariadna.")).toBeTruthy();
   });
 
+  it("S-UT-S2: T2 keeps the receipt outside .rec-body and never uses the U3 detail modifier", () => {
+    const receipt = {
+      understood: "La VPN no conecta.",
+      reviewed: ["Datos obligatorios completos"],
+      not_done: ["La persona envió la solicitud."],
+      permissions_notice: null,
+      missing_data: [],
+      target_group: "Soporte de redes",
+    };
+    const { container } = render(<TicketRecord ticket={record({ via_ariadna: true, receipt })} onContact={noop} />);
+    expect(container.querySelector(".rec-body--detail")).toBeNull();
+    const heading = screen.getByRole("heading", { name: "Constancia de Ariadna" });
+    expect(heading.closest(".rec-body")).toBeNull();
+  });
+
   it("S-IT-13: only 'Contactar al usuario' works; the other actions are disabled with the stage note", () => {
     const onContact = vi.fn();
     render(<TicketRecord ticket={record()} onContact={onContact} />);

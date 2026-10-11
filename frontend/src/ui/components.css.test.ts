@@ -292,4 +292,25 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(barCss).not.toMatch(/\.islands[^{]*\{[^}]*display:\s*none/);
     });
   });
+
+  describe("U3 detail body (REQ-UT-S1/S2)", () => {
+    it("sizes .rec-body--detail as 1fr + --size-record-rail, declared before the 767px collapse", () => {
+      const rule = /(?:^|\n)\.rec-body--detail\s*\{([^}]*)\}/.exec(css);
+      expect(rule?.[1]).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s+var\(--size-record-rail\)/);
+      const baseAt = css.search(/(?:^|\n)\.rec-body--detail\s*\{/);
+      const collapseAt = css.search(/@media \(max-width: 767px\) \{\s*\.rec-body,\s*\.rec-body--detail\s*\{/);
+      expect(collapseAt).toBeGreaterThan(baseAt);
+      const compact = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+      expect(compact).toMatch(/\.rec-body--detail\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*;/);
+    });
+
+    it("styles .ar-const / .ar-const-part only under .rec-body--detail (T2 and U7 keep the plain card)", () => {
+      const selectors = [...css.matchAll(/(?:^|\n)([^@}\n][^{\n]*)\{/g)].map((m) => m[1] as string);
+      const hits = selectors.filter((s) => /\.ar-const/.test(s));
+      expect(hits.length).toBeGreaterThan(0);
+      for (const s of hits) {
+        for (const part of s.split(",")) expect(part.trim()).toMatch(/^\.rec-body--detail\s/);
+      }
+    });
+  });
 });
