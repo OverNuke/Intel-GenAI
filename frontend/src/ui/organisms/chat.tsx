@@ -2,7 +2,7 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { COPY } from "@/lib/copy";
-import { Button } from "../atoms/button";
+import { Icon } from "../atoms/icon";
 
 export type ChatLine = { role: "user" | "assistant"; content: string };
 
@@ -36,29 +36,45 @@ export function Chat({
       <div role="log" aria-live="polite" aria-relevant="additions" className="chat-thread">
         <ol className="plain-list">
           {messages.map((message, index) => (
-            <li key={index} className={`chat-message is-${message.role}`}>
-              <span className="t-meta">{message.role === "assistant" ? COPY.chat.ariadna : COPY.chat.you}</span>
-              <span>{message.content}</span>
+            <li key={index} className={message.role === "user" ? "msg msg--user" : "msg"}>
+              <span className="msg-who">
+                {message.role === "assistant" ? (
+                  <>
+                    <Icon name="sparkles" size="sm" />
+                    {COPY.chat.ariadna}
+                  </>
+                ) : (
+                  COPY.chat.you
+                )}
+              </span>
+              <span className="msg-text">{message.content}</span>
             </li>
           ))}
         </ol>
         {busy ? <p className="t-meta">{COPY.chat.typing}</p> : null}
       </div>
-      <div className="field">
-        <label htmlFor="chat-input">{COPY.chat.yourAnswer}</label>
+      <div className="composer">
+        <label className="sr" htmlFor="chat-input">
+          {COPY.chat.yourAnswer}
+        </label>
         <textarea
           id="chat-input"
           className="input"
-          rows={3}
+          rows={1}
+          placeholder={COPY.chat.replyPlaceholder}
           value={text}
           onChange={(event) => setText(event.target.value)}
           onKeyDown={onKeyDown}
         />
-      </div>
-      <div className="actions">
-        <Button busy={busy} onClick={send}>
-          {COPY.chat.reply}
-        </Button>
+        <button
+          type="button"
+          className="icon-btn icon-btn--outline"
+          aria-label={COPY.chat.sendReply}
+          aria-busy={busy ? "true" : undefined}
+          onClick={busy ? undefined : send}
+        >
+          <Icon name="send-horizontal" />
+        </button>
       </div>
     </div>
   );

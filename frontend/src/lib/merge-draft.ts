@@ -1,4 +1,6 @@
 import type { components } from "./api-types";
+import { COPY } from "./copy";
+import type { StepState } from "./ticket-labels";
 
 type Level = components["schemas"]["DraftOut"]["impact"];
 
@@ -30,4 +32,27 @@ export function mergeDraft(current: DraftFields, suggestion: DraftFields, touche
     (merged as Record<DraftField, unknown>)[field] = proposed;
   }
   return merged;
+}
+
+/**
+ * The four steps of the "Tu solicitud" band, derived from what the draft already holds.
+ * "Enviado" never completes here: sending happens in the separate confirmation step.
+ */
+export function draftSteps(
+  draft: DraftFields,
+  labels: readonly string[] = COPY.request.bandSteps,
+): { label: string; state: StepState }[] {
+  const done = [
+    Boolean(draft.service && draft.summary.trim()),
+    Boolean(draft.description.trim() && draft.impact && draft.urgency),
+    false,
+    false,
+  ];
+  let currentSeen = false;
+  return labels.map((label, index) => {
+    if (done[index]) return { label, state: "done" as const };
+    if (currentSeen) return { label, state: "upcoming" as const };
+    currentSeen = true;
+    return { label, state: "current" as const };
+  });
 }

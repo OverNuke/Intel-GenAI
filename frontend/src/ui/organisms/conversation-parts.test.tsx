@@ -51,12 +51,32 @@ describe("Chat", () => {
     expect(items[1]!.textContent).toContain("La impresora no imprime");
   });
 
+  it("marks the assistant speaker with the sparkles icon and styles each side as a message", () => {
+    render(<Chat messages={messages} busy={false} onSend={vi.fn()} />);
+    const items = within(screen.getByRole("log")).getAllByRole("listitem");
+    expect(items[0]!.querySelector('[data-icon="sparkles"]')).not.toBeNull();
+    expect(items[1]!.querySelector('[data-icon="sparkles"]')).toBeNull();
+    expect(items[0]!.classList.contains("msg")).toBe(true);
+    expect(items[1]!.classList.contains("msg--user")).toBe(true);
+  });
+
+  it("uses a one-line composer with a named icon send button (no 'Responder' text button)", () => {
+    render(<Chat messages={messages} busy={false} onSend={vi.fn()} />);
+    const box = screen.getByRole("textbox", { name: "Tu respuesta para Ariadna" }) as HTMLTextAreaElement;
+    expect(box.tagName).toBe("TEXTAREA");
+    expect(box.rows).toBe(1);
+    expect(box.getAttribute("placeholder")).toBe("Escribe tu respuesta");
+    const send = screen.getByRole("button", { name: "Enviar respuesta a Ariadna" });
+    expect(send.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Responder" })).toBeNull();
+  });
+
   it("sends the trimmed text with the button and with Enter, then clears the box", () => {
     const onSend = vi.fn();
     render(<Chat messages={messages} busy={false} onSend={onSend} />);
     const box = screen.getByLabelText("Tu respuesta para Ariadna") as HTMLTextAreaElement;
     fireEvent.change(box, { target: { value: "  Desde ayer  " } });
-    fireEvent.click(screen.getByRole("button", { name: "Responder" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar respuesta a Ariadna" }));
     expect(onSend).toHaveBeenCalledWith("Desde ayer");
     expect(box.value).toBe("");
 
@@ -78,14 +98,15 @@ describe("Chat", () => {
   it("ignores empty input and shows a busy state without accepting a second message", () => {
     const onSend = vi.fn();
     const { rerender } = render(<Chat messages={messages} busy={false} onSend={onSend} />);
-    fireEvent.click(screen.getByRole("button", { name: "Responder" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar respuesta a Ariadna" }));
     expect(onSend).not.toHaveBeenCalled();
 
     rerender(<Chat messages={messages} busy={true} onSend={onSend} />);
     expect(screen.getByText("Ariadna está escribiendo…")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Enviar respuesta a Ariadna" }).getAttribute("aria-busy")).toBe("true");
     const box = screen.getByLabelText("Tu respuesta para Ariadna");
     fireEvent.change(box, { target: { value: "hola" } });
-    fireEvent.click(screen.getByRole("button", { name: "Responder" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar respuesta a Ariadna" }));
     expect(onSend).not.toHaveBeenCalled();
   });
 });
@@ -94,7 +115,7 @@ describe("RequestDraftForm (Tu solicitud)", () => {
   const draft = { service: "printing", summary: "Impresora sin imprimir", description: "", impact: null, urgency: null };
 
   it("shows the draft values, tags assistant-filled fields and flags what is missing", () => {
-    render(<RequestDraftForm draft={draft} touched={EMPTY_TOUCHED} services={SERVICES} onEdit={vi.fn()} />);
+    render(<RequestDraftForm draft={draft} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
     expect(screen.getByRole("heading", { name: "Tu solicitud" })).toBeTruthy();
     expect((screen.getByLabelText("Resumen") as HTMLInputElement).value).toBe("Impresora sin imprimir");
     expect((screen.getByLabelText("Servicio") as HTMLSelectElement).value).toBe("printing");
@@ -109,6 +130,7 @@ describe("RequestDraftForm (Tu solicitud)", () => {
         draft={draft}
         touched={{ ...EMPTY_TOUCHED, summary: true }}
         services={SERVICES}
+        requesterName="Ana Ruiz"
         onEdit={onEdit}
       />,
     );
@@ -121,9 +143,63 @@ describe("RequestDraftForm (Tu solicitud)", () => {
     expect(onEdit).toHaveBeenCalledWith("service", "software");
   });
 
+  it("states that nothing was sent yet and shows the 4-step band", () => {
+    render(<RequestDraftForm draft={EMPTY_DRAFT} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
+    expect(screen.getByText("Todavía no se ha enviado nada.")).toBeTruthy();
+    const band = screen.getByRole("list", { name: "Pasos de tu solicitud" });
+    const steps = within(band).getAllByRole("listitem");
+    expect(steps).toHaveLength(4);
+    expect(steps[0]!.textContent).toContain("Qué pasa");
+    expect(steps[0]!.getAttribute("aria-current")).toBe("step");
+    expect(steps[3]!.textContent).toContain("Enviado");
+  });
+
+  it("S-TS-D5: Solicitante is read-only and shows the session user", () => {
+    render(<RequestDraftForm draft={draft} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
+    const field = screen.getByLabelText("Solicitante") as HTMLInputElement;
+    expect(field.value).toBe("Ana Ruiz");
+    expect(field.readOnly).toBe(true);
+    expect(screen.getByText("Solo lectura")).toBeTruthy();
+  });
+
+  it("puts the assist and to-do tags in the field head, not below the control", () => {
+    render(<RequestDraftForm draft={draft} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
+    for (const tag of screen.getAllByText("Lo llenó el asistente")) {
+      expect(tag.closest(".field-head")).not.toBeNull();
+      expect(tag.className).toContain("assist-tag");
+    }
+    const todo = document.querySelectorAll(".todo-tag");
+    expect(todo.length).toBeGreaterThan(0);
+    for (const tag of todo) expect(tag.closest(".field-head")).not.toBeNull();
+    expect(screen.getByLabelText("Resumen").getAttribute("aria-describedby")).toBeTruthy();
+  });
+
+  it("renders impact and urgency as option tiles that wrap a hidden native radio with a hint", () => {
+    render(<RequestDraftForm draft={{ ...draft, impact: "medium" }} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={vi.fn()} />);
+    const radio = screen.getByRole("radio", { name: "Afecta a varias personas" }) as HTMLInputElement;
+    expect(radio.checked).toBe(true);
+    expect(radio.closest("label")!.classList.contains("opt-tile")).toBe(true);
+    expect(radio.getAttribute("aria-describedby")).toBeTruthy();
+    expect(screen.getByText("Impacto medio")).toBeTruthy();
+    expect(screen.getByRole("radiogroup", { name: "Impacto" }).classList.contains("opt-group")).toBe(true);
+  });
+
+  it("S-TS-D4: arrow keys move the selection through the options and wrap around", () => {
+    const onEdit = vi.fn();
+    render(<RequestDraftForm draft={{ ...draft, urgency: "low" }} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={onEdit} />);
+    const low = screen.getByRole("radio", { name: "Puede esperar" });
+    fireEvent.keyDown(low, { key: "ArrowRight" });
+    expect(onEdit).toHaveBeenLastCalledWith("urgency", "medium");
+    fireEvent.keyDown(low, { key: "ArrowUp" });
+    expect(onEdit).toHaveBeenLastCalledWith("urgency", "high");
+    const high = screen.getByRole("radio", { name: "No puedo trabajar" });
+    fireEvent.keyDown(high, { key: "ArrowDown" });
+    expect(onEdit).toHaveBeenLastCalledWith("urgency", "low");
+  });
+
   it("offers impact and urgency as radio groups in the user's language", () => {
     const onEdit = vi.fn();
-    render(<RequestDraftForm draft={EMPTY_DRAFT} touched={EMPTY_TOUCHED} services={SERVICES} onEdit={onEdit} />);
+    render(<RequestDraftForm draft={EMPTY_DRAFT} touched={EMPTY_TOUCHED} services={SERVICES} requesterName="Ana Ruiz" onEdit={onEdit} />);
     const impact = screen.getByRole("radiogroup", { name: "Impacto" });
     fireEvent.click(within(impact).getByRole("radio", { name: "Afecta a varias personas" }));
     expect(onEdit).toHaveBeenCalledWith("impact", "medium");

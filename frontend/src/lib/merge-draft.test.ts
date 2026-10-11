@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_DRAFT, EMPTY_TOUCHED, mergeDraft, type DraftFields } from "./merge-draft";
+import { draftSteps, EMPTY_DRAFT, EMPTY_TOUCHED, mergeDraft, type DraftFields } from "./merge-draft";
 
 const current: DraftFields = {
   service: "printing",
@@ -51,5 +51,31 @@ describe("mergeDraft", () => {
     const before = structuredClone(current);
     mergeDraft(current, { ...current, summary: "x" }, EMPTY_TOUCHED);
     expect(current).toEqual(before);
+  });
+});
+
+describe("draftSteps", () => {
+  const full: DraftFields = {
+    service: "printing",
+    summary: "Impresora sin imprimir",
+    description: "No imprime",
+    impact: "low",
+    urgency: "low",
+  };
+
+  it("has the four band steps and starts at \"Qué pasa\" for an empty draft", () => {
+    const steps = draftSteps(EMPTY_DRAFT);
+    expect(steps.map((s) => s.label)).toEqual(["Qué pasa", "Detalles", "Revisión", "Enviado"]);
+    expect(steps.map((s) => s.state)).toEqual(["current", "upcoming", "upcoming", "upcoming"]);
+  });
+
+  it("moves to Detalles once service and summary are there", () => {
+    const steps = draftSteps({ ...EMPTY_DRAFT, service: "printing", summary: "Algo" });
+    expect(steps.map((s) => s.state)).toEqual(["done", "current", "upcoming", "upcoming"]);
+  });
+
+  it("is at Revisión with everything filled and never marks Enviado before submission", () => {
+    const steps = draftSteps(full);
+    expect(steps.map((s) => s.state)).toEqual(["done", "done", "current", "upcoming"]);
   });
 });

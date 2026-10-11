@@ -88,7 +88,7 @@ function open(f: ReturnType<typeof fetcher>, extra: Record<string, unknown> = {}
 
 const say = (text: string) => {
   fireEvent.change(screen.getByLabelText("Tu respuesta para Ariadna"), { target: { value: text } });
-  fireEvent.click(screen.getByRole("button", { name: "Responder" }));
+  fireEvent.click(screen.getByRole("button", { name: "Enviar respuesta a Ariadna" }));
 };
 
 beforeEach(() => push.mockReset());
@@ -98,6 +98,18 @@ afterEach(() => {
 });
 
 describe("ConversationContainer (U6)", () => {
+  it("shows the chat head: Volver link, title, context chip and the IT actions once", () => {
+    open(fetcher({}));
+    expect(screen.getByRole("link", { name: "Volver" }).getAttribute("href")).toBe("/inicio");
+    expect(screen.getByRole("heading", { level: 1, name: "Conversación con Ariadna" })).toBeTruthy();
+    expect(screen.getByText("Datos de ejemplo")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Hablar con TI" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Pasar con TI" })).toHaveLength(1);
+    cleanup();
+    open(fetcher({}), { entry: { kind: "ticket", ref: "INC0001056" }, ticketSummary: "Red lenta" });
+    expect(screen.getByRole("link", { name: "Volver" }).getAttribute("href")).toBe("/tickets/INC0001056");
+  });
+
   it("greets according to the entry and keeps both IT actions available from the start", () => {
     open(fetcher({}));
     expect(screen.getByText("Hola, Ana. Cuéntame qué está pasando y te ayudo a preparar tu solicitud.")).toBeTruthy();

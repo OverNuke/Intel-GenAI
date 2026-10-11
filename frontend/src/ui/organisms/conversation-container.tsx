@@ -1,13 +1,16 @@
 "use client";
 
 import { useReducer, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiPost, type PostBody } from "@/lib/api-client";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
 import { EMPTY_DRAFT, type DraftFields } from "@/lib/merge-draft";
 import { firstName } from "@/lib/ticket-labels";
+import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
+import { Icon } from "../atoms/icon";
 import { Chat } from "./chat";
 import { ConfirmStep } from "./confirm-step";
 import {
@@ -158,12 +161,20 @@ export function ConversationContainer({
   }
 
   const reviewable = canReview(state);
+  const backHref = entry.kind === "ticket" && entry.ref ? `/tickets/${entry.ref}` : "/inicio";
   return (
     <div className="stack">
-      <div className="page-head">
+      <div className="chat-head">
+        <Link className="btn btn-ghost" href={backHref}>
+          <Icon name="arrow-left" />
+          {COPY.chat.back}
+        </Link>
         <h1 tabIndex={-1}>{COPY.chat.title}</h1>
+        <Badge>{COPY.sampleData}</Badge>
+        <div className="chat-head-actions">
+          <HandoffActions onHandoff={requestIt} active={state.degraded !== null} />
+        </div>
       </div>
-      <HandoffActions onHandoff={requestIt} active={state.degraded !== null} />
       <div className="conversation-grid">
         <div className="stack">
           <Chat messages={state.messages} busy={state.busy} onSend={(text) => void send(text)} />
@@ -174,6 +185,7 @@ export function ConversationContainer({
             draft={state.draft}
             touched={state.touched}
             services={services}
+            requesterName={user.name}
             onEdit={(field, value) => dispatch({ type: "edit", field, value })}
           />
           {reviewable ? null : <p className="t-meta">{COPY.chat.reviewHelp}</p>}
