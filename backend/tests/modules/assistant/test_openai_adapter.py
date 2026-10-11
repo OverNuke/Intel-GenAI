@@ -198,3 +198,41 @@ async def test_outbound_payload_has_context_and_no_identity() -> None:
 async def test_client_is_built_without_sdk_retries() -> None:
     adapter = _adapter(Script(ok()))
     assert adapter.max_retries == 0
+
+
+# --- Domain-owned flags and the one-line intake prompt
+
+
+async def test_model_blocking_flags_are_replaced_by_the_domains() -> None:
+    payload = {
+        **VALID_TURN,
+        "missing_data": ["inventado"],
+        "flags": [
+            {"field": "service", "severity": "blocking", "message": "inventado"},
+            {"field": "description", "severity": "warning", "message": "Cuenta un poco más."},
+        ],
+    }
+    turn = await _adapter(Script(ok(payload))).next_turn(CONVERSATION)
+    blocking = [f.field for f in turn.flags if f.severity == "blocking"]
+    assert blocking == ["impact", "urgency"]
+    assert turn.missing_data == ["Impacto", "Urgencia"]
+    assert [f.field for f in turn.flags if f.severity == "warning"] == ["description"]
+
+
+async def test_model_cannot_declare_ready_with_blocking_flags() -> None:
+    turn = await _adapter(Script(ok({**VALID_TURN, "ready": True}))).next_turn(CONVERSATION)
+    assert turn.ready is False
+
+
+async def test_proposals_from_the_model_are_parsed() -> None:
+    payload = {**VALID_TURN, "proposals": [{"kind": "add_participants", "names": ["Ana Ruiz"]}]}
+    turn = await _adapter(Script(ok(payload))).next_turn(CONVERSATION)
+    assert turn.proposals[0].kind == "add_participants"
+
+
+async def test_system_prompt_describes_one_line_intake_and_the_flags_contract() -> None:
+    script = Script(ok())
+    await _adapter(script).next_turn(CONVERSATION)
+    system = json.loads(script.requests[0].content)["messages"][0]["content"]
+    for key in ("flags", "proposals", "blocking", "warning", "primera frase", "urgencia alta"):
+        assert key in system

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     llm_api_key: str | None = None
     assistant_adapter: str | None = None  # "openai" | "fake"; unset = openai when fully configured
     llm_timeout_seconds: float = 20.0
+    assistant_mode: str | None = None  # "single" | "agent"; anything else = single (ADR-0014)
 
 
 @lru_cache
@@ -68,3 +69,8 @@ def resolve_assistant_adapter(settings: Settings) -> Literal["openai", "fake"]:
         return "fake"
     configured = all((settings.llm_base_url, settings.llm_model, settings.llm_api_key))
     return "openai" if configured else "fake"
+
+
+def resolve_assistant_mode(settings: Settings) -> Literal["single", "agent"]:
+    """The bounded tool loop is opt-in: only an explicit "agent" enables it."""
+    return "agent" if (settings.assistant_mode or "").strip().lower() == "agent" else "single"

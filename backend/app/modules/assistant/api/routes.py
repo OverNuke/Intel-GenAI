@@ -2,7 +2,12 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.modules.assistant.api.deps import get_assistant, get_ticket_lookup
+from app.modules.assistant.api.deps import (
+    get_assistant,
+    get_requester_tickets,
+    get_ticket_lookup,
+    get_user_lookup,
+)
 from app.modules.assistant.api.schemas import (
     ConversationIn,
     DraftOut,
@@ -11,7 +16,13 @@ from app.modules.assistant.api.schemas import (
     TurnResult,
 )
 from app.modules.assistant.application.converse import converse
-from app.modules.assistant.application.ports import AssistantPort, TicketLookup
+from app.modules.assistant.application.ports import (
+    AssistantPort,
+    RequesterTickets,
+    TicketLookup,
+    UserLookup,
+)
+from app.modules.assistant.application.tools import ToolAwareAssistant, ToolBox, ToolContext
 from app.modules.assistant.domain.conversation import Conversation, Entry, Message
 from app.modules.assistant.domain.errors import Handoff
 from app.modules.auth.api.deps import require_section
@@ -67,10 +78,15 @@ async def post_turn(
     user: AssistantUser,
     port: Annotated[AssistantPort, Depends(get_assistant)],
     lookup: Annotated[TicketLookup, Depends(get_ticket_lookup)],
+    tickets: Annotated[RequesterTickets, Depends(get_requester_tickets)],
+    users: Annotated[UserLookup, Depends(get_user_lookup)],
 ) -> TurnResult | HandoffResult:
     """Stateless: nothing is stored. LLM failures answer 200 with a handoff, never 5xx."""
     conversation = await _build_conversation(body, user, lookup)
-    result = await converse(port, conversation)
+    # The requester is bound here, server-side, from the session: never in the conversation.
+    toolbox = ToolBox(ToolContext(requester_id=user.id), tickets=tickets, users=users)
+    bound = port.with_tools(toolbox) if isinstance(port, ToolAwareAssistant) else port
+    result = await converse(bound, conversation)
     if isinstance(result, Handoff):
         draft = result.draft
         return HandoffResult(
