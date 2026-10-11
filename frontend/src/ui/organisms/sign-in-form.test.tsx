@@ -189,6 +189,31 @@ describe("A2 account picker state", () => {
     expect(onSignedIn).not.toHaveBeenCalled();
   });
 
+  it("shows a decorative initials avatar before each name", () => {
+    setup();
+    openPicker();
+    const items = screen.getByRole("list", { name: "Cuentas de ejemplo" }).querySelectorAll("li");
+    const avatar = items[0]!.querySelector(".account-avatar");
+    expect(avatar?.textContent).toBe("AR");
+    expect(avatar?.getAttribute("aria-hidden")).toBe("true");
+    expect(items[2]!.querySelector(".account-avatar")?.textContent).toBe("SM");
+  });
+
+  it("marks only the chosen row busy ('Entrando…') and disables the others while the request is pending", async () => {
+    const login = vi.fn(() => new Promise<LoginResult>(() => {}));
+    render(<SignInForm accounts={accounts} login={login} onSignedIn={vi.fn()} />);
+    openPicker();
+    fireEvent.click(screen.getByRole("button", { name: /Luis Herrera/ }));
+    const items = screen.getByRole("list", { name: "Cuentas de ejemplo" }).querySelectorAll("li");
+    const chosen = items[1]!.querySelector("button")!;
+    expect(chosen.getAttribute("aria-busy")).toBe("true");
+    expect(chosen.textContent).toContain("Entrando…");
+    expect(items[0]!.querySelector("button")!.hasAttribute("disabled")).toBe(true);
+    expect(items[0]!.querySelector("button")!.getAttribute("aria-busy")).toBeNull();
+    expect(items[0]!.textContent).not.toContain("Entrando…");
+    expect(items[2]!.querySelector("button")!.hasAttribute("disabled")).toBe(true);
+  });
+
   it("S-A2-2: Usar otra cuenta returns to A1 with the heading focused", () => {
     setup();
     openPicker();

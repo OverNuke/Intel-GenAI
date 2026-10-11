@@ -60,6 +60,11 @@ describe("Icon", () => {
     expect(sm?.getAttribute("class")).toBe("icon icon-16");
   });
 
+  it("draws the lg size for state cards", () => {
+    const lg = render(<Icon name="lock" size="lg" />).container.querySelector("svg");
+    expect(lg?.getAttribute("class")).toBe("icon icon-24");
+  });
+
   it("rejects unknown icon names at type level", () => {
     // @ts-expect-error "not-an-icon" is not part of the mock sprite
     expect(() => render(<Icon name="not-an-icon" />)).not.toThrow();

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { deniedSentence, parseDenied, ROLE_HOME } from "@/lib/access-labels";
 import { checkAccess } from "@/lib/guard";
 import { readServerContext } from "@/lib/server-context";
+import { Icon } from "@/ui/atoms/icon";
 import { StateCard } from "@/ui/organisms/state-card";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function SinAccesoPage({ searchParams }: { searchParams: Pr
   const denied = parseDenied({ section: first(query.section), required: first(query.required) });
 
   return (
-    <StateCard title="Sin acceso" icon="🔒">
+    <StateCard title="Sin acceso" icon={<Icon name="lock" size="lg" />}>
       <p>{deniedSentence(denied.section, denied.required)}</p>
       <div className="actions">
         <Link className="btn btn-primary" href={ROLE_HOME[viewer.user.role]}>

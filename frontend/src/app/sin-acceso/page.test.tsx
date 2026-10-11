@@ -39,6 +39,12 @@ describe("A3 /sin-acceso", () => {
     expect(screen.getByText("Seguimiento del agente es solo para Supervisor.")).toBeTruthy();
   });
 
+  it("shows a decorative lock icon, not an emoji", async () => {
+    await open({ section: "agent-tracking", required: "supervisor" });
+    expect(document.querySelector('.state-icon svg[data-icon="lock"]')).not.toBeNull();
+    expect(document.body.textContent).not.toContain("🔒");
+  });
+
   it("S-A3-2: another section and role", async () => {
     await open({ section: "ticket-tracking", required: "it" }, "supervisor");
     expect(screen.getByText("Seguimiento de tickets es solo para TI.")).toBeTruthy();
