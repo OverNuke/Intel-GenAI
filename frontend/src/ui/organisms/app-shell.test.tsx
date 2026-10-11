@@ -71,6 +71,25 @@ describe("AppShell rail", () => {
     ]);
   });
 
+  it("S-NS-M1/M2: one Secciones landmark per role, restyled by CSS via .nav-sections, 4 items, no aria-label on items", () => {
+    for (const [user, active, first] of [
+      [ana, "home", "house"],
+      [luis, "ticket-tracking", "inbox"],
+      [sara, "agent-tracking", "chart-column"],
+    ] as const) {
+      shell(user, active);
+      const navs = screen.getAllByRole("navigation", { name: "Secciones" });
+      expect(navs).toHaveLength(1);
+      expect(navs[0]!.classList.contains("nav-sections")).toBe(true);
+      expect(navs[0]!.classList.contains("rail")).toBe(true);
+      const items = [...navs[0]!.querySelectorAll(".rail-item")];
+      expect(items).toHaveLength(4);
+      expect(items[0]!.querySelector("svg")?.getAttribute("data-icon")).toBe(first);
+      expect(navs[0]!.querySelectorAll("[aria-label]")).toHaveLength(0);
+      cleanup();
+    }
+  });
+
   it("Mi equipo is a focusable disabled button described by the next-stage text, inert on click", () => {
     shell(ana, "home");
     const rail = screen.getByRole("navigation", { name: "Secciones" });

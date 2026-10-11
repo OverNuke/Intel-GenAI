@@ -81,7 +81,7 @@ function OwnItems({ active }: { active: string }) {
 function Rail({ user, active }: { user: User; active: string }) {
   const live = LIVE_SECTION[user.role];
   return (
-    <nav aria-label="Secciones" className="rail">
+    <nav aria-label="Secciones" className="rail nav-sections">
       <ul>
         <RailLink href={ROLE_HOME[user.role]} label={live.label} icon={LIVE_ICON[user.role]} current={active === live.key} />
         {user.role === "user" ? (
