@@ -91,6 +91,34 @@ describe("HomeView (U1)", () => {
     expect(within(equipment).queryByRole("link")).toBeNull();
   });
 
+  it("shows each asset as a card with sample name, id and the status of its latest ticket (S-UT-D6)", () => {
+    view();
+    const items = within(screen.getByRole("list", { name: "Mi equipo" })).getAllByRole("listitem");
+    const monitor = items.find((i) => i.textContent?.includes("MON-0238"))!;
+    expect(within(monitor).getByText("Monitor")).toBeTruthy();
+    expect(within(monitor).getByText("MON-0238")).toBeTruthy();
+    // latest related ticket is the first one (list is newest first): INC0001058 is "new" -> "Recibido" (user wording)
+    expect(within(monitor).getByText("Recibido")).toBeTruthy();
+    expect(monitor.querySelector('svg[data-icon="monitor"]')).not.toBeNull();
+    const printer = items.find((i) => i.textContent?.includes("IMP-0107"))!;
+    expect(within(printer).getByText("Resuelto")).toBeTruthy();
+  });
+
+  it("falls back to the raw id when an asset is unmapped, without crashing", () => {
+    view({ tickets: [make(1058, "Algo", "new", "XYZ-9999")] });
+    const card = within(screen.getByRole("list", { name: "Mi equipo" })).getByRole("listitem");
+    expect(within(card).getByText("XYZ-9999", { selector: ".service-name" })).toBeTruthy();
+    expect(card.textContent).toContain("INC0001058");
+  });
+
+  it("labels the section with a count badge and 'Datos de ejemplo' (REQ-VF-6)", () => {
+    view();
+    const heading = screen.getByRole("heading", { level: 2, name: "Mi equipo" });
+    const head = heading.closest(".sec-head")!;
+    expect(within(head as HTMLElement).getByText("3")).toBeTruthy();
+    expect(within(head as HTMLElement).getByText("Datos de ejemplo")).toBeTruthy();
+  });
+
   it("shows an empty equipment message when no ticket references an asset", () => {
     view({ tickets: [make(1058, "Monitor parpadea", "new")] });
     expect(screen.getByText("Todavía no hay equipos relacionados con tus tickets.")).toBeTruthy();

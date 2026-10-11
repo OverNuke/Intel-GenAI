@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { assetLabel, sampleAsset, type AssetKind } from "@/lib/sample-assets";
 import { firstName } from "@/lib/ticket-labels";
+import { Icon, type IconName } from "../atoms/icon";
 import { EmptyState } from "../molecules/empty-state";
+import { StatusPill } from "../molecules/status-pill";
 import { SummaryCards } from "./summary-cards";
 import { TicketList } from "./ticket-list";
 
@@ -15,14 +18,33 @@ export type HomeService = { key: string; label: string; description: string };
 const OPEN = new Set(["new", "assigned", "in_progress"]);
 const PREVIEW = 5;
 
-/** Distinct assets of the user's tickets with the tickets that mention them (UT-10). */
-function equipmentFrom(tickets: Ticket[]): { asset: string; ticketIds: string[] }[] {
-  const byAsset = new Map<string, string[]>();
+type Equipment = { asset: string; ticketIds: string[]; latest: Ticket };
+
+const KIND_ICONS: Record<AssetKind, IconName> = {
+  pc: "laptop",
+  printer: "printer",
+  monitor: "monitor",
+  // adapted: the mock's phone icon is not in the extracted sprite; headset stands in.
+  phone: "headset",
+};
+
+/**
+ * Distinct assets of the user's tickets with the tickets that mention them (UT-10) and the
+ * most recently updated one (ties keep the API order), whose status the card shows.
+ */
+function equipmentFrom(tickets: Ticket[]): Equipment[] {
+  const byAsset = new Map<string, Equipment>();
   for (const ticket of tickets) {
     if (!ticket.asset) continue;
-    byAsset.set(ticket.asset, [...(byAsset.get(ticket.asset) ?? []), ticket.id]);
+    const found = byAsset.get(ticket.asset);
+    if (!found) {
+      byAsset.set(ticket.asset, { asset: ticket.asset, ticketIds: [ticket.id], latest: ticket });
+      continue;
+    }
+    found.ticketIds.push(ticket.id);
+    if (Date.parse(ticket.updated_at) > Date.parse(found.latest.updated_at)) found.latest = ticket;
   }
-  return [...byAsset].map(([asset, ticketIds]) => ({ asset, ticketIds }));
+  return [...byAsset.values()];
 }
 
 /** U1 presentational: everything arrives as props; the page container fetches. */
@@ -93,15 +115,33 @@ export function HomeView({
       </section>
 
       <section aria-labelledby="home-team" className="stack">
-        <h2 id="home-team">{COPY.myTeam}</h2>
+        <div className="sec-head">
+          <div className="sec-head-l">
+            <h2 id="home-team">{COPY.myTeam}</h2>
+            {equipment.length > 0 ? <span className="badge">{equipment.length}</span> : null}
+            <span className="badge">{COPY.sampleData}</span>
+          </div>
+        </div>
         {equipment.length > 0 ? (
-          <ul aria-label={COPY.myTeam} className="ticket-list">
-            {equipment.map((item) => (
-              <li key={item.asset} className="ticket-row">
-                <span className="t-id">{item.asset}</span>
-                <span className="t-meta">Tickets: {item.ticketIds.join(", ")}</span>
-              </li>
-            ))}
+          <ul aria-label={COPY.myTeam} className="asset-grid">
+            {equipment.map((item) => {
+              const sample = sampleAsset(item.asset);
+              return (
+                <li key={item.asset} className="asset-card">
+                  <span className="asset-icon">
+                    <Icon name={KIND_ICONS[sample?.kind ?? "pc"]} />
+                  </span>
+                  <span className="asset-text">
+                    <span className="service-name">{assetLabel(item.asset)}</span>
+                    {sample ? <span className="t-id">{item.asset}</span> : null}
+                  </span>
+                  <span className="asset-foot">
+                    <StatusPill status={item.latest.status} awaitingUser={item.latest.awaiting_user} />
+                    <span className="t-meta">Tickets: {item.ticketIds.join(", ")}</span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="t-meta">{COPY.home.noEquipment}</p>
