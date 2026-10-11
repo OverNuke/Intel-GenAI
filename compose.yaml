@@ -2,6 +2,10 @@
 # Local only. Host dotenv files and remote database URLs must never reach a container:
 # every variable is passed explicitly below, and no platform-detection variable is set.
 #
+# The only secret is the local Postgres password: define POSTGRES_PASSWORD in a gitignored
+# `.env` next to this file (compose reads it automatically). Compose fails fast if it is unset.
+# Use a URL-safe value (letters and digits): it is interpolated into the connection URLs.
+#
 #   docker compose up --build
 #   docker compose --profile test up --build --exit-code-from tests tests
 
@@ -17,7 +21,7 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: ariadna
-      POSTGRES_PASSWORD: ariadna
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ariadna
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -32,8 +36,8 @@ services:
     image: ariadna-backend:local
     command: ["sh", "-c", "alembic upgrade head && python -m app.seed.run"]
     environment:
-      DATABASE_URL: postgresql://ariadna:ariadna@db:5432/ariadna
-      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db:5432/ariadna
+      DATABASE_URL: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/ariadna
       ASSISTANT_ADAPTER: fake
     depends_on:
       db:
@@ -44,8 +48,8 @@ services:
     build: *backend-build
     image: ariadna-backend:local
     environment:
-      DATABASE_URL: postgresql://ariadna:ariadna@db:5432/ariadna
-      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db:5432/ariadna
+      DATABASE_URL: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/ariadna
       ASSISTANT_ADAPTER: fake
     ports:
       - "8000:8000"
@@ -80,7 +84,7 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: ariadna
-      POSTGRES_PASSWORD: ariadna
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ariadna
     tmpfs:
       - /var/lib/postgresql/data
@@ -104,8 +108,8 @@ services:
         { alembic upgrade head && python -m app.seed.run && pytest; } > /results/backend.log 2>&1;
         echo $$? > /results/backend.code
     environment:
-      DATABASE_URL: postgresql://ariadna:ariadna@db-test:5432/ariadna
-      DATABASE_URL_UNPOOLED: postgresql://ariadna:ariadna@db-test:5432/ariadna
+      DATABASE_URL: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db-test:5432/ariadna
+      DATABASE_URL_UNPOOLED: postgresql://ariadna:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db-test:5432/ariadna
       ASSISTANT_ADAPTER: fake
     volumes:
       - test-results:/results

@@ -66,6 +66,14 @@ The real-DB tests (`tests/seed/test_seed_db.py`, `tests/modules/auth/test_sqlalc
 
 Local-only stack (Docker Desktop, Compose v2): Postgres 17 + migrate/seed + backend + frontend, fully isolated from Neon and from host `.env*` files (nothing is read via `env_file`; `ASSISTANT_ADAPTER=fake`). Not used for Vercel deploys.
 
+The local Postgres password is not committed. Before the first run, create a gitignored `.env` next to `compose.yaml` with a URL-safe value (letters and digits):
+
+```
+POSTGRES_PASSWORD=<choose-one>
+```
+
+Compose reads that file only to interpolate `compose.yaml`; it is never passed to a container, and Compose fails fast if the variable is missing. Vercel and Neon keep their own `DATABASE_URL*` and never touch this file.
+
 ```
 docker compose up --build            # then open http://localhost:3000
 docker compose down -v               # stop and reset the database volume
