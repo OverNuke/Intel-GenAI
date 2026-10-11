@@ -3,6 +3,13 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it } from "vitest";
 import Home from "./page";
 
+const BLOCKERS = [
+  "Se clasifica mal o llega al área equivocada",
+  "Faltan datos o hay errores en los documentos",
+  "La solicitud está incompleta en el sistema",
+  "No se tienen los permisos necesarios",
+];
+
 afterEach(cleanup);
 
 describe("P1 landing", () => {
@@ -50,5 +57,73 @@ describe("P1 landing", () => {
     render(<Home />);
     expect(document.getElementById("como-funciona")).not.toBeNull();
     expect(document.getElementById("que-cuida")).not.toBeNull();
+  });
+
+  it("exposes the landmarks and exactly one h1, each section labelled by its h2", () => {
+    const { container } = render(<Home />);
+    expect(screen.getByRole("banner")).toBeTruthy();
+    expect(screen.getByRole("main")).toBeTruthy();
+    expect(screen.getByRole("contentinfo")).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Principal" })).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    for (const section of container.querySelectorAll("main section")) {
+      const id = section.getAttribute("aria-labelledby");
+      expect(id).toBeTruthy();
+      expect(document.getElementById(id!)?.tagName).toBe(id === "hero-title" ? "H1" : "H2");
+    }
+    expect(within(screen.getByRole("main")).getAllByRole("region").length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("shows both product shots as labelled images with their sample-data caption", () => {
+    render(<Home />);
+    const images = screen.getAllByRole("img");
+    expect(images).toHaveLength(2);
+    expect(screen.getByRole("img", { name: /conversación con Ariadna/ })).toBeTruthy();
+    expect(screen.getByRole("img", { name: /tarjeta de confirmación/ })).toBeTruthy();
+    expect(screen.getAllByText("Datos de ejemplo")).toHaveLength(2);
+  });
+
+  it("lists the four blockers, each with its own icon", () => {
+    render(<Home />);
+    const list = screen.getByRole("list", { name: "Lo que suele frenar una solicitud" });
+    const items = within(list).getAllByRole("listitem");
+    expect(items.map((li) => li.textContent)).toEqual(BLOCKERS);
+    for (const li of items) expect(li.querySelector("svg[data-icon]")).not.toBeNull();
+  });
+
+  it("keeps the five steps as an ordered list without claiming progress", () => {
+    render(<Home />);
+    const steps = screen.getByRole("list", { name: "Cómo funciona, en cinco pasos" });
+    expect(steps.tagName).toBe("OL");
+    const items = within(steps).getAllByRole("listitem");
+    expect(items).toHaveLength(5);
+    ["Qué pasa", "Detalles", "Adjuntos", "Revisión", "Enviado"].forEach((name, i) => {
+      expect(items[i]?.textContent).toContain(name);
+    });
+    expect(steps.querySelector("[aria-current]")).toBeNull();
+    expect(steps.querySelector(".is-done, .is-current")).toBeNull();
+  });
+
+  it("has exactly one inverted card, holding the human-confirms promise", () => {
+    const { container } = render(<Home />);
+    const inverted = container.querySelectorAll(".landing-inverted");
+    expect(inverted).toHaveLength(1);
+    expect(inverted[0]?.textContent).toContain(
+      "Antes de enviar, siempre confirmas tú. Si hay dudas, una persona de TI continúa contigo.",
+    );
+  });
+
+  it("states that Ariadna is not affiliated with BMC Software", () => {
+    render(<Home />);
+    expect(
+      within(screen.getByRole("contentinfo")).getByText(
+        "Ariadna no está afiliada a BMC Software. Remedy es marca de BMC Software.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("closes with 'Prueba el prototipo' and a login link", () => {
+    render(<Home />);
+    expect(screen.getByRole("heading", { level: 2, name: "Prueba el prototipo" })).toBeTruthy();
   });
 });

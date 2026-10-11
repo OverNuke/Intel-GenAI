@@ -120,6 +120,15 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(medium).toMatch(/\.shot\s*\{[^}]*aspect-ratio:\s*16 \/ 9/);
   });
 
+  it("centres the P1 landing in a --size-landing-max container with a hairline between sections", () => {
+    expect(tokens).toMatch(/--size-landing-max:\s*1320px/);
+    const wrap = /(?:^|\n)\.landing-header,\n\.landing,\n\.landing-footer\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(wrap).toMatch(/max-width:\s*var\(--size-landing-max\)/);
+    expect(wrap).toMatch(/padding-inline:\s*var\(--space-7\)/);
+    expect(css).toMatch(/\.landing > section \+ section\s*\{[^}]*border-top:\s*var\(--border-hairline\) solid var\(--color-hairline\)/);
+    expect(css).toMatch(/\.landing-metric strong\s*\{[^}]*font-variant-numeric:/);
+  });
+
   it("scrolls wide tables inside a .table-scroll region, not the page (REQ-RL-2)", () => {
     expect(css).toMatch(/\.table-scroll\s*\{[^}]*overflow-x:\s*auto/);
   });

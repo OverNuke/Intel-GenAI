@@ -1,6 +1,6 @@
 /**
  * Generated file: the 51 icon symbols (`#ar-*`) of the sprite in `mock/Ariadna — prototipo.html`
- * (board bundle "bundle2", Lucide outline, 24x24 viewBox) followed by 7 `// adapted:` Lucide icons
+ * (board bundle "bundle2", Lucide outline, 24x24 viewBox) followed by 8 `// adapted:` Lucide icons
  * the mock does not ship as symbols. Extracted by script; do not hand-edit.
  * Stroke/fill come from the `.icon` rule in `components.css`.
  */
@@ -396,6 +396,15 @@ export const ICONS = {
       <path d="M13 6h8" />
       <path d="M13 12h8" />
       <path d="M13 18h8" />
+    </>
+  ),
+  "file-text": (
+    <>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
     </>
   ),
   "chevron-up": (

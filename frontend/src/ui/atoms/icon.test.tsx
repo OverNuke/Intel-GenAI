@@ -7,10 +7,10 @@ import { ICONS } from "./icon-paths";
 afterEach(cleanup);
 
 describe("ICONS (generated from the mock sprite)", () => {
-  it("exposes the 51 mock symbols plus 7 adapted ones by kebab-case name without the ar- prefix", () => {
+  it("exposes the 51 mock symbols plus 8 adapted ones by kebab-case name without the ar- prefix", () => {
     const names = Object.keys(ICONS);
-    expect(names).toHaveLength(58);
-    expect(new Set(names).size).toBe(58);
+    expect(names).toHaveLength(59);
+    expect(new Set(names).size).toBe(59);
     expect(names).toContain("wrench");
     expect(names).toContain("circle-alert");
     expect(names).toContain("send-horizontal");
@@ -18,7 +18,7 @@ describe("ICONS (generated from the mock sprite)", () => {
   });
 
   it("includes the adapted icons (not in the mock sprite) and each renders an svg with data-icon", () => {
-    const adapted = ["chart-column", "clock", "maximize-2", "minimize-2", "pencil", "list-checks", "chevron-up"] as const;
+    const adapted = ["chart-column", "clock", "maximize-2", "minimize-2", "pencil", "list-checks", "chevron-up", "file-text"] as const;
     for (const name of adapted) {
       expect(Object.keys(ICONS)).toContain(name);
       const { container, unmount } = render(<Icon name={name} />);
