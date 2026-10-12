@@ -231,6 +231,29 @@ export const COPY = {
     body: "Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.",
     action: "Volver a entrar",
   },
+  // T4 notification email preview (read-only; nothing is sent). Copy is a proposal, from the mock.
+  notificationEmail: {
+    title: "Correo de aviso",
+    line: "El sistema lo envió al crear el ticket. Solo lo reciben las personas involucradas.",
+    action: "Ver correo de aviso",
+    from: "Mesa de ayuda TI · mesa.ayuda@ejemplo.mx",
+    noData: "Sin datos de ejemplo",
+    created: "Se creó un ticket nuevo",
+    viaAriadna: " con ayuda de Ariadna",
+    subjectPrefix: "Nuevo ticket",
+    viewTicket: "Ver el ticket",
+    footer: "Datos de ejemplo · Los destinatarios adicionales según cuántas personas afecta están por definir.",
+    rows: { from: "De", to: "Para", cc: "Cc", subject: "Asunto" },
+    fields: {
+      summary: "Resumen",
+      description: "Descripción",
+      requester: "Solicitante",
+      impact: "Impacto",
+      urgency: "Urgencia",
+      asset: "Activo",
+      attachments: "Adjuntos",
+    },
+  },
   catalog: {
     intro: "Elige un servicio y Ariadna te guía paso a paso.", // adapted: the mock also names «Otra cosa»
     examples: "Por ejemplo",

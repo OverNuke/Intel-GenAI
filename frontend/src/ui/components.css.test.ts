@@ -64,6 +64,11 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(required.filter((selector) => !hasSelector(selector))).toEqual([]);
   });
 
+  it("defines the T4 notification email primitives", () => {
+    const required = [".mail", ".mail-head", ".mail-body"];
+    expect(required.filter((selector) => !hasSelector(selector))).toEqual([]);
+  });
+
   it("no longer carries the replaced sign-in layout classes", () => {
     const dead = [".split-page", ".brand-aside", ".split-main", ".separator", ".demo-box", ".field-error"];
     expect(dead.filter((selector) => hasSelector(selector))).toEqual([]);

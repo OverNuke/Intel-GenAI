@@ -1738,6 +1738,39 @@ th[aria-sort="descending"] .sort-button::after {
   flex-wrap: wrap;
 }
 
+/* T4 notification email preview: header rows on the field surface, then the body. */
+.mail {
+  display: grid;
+}
+
+.mail-head {
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-field);
+  border-bottom: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.mail-head .rail-row {
+  grid-template-columns: calc(var(--size-control) * 1.5) minmax(0, 1fr);
+  padding: var(--space-1) 0;
+  border-top: 0;
+}
+
+.mail-head .rail-row dd {
+  grid-column: 2;
+}
+
+.mail-body {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.mail-pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 /* Data rail: a definition list with an icon per row. */
 .rail-rows {
   display: grid;

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
@@ -91,6 +92,10 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
               {label}
             </button>
           ))}
+          <Link className="btn btn-ghost" href={`/ti/tickets/${ticket.id}/correo`}>
+            <Icon name="mail" size="sm" />
+            {COPY.notificationEmail.action}
+          </Link>
         </div>
         <p className="t-meta">{COPY.nextStage}</p>
       </div>

@@ -152,6 +152,16 @@ describe("TicketRecord (T2)", () => {
     expect(screen.getByText("Próxima etapa del prototipo")).toBeTruthy();
   });
 
+  it("T4 entry: «Ver correo de aviso» is a ghost link with the mail icon to the email preview", () => {
+    render(<TicketRecord ticket={record()} onContact={noop} />);
+    const link = screen.getByRole("link", { name: "Ver correo de aviso" });
+    expect(link.className).toContain("btn");
+    expect(link.className).toContain("btn-ghost");
+    expect(link.getAttribute("href")).toBe("/ti/tickets/INC0001056/correo");
+    expect(link.querySelector('svg[data-icon="mail"]')).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Ver correo de aviso" })).toBeNull();
+  });
+
   it("a finished ticket cannot be contacted", () => {
     render(<TicketRecord ticket={record({ status: "closed", sla_state: null })} onContact={noop} />);
     expect(screen.getByRole("button", { name: "Contactar al usuario" }).getAttribute("aria-disabled")).toBe("true");
