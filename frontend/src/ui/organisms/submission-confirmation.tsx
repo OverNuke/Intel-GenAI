@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { Icon } from "../atoms/icon";
 import { AriadnaReceipt } from "./ariadna-receipt";
 
 type Detail = components["schemas"]["TicketDetailOut"];
@@ -13,6 +14,11 @@ export function SubmissionConfirmation({ ticket }: { ticket: Detail }) {
       <p className="t-meta">{COPY.request.number}</p>
       <p className="t-id">{ticket.id}</p>
       <p>{COPY.request.sentBody}</p>
+      {/* adapted: notification line (REQ-U7-M1); this page only renders for an existing ticket */}
+      <p className="t-meta row">
+        <Icon name="mail" size="sm" />
+        {COPY.request.sentNotice}
+      </p>
       {ticket.receipt ? (
         <AriadnaReceipt receipt={ticket.receipt} />
       ) : (

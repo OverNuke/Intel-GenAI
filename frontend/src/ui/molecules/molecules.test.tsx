@@ -29,7 +29,46 @@ describe("FormField", () => {
   });
 });
 
+describe("FormField leading icon and field message", () => {
+  it("wraps the input in .input-wrap with the leading icon before it", () => {
+    render(<FormField id="f-email" label="Correo" leadingIcon="mail" />);
+    const input = screen.getByLabelText("Correo");
+    const wrap = input.parentElement as HTMLElement;
+    expect(wrap.classList.contains("input-wrap")).toBe(true);
+    expect(wrap.firstElementChild?.getAttribute("data-icon")).toBe("mail");
+    expect(wrap.firstElementChild?.nextElementSibling).toBe(input);
+  });
+
+  it("renders no .input-wrap without leadingIcon", () => {
+    const { container } = render(<FormField id="f-x" label="X" />);
+    expect(container.querySelector(".input-wrap")).toBeNull();
+  });
+
+  it("renders the error as p.field-msg.is-error with a 16px circle-alert", () => {
+    render(<FormField id="f-email" label="Correo" leadingIcon="mail" error="Falta tu correo." />);
+    const input = screen.getByLabelText("Correo");
+    const msg = document.getElementById("f-email-err") as HTMLElement;
+    expect(msg.tagName).toBe("P");
+    expect(msg.classList.contains("field-msg")).toBe(true);
+    expect(msg.classList.contains("is-error")).toBe(true);
+    const svg = msg.querySelector("svg");
+    expect(svg?.getAttribute("data-icon")).toBe("circle-alert");
+    expect(svg?.classList.contains("icon-16")).toBe(true);
+    expect(msg.textContent).toBe("Falta tu correo.");
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-describedby")).toBe("f-email-err");
+  });
+});
+
 describe("ErrorSummary", () => {
+  it("is a tone-error alert with a circle-alert icon", () => {
+    render(<ErrorSummary message="Algo falló." />);
+    const alert = screen.getByRole("alert");
+    expect(alert.classList.contains("alert")).toBe(true);
+    expect(alert.classList.contains("tone-error")).toBe(true);
+    expect(alert.querySelector("svg")?.getAttribute("data-icon")).toBe("circle-alert");
+  });
+
   const items = [
     { fieldId: "f-email", message: "Falta tu correo." },
     { fieldId: "f-pass", message: "Falta tu contraseña." },

@@ -25,4 +25,4 @@ No role switcher in the prototype bar. Denied section → A3 "Sin acceso".
 
 ## Layout notes from the mock
 
-Landing (1440 board): header → hero + product image placeholder → "Lo que suele frenar una solicitud" → 5 steps → "Qué cuida" inverted card → 3 study estimates → footer legal notices (not affiliated with BMC; Remedy is a BMC trademark).
+Landing (1440 board): header → hero + product image placeholder (the header carries the Ariadna mark, an inline SVG; no raster assets) → "Lo que suele frenar una solicitud" → 5 steps → "Qué cuida" inverted card → 3 study estimates → footer legal notices (not affiliated with BMC; Remedy is a BMC trademark).

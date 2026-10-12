@@ -26,6 +26,7 @@ const ticket = (over: Partial<Detail> = {}): Detail => ({
   assignee_name: null,
   events: [{ id: "1061-1", kind: "created", body: null, created_at: "2026-10-09T18:00:00Z" }],
   contact_notice: null,
+  participants: [],
   receipt: {
     understood: "La impresora no imprime.",
     reviewed: ["Datos obligatorios completos"],
@@ -45,6 +46,17 @@ describe("SubmissionConfirmation (U7)", () => {
     expect(screen.getByRole("heading", { name: "Constancia de Ariadna" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Ver mis tickets" }).getAttribute("href")).toBe("/tickets");
     expect(screen.getByRole("link", { name: "Ver el ticket" }).getAttribute("href")).toBe("/tickets/INC0001061");
+  });
+
+  it("S-U7-1: shows the notification line with a mail icon after the sent body and before the receipt", () => {
+    const { container } = render(<SubmissionConfirmation ticket={ticket()} />);
+    const line = screen.getByText("Avisamos a TI y a tu jefe o encargado por correo.");
+    expect(line.closest("p")?.querySelector('svg[data-icon="mail"]')).toBeTruthy();
+    const body = screen.getByText("Enviamos tu solicitud. Te avisaremos cuando la tome un especialista.");
+    const receipt = screen.getByRole("heading", { name: "Constancia de Ariadna" });
+    expect(body.compareDocumentPosition(line.closest("p")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(line.closest("p")!.compareDocumentPosition(receipt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelectorAll(".btn-primary").length).toBe(1);
   });
 
   it("without a receipt (Pasar con TI) it explains that a person from IT will see the case", () => {

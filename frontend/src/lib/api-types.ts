@@ -148,6 +148,50 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * Patch Ticket
+         * @description The requester edits summary, description, impact or urgency while the ticket is open.
+         */
+        patch: operations["patch_ticket_api_tickets__display_id__patch"];
+        trace?: never;
+    };
+    "/api/tickets/{display_id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Participants
+         * @description Adds people by name (resolved here). Unknown or ambiguous names are warnings, not errors.
+         */
+        post: operations["post_participants_api_tickets__display_id__participants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tickets/{display_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Post Close
+         * @description Closes a Resuelto ticket: the requester or IT, with an explicit confirmation.
+         */
+        post: operations["post_close_api_tickets__display_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -325,6 +369,21 @@ export interface components {
             section: components["schemas"]["SectionOut"];
             required_role: components["schemas"]["RoleOut"] | null;
         };
+        /**
+         * AddParticipants
+         * @description Add people (display names) to the request being prepared or to `ticket_ref`.
+         */
+        AddParticipants: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "add_participants";
+            /** Names */
+            names: string[];
+            /** Ticket Ref */
+            ticket_ref?: string | null;
+        };
         /** AgentMetricsOut */
         AgentMetricsOut: {
             /**
@@ -344,6 +403,13 @@ export interface components {
             /** Trend */
             trend: components["schemas"]["TrendPointOut"][];
         };
+        /** AmbiguousNameOut */
+        AmbiguousNameOut: {
+            /** Name */
+            name: string;
+            /** Candidates */
+            candidates: string[];
+        };
         /**
          * AssistantTurn
          * @description One turn: a single question (or a "draft is ready" statement) plus the draft so far.
@@ -361,6 +427,12 @@ export interface components {
             draft?: components["schemas"]["TurnDraft"];
             /** Missing Data */
             missing_data?: string[];
+            /** Flags */
+            flags?: components["schemas"]["Flag"][];
+            /** Proposals */
+            proposals?: (components["schemas"]["CreateTicket"] | components["schemas"]["AddParticipants"] | components["schemas"]["UpdateTicket"] | components["schemas"]["CloseTicket"])[];
+            /** Steps */
+            steps?: components["schemas"]["ToolStep"][];
             /** Target Group */
             target_group?: string | null;
             /**
@@ -375,6 +447,27 @@ export interface components {
              * @default false
              */
             ready: boolean;
+        };
+        /** CloseIn */
+        CloseIn: {
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /**
+         * CloseTicket
+         * @description Close an own ticket that IT already resolved.
+         */
+        CloseTicket: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "close_ticket";
+            /** Ticket Ref */
+            ticket_ref: string;
         };
         /** ContactErrorOut */
         ContactErrorOut: {
@@ -395,6 +488,17 @@ export interface components {
             /** History */
             history?: components["schemas"]["MessageIn"][];
             draft?: components["schemas"]["DraftIn"];
+        };
+        /**
+         * CreateTicket
+         * @description Prepare the current draft as a new request. The person still presses send.
+         */
+        CreateTicket: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "create_ticket";
         };
         /** DraftIn */
         DraftIn: {
@@ -495,6 +599,21 @@ export interface components {
              * @enum {string}
              */
             code: "required" | "invalid_email" | "invalid_credentials" | "unknown_account";
+        };
+        /**
+         * Flag
+         * @description A finding about the draft. `blocking` prevents sending; `warning` only recommends.
+         */
+        Flag: {
+            /** Field */
+            field: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "blocking" | "warning";
+            /** Message */
+            message: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -600,6 +719,8 @@ export interface components {
             /** Events */
             events: components["schemas"]["ItEventOut"][];
             receipt: components["schemas"]["ReceiptOut"] | null;
+            /** Participants */
+            participants: string[];
         };
         /** LoginErrors */
         LoginErrors: {
@@ -667,6 +788,34 @@ export interface components {
             summary: components["schemas"]["MySummaryOut"];
             /** Tickets */
             tickets: components["schemas"]["TicketOut"][];
+        };
+        /**
+         * ParticipantsIn
+         * @description Names as the person typed them; ids are resolved server-side. `confirmed` must be true.
+         */
+        ParticipantsIn: {
+            /** Names */
+            names: string[];
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
+        /**
+         * ParticipantsOut
+         * @description What was added plus what needs a second look (shown as an amber warning).
+         */
+        ParticipantsOut: {
+            ticket: components["schemas"]["TicketDetailOut"];
+            /** Added */
+            added: string[];
+            /** Ambiguous */
+            ambiguous: components["schemas"]["AmbiguousNameOut"][];
+            /** Unknown */
+            unknown: string[];
+            /** Over Limit */
+            over_limit: string[];
         };
         /** QueueOut */
         QueueOut: {
@@ -887,6 +1036,8 @@ export interface components {
             /** Contact Notice */
             contact_notice: string | null;
             receipt: components["schemas"]["ReceiptOut"] | null;
+            /** Participants */
+            participants: string[];
         };
         /** TicketEventOut */
         TicketEventOut: {
@@ -937,6 +1088,21 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * ToolStep
+         * @description One read-only check the agent ran: the evidence behind a line of "Lo que revisé".
+         */
+        ToolStep: {
+            /** Name */
+            name: string;
+            /** Summary */
+            summary: string;
+            /**
+             * Ok
+             * @default true
+             */
+            ok: boolean;
+        };
         /** TrendPointOut */
         TrendPointOut: {
             /** Day */
@@ -974,6 +1140,46 @@ export interface components {
             kind: "turn";
             turn: components["schemas"]["AssistantTurn"];
         };
+        /**
+         * UpdateTicket
+         * @description Change fields of an own ticket. Only the fields that change are set.
+         */
+        UpdateTicket: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "update_ticket";
+            /** Ticket Ref */
+            ticket_ref: string;
+            /** Summary */
+            summary?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Impact */
+            impact?: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency?: ("high" | "medium" | "low") | null;
+        };
+        /**
+         * UpdateTicketIn
+         * @description Only the editable fields; a field that is not sent is left alone.
+         */
+        UpdateTicketIn: {
+            /** Summary */
+            summary?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Impact */
+            impact?: ("high" | "medium" | "low") | null;
+            /** Urgency */
+            urgency?: ("high" | "medium" | "low") | null;
+            /**
+             * Confirmed
+             * @default false
+             */
+            confirmed: boolean;
+        };
         /** UserOut */
         UserOut: {
             /** Id */
@@ -1002,6 +1208,16 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WriteErrorOut */
+        WriteErrorOut: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "missing-human-confirmation" | "confirmation-not-from-requester" | "ticket-closed" | "no-names" | "no-changes" | "unknown-field" | "invalid-value" | "not-allowed" | "not-resolved" | "already-closed";
+            /** Message */
+            message: string;
         };
     };
     responses: never;
@@ -1340,6 +1556,246 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_ticket_api_tickets__display_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTicketIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+        };
+    };
+    post_participants_api_tickets__display_id__participants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParticipantsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParticipantsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+        };
+    };
+    post_close_api_tickets__display_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                display_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WriteErrorOut"];
                 };
             };
         };

@@ -45,9 +45,10 @@ def test_offline_upgrade_declares_check_constraints_and_pending_flag() -> None:
     assert "awaiting_user BOOLEAN DEFAULT false NOT NULL" in sql
 
 
-def test_revisions_form_a_linear_chain_ending_at_0003() -> None:
+def test_revisions_form_a_linear_chain_ending_at_0004() -> None:
     script = ScriptDirectory.from_config(_config())
-    assert script.get_heads() == ["0003"]
+    assert script.get_heads() == ["0004"]
+    assert script.get_revision("0004").down_revision == "0003"
     assert script.get_revision("0003").down_revision == "0002"
     assert script.get_revision("0002").down_revision == "0001"
     assert script.get_revision("0001").down_revision is None
@@ -104,3 +105,19 @@ def test_offline_downgrade_of_0003_removes_events_receipt_and_key() -> None:
     assert "ALTER TABLE tickets DROP COLUMN submission_key" in sql
     # 0002 state remains: the users.area column is untouched by this downgrade.
     assert "DROP COLUMN area" not in sql
+
+
+def test_offline_upgrade_creates_participants_and_widens_the_event_kind_check() -> None:
+    sql = _upgrade_sql()
+    assert "CREATE TABLE ticket_participants" in sql
+    assert "PRIMARY KEY (ticket_number, user_id)" in sql
+    for kind in ("'participants_added'", "'updated'", "'resolved'", "'closed'"):
+        assert kind in sql
+
+
+def test_offline_downgrade_of_0004_drops_participants_and_restores_the_kind_check() -> None:
+    buffer = StringIO()
+    command.downgrade(_config(buffer), "0004:0003", sql=True)
+    sql = buffer.getvalue()
+    assert "DROP TABLE ticket_participants" in sql
+    assert "ck_ticket_events_kind" in sql

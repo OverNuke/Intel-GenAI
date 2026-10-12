@@ -71,8 +71,8 @@ function Confirmation() {
           Todavía no se ha enviado nada
         </p>
         <div className="shot-actions">
-          <span className="btn btn-secondary">Seguir después</span>
-          <span className="btn btn-primary">Revisar y enviar</span>
+          <span className="shot-btn shot-btn--outline">Seguir después</span>
+          <span className="shot-btn shot-btn--accent">Revisar y enviar</span>
         </div>
       </div>
     </div>

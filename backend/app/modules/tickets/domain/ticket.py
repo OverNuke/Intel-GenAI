@@ -11,7 +11,16 @@ Priority = Literal["critical", "high", "medium", "low"]
 Impact = Literal["high", "medium", "low"]
 Urgency = Literal["high", "medium", "low"]
 # "note" is reserved: nothing in the prototype writes it yet (phase 7).
-TicketEventKind = Literal["created", "assigned", "contact_requested", "note"]
+TicketEventKind = Literal[
+    "created",
+    "assigned",
+    "contact_requested",
+    "note",
+    "participants_added",
+    "updated",
+    "resolved",
+    "closed",
+]
 
 TICKET_ID_PREFIX = "INC"
 TICKET_ID_DIGITS = 7
@@ -78,3 +87,5 @@ class TicketRecord:
     receipt: AriadnaReceipt | None = None
     # user id -> display name of the people the events mention (author, requester, ...).
     people: Mapping[str, str] = field(default_factory=dict)
+    # Ids of the users added besides requester and assignee, oldest first (names are in `people`).
+    participants: tuple[str, ...] = ()

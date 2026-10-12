@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 
 from app.modules.auth.domain.login import normalize_email
+from app.modules.auth.domain.names import match_users
 from app.modules.auth.domain.user import User
 from app.seed.data import USERS
 
@@ -23,6 +24,14 @@ class InMemoryUserRepository:
 
     def replace(self, user: User) -> None:
         self._users[user.id] = user
+
+
+class InMemoryUserDirectory:
+    def __init__(self, users: Iterable[User] = USERS) -> None:
+        self._users = list(users)
+
+    async def find_by_name(self, name: str) -> list[User]:
+        return match_users(self._users, name)
 
 
 class FakeSessionCodec:

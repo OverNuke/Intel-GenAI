@@ -9,7 +9,14 @@ from app.modules.assistant.infrastructure.fake import FakeAssistant
 from app.modules.assistant.infrastructure.openai_adapter import OpenAICompatibleAssistant
 from app.shared.config import get_settings
 
-_NAMES = ("LLM_BASE_URL", "LLM_MODEL", "LLM_API_KEY", "ASSISTANT_ADAPTER", "LLM_TIMEOUT_SECONDS")
+_NAMES = (
+    "LLM_BASE_URL",
+    "LLM_MODEL",
+    "LLM_API_KEY",
+    "ASSISTANT_ADAPTER",
+    "ASSISTANT_MODE",
+    "LLM_TIMEOUT_SECONDS",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -55,3 +62,34 @@ def test_openai_without_a_key_falls_back_to_fake_and_warns(
         adapter = get_assistant()
     assert isinstance(adapter, FakeAssistant)
     assert any("fake adapter" in record.message for record in caplog.records)
+
+
+def test_mode_defaults_to_single_for_both_adapters(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = get_assistant()
+    assert isinstance(fake, FakeAssistant)
+    assert fake.mode == "single"
+    _full(monkeypatch)
+    real = get_assistant()
+    assert isinstance(real, OpenAICompatibleAssistant)
+    assert real.mode == "single"
+
+
+def test_assistant_mode_agent_reaches_the_adapter(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ASSISTANT_MODE", "agent")
+    get_settings.cache_clear()
+    fake = get_assistant()
+    assert isinstance(fake, FakeAssistant)
+    assert fake.mode == "agent"
+    _full(monkeypatch)
+    real = get_assistant()
+    assert isinstance(real, OpenAICompatibleAssistant)
+    assert real.mode == "agent"
+    assert real.max_retries == 0
+
+
+def test_an_invalid_mode_means_single(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ASSISTANT_MODE", "autonomous")
+    get_settings.cache_clear()
+    adapter = get_assistant()
+    assert isinstance(adapter, FakeAssistant)
+    assert adapter.mode == "single"

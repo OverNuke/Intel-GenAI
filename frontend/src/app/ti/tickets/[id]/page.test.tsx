@@ -38,6 +38,7 @@ const record = {
   created_at: "2026-01-08T17:00:00Z",
   updated_at: "2026-01-08T20:00:00Z",
   events: [],
+  participants: [],
   receipt: null,
 };
 

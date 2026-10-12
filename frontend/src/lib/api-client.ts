@@ -1,4 +1,4 @@
-import type { paths } from "./api-types";
+import type { components, paths } from "./api-types";
 
 export type GetPaths = {
   [P in keyof paths]: paths[P] extends { get: { responses: { 200: { content: { "application/json": unknown } } } } }
@@ -29,12 +29,35 @@ export type PostResponse<P extends PostPaths> = PostOperation<P> extends {
   ? R
   : undefined;
 
-/** Typed JSON bodies for the 400/401 answers of an operation (if it declares any). */
-export type PostError<P extends PostPaths> = PostOperation<P> extends { responses: infer R }
-  ? {
-      [S in 400 | 401]: S extends keyof R ? (R[S] extends { content: { "application/json": infer B } } ? B : never) : never;
-    }[400 | 401]
+/** Statuses whose JSON body is surfaced as `error` (auth + the confirmed-write refusals). */
+const ERROR_BODY_STATUSES = new Set([400, 401, 403, 404, 409, 422]);
+type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 422;
+
+type ErrorBodyOf<Op> = Op extends { responses: infer R }
+  ? Exclude<
+      {
+        [S in ErrorStatus]: S extends keyof R ? (R[S] extends { content: { "application/json": infer B } } ? B : never) : never;
+      }[ErrorStatus],
+      components["schemas"]["HTTPValidationError"]
+    >
   : never;
+
+/** Typed JSON bodies for the 4xx answers of an operation (if it declares any). */
+export type PostError<P extends PostPaths> = ErrorBodyOf<PostOperation<P>>;
+
+export type PatchPaths = { [P in keyof paths]: paths[P] extends { patch: { requestBody: unknown } } ? P : never }[keyof paths];
+type PatchOperation<P extends PatchPaths> = paths[P] extends { patch: infer O } ? O : never;
+export type PatchBody<P extends PatchPaths> = PatchOperation<P> extends {
+  requestBody?: { content: { "application/json": infer B } };
+}
+  ? NonNullable<B>
+  : never;
+export type PatchResponse<P extends PatchPaths> = PatchOperation<P> extends {
+  responses: { 200: { content: { "application/json": infer R } } };
+}
+  ? R
+  : undefined;
+export type PatchError<P extends PatchPaths> = ErrorBodyOf<PatchOperation<P>>;
 
 export type ApiResult<T, E = never> = { ok: true; data: T } | { ok: false; status: number; error?: E };
 
@@ -87,14 +110,14 @@ export async function apiGet<P extends GetPaths>(
   }
 }
 
-/** Typed POST (JSON). Never throws. On 400/401 the parsed body is returned as `error`. */
-export async function apiPost<P extends PostPaths>(
-  path: P,
-  body: PostBody<P> | undefined,
-  fetchImpl: typeof fetch = fetch,
-  opts: RequestOptions = {},
-): Promise<ApiResult<PostResponse<P>, PostError<P>>> {
-  const base: RequestInit = { method: "POST" };
+async function send<T, E>(
+  method: "POST" | "PATCH",
+  path: string,
+  body: unknown,
+  fetchImpl: typeof fetch,
+  opts: RequestOptions,
+): Promise<ApiResult<T, E>> {
+  const base: RequestInit = { method };
   if (body !== undefined) base.body = JSON.stringify(body);
   let response: Response;
   try {
@@ -105,18 +128,38 @@ export async function apiPost<P extends PostPaths>(
   } catch {
     return { ok: false, status: 0 };
   }
-  if (response.status === 400 || response.status === 401) {
+  if (ERROR_BODY_STATUSES.has(response.status)) {
     try {
-      return { ok: false, status: response.status, error: (await response.json()) as PostError<P> };
+      return { ok: false, status: response.status, error: (await response.json()) as E };
     } catch {
       return { ok: false, status: response.status };
     }
   }
   if (!response.ok) return { ok: false, status: response.status };
-  if (response.status === 204) return { ok: true, data: undefined as PostResponse<P> };
+  if (response.status === 204) return { ok: true, data: undefined as T };
   try {
-    return { ok: true, data: (await response.json()) as PostResponse<P> };
+    return { ok: true, data: (await response.json()) as T };
   } catch {
     return { ok: false, status: response.status };
   }
+}
+
+/** Typed POST (JSON). Never throws. On 400/401/403/404/409/422 the parsed body is returned as `error`. */
+export function apiPost<P extends PostPaths>(
+  path: P,
+  body: PostBody<P> | undefined,
+  fetchImpl: typeof fetch = fetch,
+  opts: RequestOptions = {},
+): Promise<ApiResult<PostResponse<P>, PostError<P>>> {
+  return send("POST", path, body, fetchImpl, opts);
+}
+
+/** Typed PATCH (JSON). Same contract as `apiPost`. */
+export function apiPatch<P extends PatchPaths>(
+  path: P,
+  body: PatchBody<P>,
+  fetchImpl: typeof fetch = fetch,
+  opts: RequestOptions = {},
+): Promise<ApiResult<PatchResponse<P>, PatchError<P>>> {
+  return send("PATCH", path, body, fetchImpl, opts);
 }

@@ -2,14 +2,17 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { checkAccess, redirect } = vi.hoisted(() => ({
+const { checkAccess, redirect, ctx } = vi.hoisted(() => ({
   checkAccess: vi.fn(),
+  ctx: { cookie: "c=1" as string | null },
   redirect: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   }),
 }));
 vi.mock("@/lib/guard", () => ({ checkAccess }));
-vi.mock("@/lib/server-context", () => ({ readServerContext: async () => ({ origin: "http://o", cookie: "c=1" }) }));
+vi.mock("@/lib/server-context", () => ({
+  readServerContext: async () => ({ origin: "http://o", cookie: ctx.cookie }),
+}));
 vi.mock("next/navigation", () => ({ redirect }));
 
 import SinAccesoPage from "./page";
@@ -24,6 +27,7 @@ const params = (q: Record<string, string | string[]>) => Promise.resolve(q);
 beforeEach(() => {
   checkAccess.mockReset();
   redirect.mockClear();
+  ctx.cookie = "c=1";
 });
 afterEach(cleanup);
 
@@ -73,6 +77,14 @@ describe("A3 /sin-acceso", () => {
   it("redirects to /entrar without a session (A3-3 never shows to anonymous users)", async () => {
     checkAccess.mockResolvedValue({ kind: "unauthenticated" });
     await expect(SinAccesoPage({ searchParams: params({ section: "registry" }) })).rejects.toThrow("NEXT_REDIRECT:/entrar");
+  });
+
+  it("REQ-SE-3: redirects to /sesion-expirada when unauthenticated but a session cookie was sent", async () => {
+    ctx.cookie = "theme=dark; ariadna_session=stale";
+    checkAccess.mockResolvedValue({ kind: "unauthenticated" });
+    await expect(SinAccesoPage({ searchParams: params({ section: "registry" }) })).rejects.toThrow(
+      "NEXT_REDIRECT:/sesion-expirada",
+    );
   });
 
   it("propagates an outage instead of redirecting", async () => {

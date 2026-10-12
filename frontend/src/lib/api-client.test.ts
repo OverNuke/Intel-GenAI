@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { apiGet, apiPost } from "./api-client";
+import { apiGet, apiPatch, apiPost } from "./api-client";
 
 function fakeFetch(response: Response | Error) {
   return vi.fn(async () => {
@@ -147,7 +147,7 @@ describe("apiPost ticket submission", () => {
       { draft: { service: "printing", summary: " ", description: "x" }, confirmed: true },
       f,
     );
-    expect(result).toEqual({ ok: false, status: 422 });
+    expect(result).toMatchObject({ ok: false, status: 422 });
   });
 });
 
@@ -166,5 +166,59 @@ describe("abort signal", () => {
     });
     const result = await apiPost("/api/auth/login", { method: "account", email: "a@b.mx" }, f);
     expect(result).toEqual({ ok: false, status: 0 });
+  });
+});
+
+describe("write errors (403/404/409/422)", () => {
+  const body = { reason: "not-resolved", message: "El ticket todavía no está resuelto." };
+
+  it.each([403, 404, 409, 422])("exposes the JSON error body on %i", async (status) => {
+    const result = await apiPost(
+      "/api/tickets/{display_id}/close",
+      { confirmed: true },
+      fakeFetch(Response.json(body, { status })),
+      { params: { display_id: "INC0001056" } },
+    );
+    expect(result).toEqual({ ok: false, status, error: body });
+  });
+
+  it("still returns no error when a 409 body is not JSON", async () => {
+    const result = await apiPost(
+      "/api/tickets/{display_id}/close",
+      { confirmed: true },
+      fakeFetch(new Response("<html>", { status: 409 })),
+      { params: { display_id: "INC0001056" } },
+    );
+    expect(result).toEqual({ ok: false, status: 409 });
+  });
+});
+
+describe("apiPatch", () => {
+  it("PATCHes a JSON body to the templated path and returns data", async () => {
+    const f = fakeFetch(Response.json({ id: "INC0001056" }));
+    const result = await apiPatch(
+      "/api/tickets/{display_id}",
+      { urgency: "high", confirmed: true },
+      f,
+      { params: { display_id: "INC0001056" } },
+    );
+    expect(result).toEqual({ ok: true, data: { id: "INC0001056" } });
+    expect(f).toHaveBeenCalledWith("/api/tickets/INC0001056", {
+      method: "PATCH",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ urgency: "high", confirmed: true }),
+    });
+  });
+
+  it("exposes the 422 body and never throws on network failure", async () => {
+    const body = { reason: "no-changes", message: "No hay cambios." };
+    const bad = await apiPatch("/api/tickets/{display_id}", { confirmed: true }, fakeFetch(Response.json(body, { status: 422 })), {
+      params: { display_id: "INC0001056" },
+    });
+    expect(bad).toEqual({ ok: false, status: 422, error: body });
+    const down = await apiPatch("/api/tickets/{display_id}", { confirmed: true }, fakeFetch(new TypeError("net")), {
+      params: { display_id: "INC0001056" },
+    });
+    expect(down).toEqual({ ok: false, status: 0 });
   });
 });

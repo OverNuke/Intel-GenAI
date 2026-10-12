@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.modules.auth.domain.login import normalize_email
+from app.modules.auth.domain.names import match_users
 from app.modules.auth.domain.user import Role, User
 from app.modules.auth.infrastructure.models import UserRow
 
@@ -36,3 +37,14 @@ class SqlAlchemyUserRepository:
                 select(UserRow).where(func.lower(func.trim(UserRow.email)) == wanted)
             )
         return _to_domain(row) if row else None
+
+
+class SqlAlchemyUserDirectory:
+    """UserDirectory over the users table. Demo scale (3 accounts): load all, match in Python,
+    because diacritic folding in SQL would need the `unaccent` extension."""
+
+    def __init__(self, sessions: async_sessionmaker[AsyncSession]) -> None:
+        self._repository = SqlAlchemyUserRepository(sessions)
+
+    async def find_by_name(self, name: str) -> list[User]:
+        return match_users(await self._repository.list(), name)

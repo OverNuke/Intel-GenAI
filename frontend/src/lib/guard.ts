@@ -3,6 +3,7 @@ import { sinAccesoHref } from "./access-labels";
 import type { components } from "./api-types";
 import { serverFetch, type ServerContext } from "./server-api";
 import { readServerContext } from "./server-context";
+import { unauthenticatedHref } from "./session-cookie";
 
 type Schemas = components["schemas"];
 type User = Schemas["UserOut"];
@@ -58,8 +59,9 @@ export async function requireAccess(
   section: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<Extract<AccessDecision, { kind: "allowed" }>> {
-  const decision = await checkAccess(section, await readServerContext(), fetchImpl);
-  if (decision.kind === "unauthenticated") redirect("/entrar");
+  const ctx = await readServerContext();
+  const decision = await checkAccess(section, ctx, fetchImpl);
+  if (decision.kind === "unauthenticated") redirect(unauthenticatedHref(ctx.cookie));
   if (decision.kind === "denied") redirect(sinAccesoHref(decision));
   return decision;
 }

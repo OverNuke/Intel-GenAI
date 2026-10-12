@@ -65,6 +65,8 @@ export const COPY = {
     suggestedGroup: "Grupo asignado (sugerido)",
     sentTitle: "Solicitud enviada", // adapted
     sentBody: "Enviamos tu solicitud. Te avisaremos cuando la tome un especialista.",
+    // adapted: the mock lists this line as "por agregar" in U7 (see T4); terminal period added
+    sentNotice: "Avisamos a TI y a tu jefe o encargado por correo.",
     sentHandoff: "Una persona de TI verá tu caso. No tienes que repetir nada.",
     number: "Número",
     seeMyTickets: "Ver mis tickets",
@@ -173,12 +175,110 @@ export const COPY = {
     editRequest: "Editar solicitud", // adapted
     backToSummary: "Volver al resumen", // adapted
     draftNotSaved: "Prototipo: el borrador no se guarda.",
+    // adapted (agent v2): flags, failed checks and proposals are not in the mock.
+    flagsLabel: "Lo que falta y lo que conviene revisar",
+    blockingPrefix: "Falta",
+    warningPrefix: "Conviene revisar",
+    stepFailedPrefix: "No pude revisar",
+    proposalsLabel: "Propuestas de Ariadna",
+    proposal: {
+      intro: "Ariadna propone",
+      confirm: "Confirmar",
+      confirmSend: "Confirmar y enviar",
+      dismiss: "Ahora no",
+      working: "Un momento…",
+      neverAuto: "No se hace nada hasta que tú confirmes.",
+      create: {
+        title: "Enviar tu solicitud a TI",
+        blocked: "Antes de enviar, completa lo que falta.",
+        failed: "No pudimos enviar tu solicitud. Tu texto sigue aquí: inténtalo de nuevo.",
+      },
+      participants: {
+        title: "Agregar personas al ticket",
+        titleNew: "Agregar personas a tu solicitud",
+        queued: "Todavía no enviaste la solicitud: las agregaremos justo después de enviarla.",
+        queuedDone: "Listo. Las agregaremos cuando envíes tu solicitud.",
+        added: "Agregué a",
+        none: "No agregué a nadie.",
+        ambiguous: "Hay más de una persona llamada",
+        unknown: "No encontramos a",
+        overLimit: "No pudimos agregar por el límite de personas:",
+        afterSendFailed:
+          "Tu solicitud ya se envió, pero no pudimos agregar a las personas. Puedes pedirlo de nuevo desde el ticket.",
+        afterSendPartial: "Tu solicitud ya se envió. Algunas personas no se agregaron:",
+      },
+      update: {
+        title: "Cambiar el ticket",
+        before: "Antes",
+        after: "Ahora",
+        done: "Listo. Actualicé el ticket",
+      },
+      close: {
+        title: "Cerrar el ticket",
+        body: "Solo se cierra si ya está resuelto y tú lo confirmas.",
+        done: "Listo. Cerré el ticket",
+      },
+      seeTicket: "Ver el ticket",
+      errors: {
+        generic: "No pudimos completar esto. No se cambió nada: inténtalo de nuevo.",
+        notFound: "No encontramos ese ticket.",
+        session: "Tu sesión terminó. Vuelve a entrar para continuar.",
+      },
+    },
+    sentTitle: "Solicitud enviada",
+  },
+  sessionExpired: {
+    title: "Tu sesión expiró",
+    // adapted: the mock has only the title and the action; the line is a proposal (spec REQ-SE-2)
+    body: "Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.",
+    action: "Volver a entrar",
+  },
+  // T4 notification email preview (read-only; nothing is sent). Copy is a proposal, from the mock.
+  notificationEmail: {
+    title: "Correo de aviso",
+    line: "El sistema lo envió al crear el ticket. Solo lo reciben las personas involucradas.",
+    action: "Ver correo de aviso",
+    from: "Mesa de ayuda TI · mesa.ayuda@ejemplo.mx",
+    noData: "Sin datos de ejemplo",
+    created: "Se creó un ticket nuevo",
+    viaAriadna: " con ayuda de Ariadna",
+    subjectPrefix: "Nuevo ticket",
+    viewTicket: "Ver el ticket",
+    footer: "Datos de ejemplo · Los destinatarios adicionales según cuántas personas afecta están por definir.",
+    rows: { from: "De", to: "Para", cc: "Cc", subject: "Asunto" },
+    fields: {
+      summary: "Resumen",
+      description: "Descripción",
+      requester: "Solicitante",
+      impact: "Impacto",
+      urgency: "Urgencia",
+      asset: "Activo",
+      attachments: "Adjuntos",
+    },
   },
   catalog: {
     intro: "Elige un servicio y Ariadna te guía paso a paso.", // adapted: the mock also names «Otra cosa»
     examples: "Por ejemplo",
     haveAtHand: "Ten a la mano",
     handledBy: "Lo atiende",
+  },
+  events: {
+    // adapted (agent v2): timeline copy for the confirmed writes
+    updatedTitle: "Se actualizó el ticket",
+    participantsTitle: "Se agregaron participantes",
+    resolvedTitle: "Ticket resuelto",
+    closedTitle: "Ticket cerrado",
+    changed: "Cambió",
+    participantsAdded: "Se agregó a",
+    resolvedLine: "TI marcó el ticket como resuelto.",
+    closedLine: "El ticket se cerró.",
+    fields: {
+      summary: "Resumen",
+      description: "Descripción",
+      impact: "Impacto",
+      urgency: "Urgencia",
+    },
+    empty: "(vacío)",
   },
   detail: {
     state: "Estado",
@@ -203,6 +303,8 @@ export const COPY = {
     attachments: "Adjuntos",
     noAttachments: "Ninguno",
     noDate: "Sin fecha", // adapted: the mock says "Sin fecha de ejemplo"; here the date is real or missing
+    participants: "Participantes", // adapted (agent v2)
+    changesTitle: "Cambios en tu ticket", // adapted (agent v2)
     tookBy: "Lo tomó",
     needDataSince: "Necesitamos un dato de tu parte desde",
   },

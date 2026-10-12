@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Alert } from "../atoms/alert";
 
 export type SummaryItem = { fieldId: string; message: string };
 
@@ -12,7 +13,7 @@ export function ErrorSummary({ items = [], message }: { items?: SummaryItem[]; m
   }, []);
 
   return (
-    <div ref={ref} role="alert" tabIndex={-1} className="error-summary">
+    <Alert ref={ref} tone="error" role="alert" tabIndex={-1}>
       {items.length > 0 ? (
         <>
           <p>Revisa lo siguiente:</p>
@@ -35,6 +36,6 @@ export function ErrorSummary({ items = [], message }: { items?: SummaryItem[]; m
       ) : (
         message
       )}
-    </div>
+    </Alert>
   );
 }

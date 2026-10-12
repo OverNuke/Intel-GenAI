@@ -145,6 +145,107 @@ describe("A1 sign-in view", () => {
   });
 });
 
+describe("A1 rebuilt layout (REQ-A1-M1..M5)", () => {
+  const icon = (el: Element | null, name: string) => el?.querySelector(`svg[data-icon="${name}"]`) ?? null;
+
+  it("S-A1-M1: SSO is the only primary, with building-2; sign-in is a secondary block", () => {
+    setup();
+    const primaries = document.querySelectorAll(".btn-primary");
+    expect(primaries).toHaveLength(1);
+    const sso = screen.getByRole("button", { name: "Entrar con la cuenta de la organización" });
+    expect(sso).toBe(primaries[0]);
+    expect(sso.classList.contains("btn-block")).toBe(true);
+    expect(icon(sso, "building-2")).not.toBeNull();
+    const login = screen.getByRole("button", { name: "Iniciar sesión" });
+    expect(login.classList.contains("btn-secondary")).toBe(true);
+    expect(login.classList.contains("btn-block")).toBe(true);
+    expect(screen.getByRole("button", { name: "Usar datos de ejemplo" }).classList.contains("btn-secondary")).toBe(true);
+  });
+
+  it("shows busy label 'Entrando…' on the sign-in button while pending, still one primary", async () => {
+    const login = vi.fn(() => new Promise<LoginResult>(() => {}));
+    render(<SignInForm accounts={accounts} login={login} onSignedIn={vi.fn()} />);
+    type("Correo institucional", "ana.ruiz@ejemplo.mx");
+    type("Contraseña", "demo2026");
+    submit();
+    await screen.findByRole("button", { name: "Entrando…" });
+    expect(document.querySelectorAll(".btn-primary")).toHaveLength(1);
+  });
+
+  it("puts mail and lock leading icons inside the input wraps", () => {
+    setup();
+    const email = screen.getByLabelText("Correo institucional");
+    const pass = screen.getByLabelText("Contraseña");
+    expect(email.parentElement?.classList.contains("input-wrap")).toBe(true);
+    expect(icon(email.parentElement, "mail")).not.toBeNull();
+    expect(pass.parentElement?.classList.contains("input-wrap")).toBe(true);
+    expect(icon(pass.parentElement, "lock")).not.toBeNull();
+  });
+
+  it("Mostrar keeps its accessible name and aria-pressed while the icon swaps eye <-> eye-off", () => {
+    setup();
+    const toggle = screen.getByRole("button", { name: "Mostrar" });
+    expect(icon(toggle, "eye")).not.toBeNull();
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(toggle);
+    const after = screen.getByRole("button", { name: "Mostrar" });
+    expect(after.getAttribute("aria-pressed")).toBe("true");
+    expect(icon(after, "eye-off")).not.toBeNull();
+    expect(icon(after, "eye")).toBeNull();
+    expect((screen.getByLabelText("Contraseña") as HTMLInputElement).type).toBe("text");
+  });
+
+  it("Volver al inicio is a ghost link with arrow-left", () => {
+    setup();
+    const back = screen.getByRole("link", { name: "Volver al inicio" });
+    expect(back.classList.contains("btn")).toBe(true);
+    expect(back.classList.contains("btn-ghost")).toBe(true);
+    expect(icon(back, "arrow-left")).not.toBeNull();
+  });
+
+  it("the prototype note is an info Alert with the info icon", () => {
+    setup();
+    const note = screen.getByRole("note");
+    expect(note.classList.contains("alert")).toBe(true);
+    expect(note.classList.contains("tone-info")).toBe(true);
+    expect(icon(note, "info")).not.toBeNull();
+  });
+
+  it("the divider is .or-divider labelled «o»", () => {
+    setup();
+    const divider = screen.getByRole("separator", { name: "o" });
+    expect(divider.classList.contains("or-divider")).toBe(true);
+  });
+});
+
+describe("A1 merged error alert (REQ-A1-M5, S-A1-M2)", () => {
+  it("empty submit: one focused error alert with circle-alert; each field error has circle-alert; no request", () => {
+    const { login } = setup();
+    submit();
+    const alerts = screen.getAllByRole("alert");
+    expect(alerts).toHaveLength(1);
+    const alert = alerts[0]!;
+    expect(alert.classList.contains("tone-error")).toBe(true);
+    expect(alert.querySelector('svg[data-icon="circle-alert"]')).not.toBeNull();
+    expect(document.activeElement).toBe(alert);
+    const msgs = document.querySelectorAll("p.field-msg.is-error");
+    expect(msgs).toHaveLength(2);
+    for (const msg of msgs) expect(msg.querySelector('svg[data-icon="circle-alert"]')).not.toBeNull();
+    expect(login).not.toHaveBeenCalled();
+  });
+
+  it("wrong credentials use the same error alert", async () => {
+    setup({ ok: false, status: 401, error: { errors: [{ field: "form", code: "invalid_credentials" }] } });
+    type("Correo institucional", "ana.ruiz@ejemplo.mx");
+    type("Contraseña", "mal");
+    submit();
+    const alert = await screen.findByRole("alert");
+    expect(alert.classList.contains("tone-error")).toBe(true);
+    expect(alert.querySelector('svg[data-icon="circle-alert"]')).not.toBeNull();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+  });
+});
+
 describe("A2 account picker state", () => {
   const openPicker = () => fireEvent.click(screen.getByRole("button", { name: "Entrar con la cuenta de la organización" }));
 

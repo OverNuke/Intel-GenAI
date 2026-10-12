@@ -10,11 +10,14 @@ import { LifeTimeline } from "./life-timeline";
 import { NeedDataNotice } from "./need-data-notice";
 import { RecordHeader } from "./record-header";
 import { StageTracker } from "./stage-tracker";
+import { Timeline } from "./timeline";
 
 type Detail = components["schemas"]["TicketDetailOut"];
 
 /** U3 presentational: the whole ticket arrives from the API; nothing is derived server-side here. */
 export function TicketDetail({ ticket, requesterName }: { ticket: Detail; requesterName: string }) {
+  // The five life stages cover status; edits and added people only show up as events.
+  const changes = ticket.events.filter((e) => e.kind === "updated" || e.kind === "participants_added");
   const rows: [IconName, string, string][] = [
     ["user", COPY.detail.requester, requesterName],
     ["users", COPY.detail.impact, COPY.impact[ticket.impact]],
@@ -22,8 +25,10 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
     ["signpost", COPY.detail.group, ticket.assigned_group],
     ["user-check", COPY.detail.assignee, ticket.assignee_name ?? COPY.detail.unassigned],
     ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
+    ...(ticket.participants.length > 0
+      ? ([["users", COPY.detail.participants, ticket.participants.join(", ")]] as [IconName, string, string][])
+      : []),
     ["paperclip", COPY.detail.attachments, COPY.detail.noAttachments],
-    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (see icon-paths.tsx).
     ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
 
@@ -69,6 +74,12 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
               <section aria-labelledby="detail-timeline" className="stack">
                 <h2 id="detail-timeline">{COPY.detail.timeline}</h2>
                 <LifeTimeline stages={lifeStages(ticket)} />
+                {changes.length > 0 ? (
+                  <>
+                    <h3 className="t-label">{COPY.detail.changesTitle}</h3>
+                    <Timeline events={changes} label={COPY.detail.changesTitle} />
+                  </>
+                ) : null}
               </section>
             }
           />

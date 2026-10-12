@@ -9,6 +9,7 @@ from app.shared.config import (
     migration_url,
     on_vercel,
     resolve_assistant_adapter,
+    resolve_assistant_mode,
     resolve_session_secret,
     to_psycopg_url,
 )
@@ -25,6 +26,7 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "LLM_MODEL",
         "LLM_API_KEY",
         "ASSISTANT_ADAPTER",
+        "ASSISTANT_MODE",
         "LLM_TIMEOUT_SECONDS",
     ):
         monkeypatch.delenv(name, raising=False)
@@ -183,3 +185,27 @@ def test_openai_requested_without_the_key_falls_back_to_fake() -> None:
 
 def test_unknown_adapter_value_falls_back_to_fake() -> None:
     assert resolve_assistant_adapter(_settings(assistant_adapter="bogus", **_FULL)) == "fake"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (None, "single"),
+        ("", "single"),
+        ("single", "single"),
+        ("agent", "agent"),
+        (" AGENT ", "agent"),
+        ("agents", "single"),
+        ("whatever", "single"),
+    ],
+)
+def test_assistant_mode_defaults_to_single_and_ignores_invalid_values(
+    raw: str | None, expected: str
+) -> None:
+    settings = Settings(_env_file=None, assistant_mode=raw)  # type: ignore[call-arg]
+    assert resolve_assistant_mode(settings) == expected
+
+
+def test_assistant_mode_is_read_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("ASSISTANT_MODE", "agent")
+    assert resolve_assistant_mode(Settings(_env_file=None)) == "agent"  # type: ignore[call-arg]

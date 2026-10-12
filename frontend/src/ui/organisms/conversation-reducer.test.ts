@@ -154,3 +154,78 @@ describe("canReview and receiptFrom", () => {
     expect(receiptFrom(start())).toBeUndefined();
   });
 });
+
+describe("proposals, edits since the turn and queued participants (agent v2)", () => {
+  const addTwo = { kind: "add_participants" as const, names: ["Luis Herrera", "Marta Díaz"], ticket_ref: null };
+  const close = { kind: "close_ticket" as const, ticket_ref: "INC0001056" };
+
+  it("a turn replaces the proposals with fresh idle cards and resets the edits since the turn", () => {
+    let state = reducer(start(), { type: "edit", field: "impact", value: "low" });
+    expect(state.editedSinceTurn).toEqual(["impact"]);
+    state = reducer(state, { type: "turn", turn: turn({ proposals: [addTwo] }) });
+    expect(state.editedSinceTurn).toEqual([]);
+    expect(state.proposals).toHaveLength(1);
+    expect(state.proposals[0]).toMatchObject({ proposal: addTwo, status: "idle", message: null, notes: [] });
+    state = reducer(state, { type: "turn", turn: turn({ proposals: [] }) });
+    expect(state.proposals).toEqual([]);
+  });
+
+  it("a turn without the new fields (old payload) yields no proposals", () => {
+    const state = reducer(start(), { type: "turn", turn: turn() });
+    expect(state.proposals).toEqual([]);
+  });
+
+  it("walks a proposal idle -> busy -> done and never shows a confirmed one again", () => {
+    let state = reducer(start(), { type: "turn", turn: turn({ proposals: [close] }) });
+    const id = state.proposals[0]!.id;
+    state = reducer(state, { type: "proposal-start", id });
+    expect(state.proposals[0]!.status).toBe("busy");
+    state = reducer(state, { type: "proposal-done", id, message: "Listo", notes: ["nota"] });
+    expect(state.proposals[0]).toMatchObject({ status: "done", message: "Listo", notes: ["nota"] });
+    state = reducer(state, { type: "turn", turn: turn({ proposals: [close] }) });
+    expect(state.proposals).toEqual([]);
+  });
+
+  it("an error keeps the card with the backend message and lets the person retry", () => {
+    let state = reducer(start(), { type: "turn", turn: turn({ proposals: [close] }) });
+    const id = state.proposals[0]!.id;
+    state = reducer(state, { type: "proposal-start", id });
+    state = reducer(state, { type: "proposal-fail", id, message: "Todavía no está resuelto." });
+    expect(state.proposals[0]).toMatchObject({ status: "error", message: "Todavía no está resuelto." });
+    state = reducer(state, { type: "proposal-start", id });
+    expect(state.proposals[0]).toMatchObject({ status: "busy", message: null });
+  });
+
+  it("Ahora no removes the card without confirming it", () => {
+    let state = reducer(start(), { type: "turn", turn: turn({ proposals: [close] }) });
+    state = reducer(state, { type: "proposal-dismiss", id: state.proposals[0]!.id });
+    expect(state.proposals).toEqual([]);
+    state = reducer(state, { type: "turn", turn: turn({ proposals: [close] }) });
+    expect(state.proposals).toHaveLength(1);
+  });
+
+  it("queues participant names for the not-yet-sent request, deduplicated", () => {
+    let state = reducer(start(), { type: "turn", turn: turn({ proposals: [addTwo] }) });
+    const id = state.proposals[0]!.id;
+    state = reducer(state, { type: "participants-queued", id, message: "Listo" });
+    expect(state.queuedParticipants).toEqual(["Luis Herrera", "Marta Díaz"]);
+    expect(state.proposals[0]!.status).toBe("done");
+    const more = { ...addTwo, names: ["Marta Díaz", "Pedro Soto"] };
+    state = reducer(state, { type: "turn", turn: turn({ proposals: [more] }) });
+    state = reducer(state, { type: "participants-queued", id: state.proposals[0]!.id, message: "Listo" });
+    expect(state.queuedParticipants).toEqual(["Luis Herrera", "Marta Díaz", "Pedro Soto"]);
+  });
+
+  it("submit-start can carry the idempotency key and keeps the first one", () => {
+    let state = reducer(start(), { type: "submit-start", key: "k-9" });
+    expect(state.submit).toBe("busy");
+    expect(state.idempotencyKey).toBe("k-9");
+    state = reducer(state, { type: "submit-start", key: "k-10" });
+    expect(state.idempotencyKey).toBe("k-9");
+  });
+
+  it("records a sent ticket with its notices (participants failed after the send)", () => {
+    const state = reducer(start(), { type: "sent", id: "INC0001061", notices: ["No encontramos a Pepe."] });
+    expect(state.sent).toEqual({ id: "INC0001061", notices: ["No encontramos a Pepe."] });
+  });
+});

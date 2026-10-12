@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
@@ -9,7 +10,8 @@ import { StatusPill } from "../molecules/status-pill";
 import { AriadnaReceipt } from "./ariadna-receipt";
 import { RecordHeader } from "./record-header";
 import { StageTracker } from "./stage-tracker";
-import { KIND_LABELS, Timeline } from "./timeline";
+import { describeEvent } from "@/lib/ticket-events";
+import { Timeline } from "./timeline";
 
 type Record = components["schemas"]["ItTicketOut"];
 type TabKey = "summary" | "timeline" | "log";
@@ -30,7 +32,9 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
     ["signpost", COPY.detail.group, ticket.assigned_group],
     ["user-check", COPY.it.columns.assignee, ticket.assignee_name ?? COPY.it.unassigned],
     ["laptop", COPY.detail.asset, ticket.asset ?? COPY.detail.noAsset],
-    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (as on U3).
+    ...(ticket.participants.length > 0
+      ? ([["users", COPY.detail.participants, ticket.participants.join(", ")]] as [IconName, string, string][])
+      : []),
     ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
   const visibleEvents = ticket.events.filter((e) => e.visible_to_requester);
@@ -88,6 +92,10 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
               {label}
             </button>
           ))}
+          <Link className="btn btn-ghost" href={`/ti/tickets/${ticket.id}/correo`}>
+            <Icon name="mail" size="sm" />
+            {COPY.notificationEmail.action}
+          </Link>
         </div>
         <p className="t-meta">{COPY.nextStage}</p>
       </div>
@@ -140,15 +148,20 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
         {tab === "timeline" ? <Timeline events={visibleEvents} /> : null}
         {tab === "log" ? (
           <ol aria-label={COPY.it.tabs2.log} className="timeline">
-            {ticket.events.map((event) => (
-              <li key={event.id} className="timeline-item">
-                <span className="ticket-row-summary">
-                  {event.author_name ?? "Sistema"} · {KIND_LABELS[event.kind] ?? event.kind}
-                </span>
-                {event.body ? <span>{event.body}</span> : null}
-                <span className="t-meta">{formatDate(event.created_at)}</span>
-              </li>
-            ))}
+            {ticket.events.map((event) => {
+              const view = describeEvent(event);
+              return (
+                <li key={event.id} className="timeline-item">
+                  <span className="ticket-row-summary">
+                    {event.author_name ?? "Sistema"} · {view.title}
+                  </span>
+                  {view.lines.map((line, index) => (
+                    <span key={index}>{line}</span>
+                  ))}
+                  <span className="t-meta">{formatDate(event.created_at)}</span>
+                </li>
+              );
+            })}
           </ol>
         ) : null}
       </div>

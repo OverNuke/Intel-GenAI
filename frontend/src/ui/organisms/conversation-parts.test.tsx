@@ -320,3 +320,68 @@ describe("HandoffActions", () => {
     expect(screen.getByText("Listo. Una persona de TI verá tu caso. No tienes que repetir nada.")).toBeTruthy();
   });
 });
+
+describe("UnderstoodPanel flags and failed steps (agent v2)", () => {
+  const turn: Turn = {
+    message: "Revisé tu solicitud.",
+    understood: "Tu PC tiene cables pelados.",
+    reviewed: ["Destino sugerido: Soporte de equipo"],
+    draft: { service: "hardware", summary: "x", description: "y", impact: null, urgency: "high" },
+    missing_data: ["Impacto"],
+    flags: [
+      { field: "impact", severity: "blocking", message: "Falta indicar a cuántas personas afecta." },
+      { field: "asset_number", severity: "warning", message: "número de inventario (empieza con AT-)" },
+    ],
+    target_group: "Soporte de equipo",
+    needs_authorization: false,
+    permissions_notice: null,
+    ready: false,
+  };
+
+  it("renders red and amber items, each with an icon and a text prefix (never color alone)", () => {
+    render(
+      <UnderstoodPanel
+        turn={turn}
+        flags={{
+          blocking: [{ field: "impact", label: "Impacto" }],
+          warnings: [turn.flags![1]!],
+        }}
+      />,
+    );
+    const list = screen.getByRole("list", { name: "Lo que falta y lo que conviene revisar" });
+    const [red, amber] = within(list).getAllByRole("listitem");
+    expect(red!.className).toContain("tone-error");
+    expect(red!.textContent).toContain("Falta: Impacto");
+    expect(red!.querySelector("svg")).not.toBeNull();
+    expect(amber!.className).toContain("tone-warning");
+    expect(amber!.textContent).toContain("Conviene revisar:");
+    expect(amber!.textContent).toContain("número de inventario");
+    expect(amber!.querySelector("svg")).not.toBeNull();
+    // The plain line is replaced by the list.
+    expect(screen.queryByText(/Te falta/)).toBeNull();
+  });
+
+  it("keeps the plain 'Te falta' fallback when the turn carries no flags", () => {
+    render(<UnderstoodPanel turn={{ ...turn, flags: [] }} flags={{ blocking: [], warnings: [] }} />);
+    expect(screen.getByText("Te falta: Impacto")).toBeTruthy();
+    expect(screen.queryByRole("list", { name: "Lo que falta y lo que conviene revisar" })).toBeNull();
+  });
+
+  it("lists failed steps with an icon and the step summary next to what was reviewed", () => {
+    render(
+      <UnderstoodPanel
+        turn={{
+          ...turn,
+          steps: [
+            { name: "search_catalog", summary: "Servicio: Equipo", ok: true },
+            { name: "find_similar_tickets", summary: "No pude buscar tickets parecidos", ok: false },
+          ],
+        }}
+      />,
+    );
+    const failed = screen.getByText(/No pude buscar tickets parecidos/).closest("li")!;
+    expect(failed.textContent).toContain("No pude revisar:");
+    expect(failed.querySelector("svg")).not.toBeNull();
+    expect(failed.className).toContain("tone-warning");
+  });
+});

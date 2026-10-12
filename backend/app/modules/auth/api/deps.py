@@ -4,13 +4,16 @@ from typing import Annotated
 from fastapi import Depends, Request
 
 from app.modules.auth.api.errors import NoSessionError, SectionDeniedError
-from app.modules.auth.application.ports import SessionCodec, UserRepository
+from app.modules.auth.application.ports import SessionCodec, UserDirectory, UserRepository
 from app.modules.auth.application.use_cases import current_user
 from app.modules.auth.domain.policy import Denied, authorize
 from app.modules.auth.domain.user import User
 from app.modules.auth.infrastructure.session_codec import ItsDangerousSessionCodec
 from app.modules.auth.infrastructure.session_cookie import SESSION_COOKIE_NAME
-from app.modules.auth.infrastructure.sqlalchemy_users import SqlAlchemyUserRepository
+from app.modules.auth.infrastructure.sqlalchemy_users import (
+    SqlAlchemyUserDirectory,
+    SqlAlchemyUserRepository,
+)
 from app.shared.config import get_settings, on_vercel, resolve_session_secret
 from app.shared.db import get_sessionmaker
 
@@ -19,6 +22,10 @@ from app.shared.db import get_sessionmaker
 
 def get_user_repository() -> UserRepository:
     return SqlAlchemyUserRepository(get_sessionmaker())
+
+
+def get_user_directory() -> UserDirectory:
+    return SqlAlchemyUserDirectory(get_sessionmaker())
 
 
 def get_session_codec() -> SessionCodec:

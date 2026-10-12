@@ -400,6 +400,313 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Patch Ticket",
+        "description": "The requester edits summary, description, impact or urgency while the ticket is open.",
+        "operationId": "patch_ticket_api_tickets__display_id__patch",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetailOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/tickets/{display_id}/participants": {
+      "post": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Post Participants",
+        "description": "Adds people by name (resolved here). Unknown or ambiguous names are warnings, not errors.",
+        "operationId": "post_participants_api_tickets__display_id__participants_post",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParticipantsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipantsOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/tickets/{display_id}/close": {
+      "post": {
+        "tags": [
+          "tickets"
+        ],
+        "summary": "Post Close",
+        "description": "Closes a Resuelto ticket: the requester or IT, with an explicit confirmation.",
+        "operationId": "post_close_api_tickets__display_id__close_post",
+        "parameters": [
+          {
+            "name": "display_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Display Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDetailOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
       }
     },
     "/api/catalog/services": {
@@ -957,6 +1264,46 @@
         ],
         "title": "AccessDenied"
       },
+      "AddParticipants": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "add_participants",
+            "title": "Kind",
+            "default": "add_participants"
+          },
+          "names": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Names"
+          },
+          "ticket_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ticket Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "names"
+        ],
+        "title": "AddParticipants",
+        "description": "Add people (display names) to the request being prepared or to `ticket_ref`."
+      },
       "AgentMetricsOut": {
         "properties": {
           "period": {
@@ -1000,6 +1347,27 @@
         ],
         "title": "AgentMetricsOut"
       },
+      "AmbiguousNameOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "candidates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "candidates"
+        ],
+        "title": "AmbiguousNameOut"
+      },
       "AssistantTurn": {
         "properties": {
           "message": {
@@ -1031,6 +1399,52 @@
             "type": "array",
             "maxItems": 8,
             "title": "Missing Data"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/Flag"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Flags"
+          },
+          "proposals": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/CreateTicket"
+                },
+                {
+                  "$ref": "#/components/schemas/AddParticipants"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateTicket"
+                },
+                {
+                  "$ref": "#/components/schemas/CloseTicket"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "add_participants": "#/components/schemas/AddParticipants",
+                  "close_ticket": "#/components/schemas/CloseTicket",
+                  "create_ticket": "#/components/schemas/CreateTicket",
+                  "update_ticket": "#/components/schemas/UpdateTicket"
+                }
+              }
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Proposals"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ToolStep"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Steps"
           },
           "target_group": {
             "anyOf": [
@@ -1073,6 +1487,41 @@
         ],
         "title": "AssistantTurn",
         "description": "One turn: a single question (or a \"draft is ready\" statement) plus the draft so far."
+      },
+      "CloseIn": {
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CloseIn"
+      },
+      "CloseTicket": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "close_ticket",
+            "title": "Kind",
+            "default": "close_ticket"
+          },
+          "ticket_ref": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Ticket Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ticket_ref"
+        ],
+        "title": "CloseTicket",
+        "description": "Close an own ticket that IT already resolved."
       },
       "ContactErrorOut": {
         "properties": {
@@ -1133,6 +1582,20 @@
           "entry"
         ],
         "title": "ConversationIn"
+      },
+      "CreateTicket": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "create_ticket",
+            "title": "Kind",
+            "default": "create_ticket"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CreateTicket",
+        "description": "Prepare the current draft as a new request. The person still presses send."
       },
       "DraftIn": {
         "properties": {
@@ -1406,6 +1869,39 @@
         ],
         "title": "FieldErrorBody"
       },
+      "Flag": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Field"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "blocking",
+              "warning"
+            ],
+            "title": "Severity"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "field",
+          "severity",
+          "message"
+        ],
+        "title": "Flag",
+        "description": "A finding about the draft. `blocking` prevents sending; `warning` only recommends."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1656,6 +2152,13 @@
                 "type": "null"
               }
             ]
+          },
+          "participants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Participants"
           }
         },
         "type": "object",
@@ -1680,7 +2183,8 @@
           "created_at",
           "updated_at",
           "events",
-          "receipt"
+          "receipt",
+          "participants"
         ],
         "title": "ItTicketOut",
         "description": "T2 record. Names only: no requester or assignee ids."
@@ -1863,6 +2367,77 @@
           "tickets"
         ],
         "title": "MyTicketsOut"
+      },
+      "ParticipantsIn": {
+        "properties": {
+          "names": {
+            "items": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Names"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "names"
+        ],
+        "title": "ParticipantsIn",
+        "description": "Names as the person typed them; ids are resolved server-side. `confirmed` must be true."
+      },
+      "ParticipantsOut": {
+        "properties": {
+          "ticket": {
+            "$ref": "#/components/schemas/TicketDetailOut"
+          },
+          "added": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Added"
+          },
+          "ambiguous": {
+            "items": {
+              "$ref": "#/components/schemas/AmbiguousNameOut"
+            },
+            "type": "array",
+            "title": "Ambiguous"
+          },
+          "unknown": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknown"
+          },
+          "over_limit": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Over Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket",
+          "added",
+          "ambiguous",
+          "unknown",
+          "over_limit"
+        ],
+        "title": "ParticipantsOut",
+        "description": "What was added plus what needs a second look (shown as an amber warning)."
       },
       "QueueOut": {
         "properties": {
@@ -2483,6 +3058,13 @@
                 "type": "null"
               }
             ]
+          },
+          "participants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Participants"
           }
         },
         "type": "object",
@@ -2504,7 +3086,8 @@
           "assignee_name",
           "events",
           "contact_notice",
-          "receipt"
+          "receipt",
+          "participants"
         ],
         "title": "TicketDetailOut"
       },
@@ -2619,6 +3202,33 @@
         "title": "TicketOut",
         "description": "One row of U1/U2. Never carries requester or assignee ids."
       },
+      "ToolStep": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Summary"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "summary"
+        ],
+        "title": "ToolStep",
+        "description": "One read-only check the agent ran: the evidence behind a line of \"Lo que revis\u00e9\"."
+      },
       "TrendPointOut": {
         "properties": {
           "day": {
@@ -2721,6 +3331,156 @@
         ],
         "title": "TurnResult"
       },
+      "UpdateTicket": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "update_ticket",
+            "title": "Kind",
+            "default": "update_ticket"
+          },
+          "ticket_ref": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Ticket Ref"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ticket_ref"
+        ],
+        "title": "UpdateTicket",
+        "description": "Change fields of an own ticket. Only the fields that change are set."
+      },
+      "UpdateTicketIn": {
+        "properties": {
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "impact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impact"
+          },
+          "urgency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Urgency"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UpdateTicketIn",
+        "description": "Only the editable fields; a field that is not sent is left alone."
+      },
       "UserOut": {
         "properties": {
           "id": {
@@ -2798,6 +3558,36 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WriteErrorOut": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "missing-human-confirmation",
+              "confirmation-not-from-requester",
+              "ticket-closed",
+              "no-names",
+              "no-changes",
+              "unknown-field",
+              "invalid-value",
+              "not-allowed",
+              "not-resolved",
+              "already-closed"
+            ],
+            "title": "Reason"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "message"
+        ],
+        "title": "WriteErrorOut"
       }
     }
   }

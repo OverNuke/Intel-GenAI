@@ -93,9 +93,9 @@ def test_user_fields_match_the_orm_columns() -> None:
     assert {f.name for f in fields(User)} == {column.name for column in UserRow.__table__.columns}
 
 
-def test_metadata_tables_are_users_tickets_and_ticket_events() -> None:
+def test_metadata_tables_are_users_tickets_events_and_participants() -> None:
     assert UserRow.__tablename__ == "users"
-    assert set(Base.metadata.tables) == {"users", "tickets", "ticket_events"}
+    assert set(Base.metadata.tables) == {"users", "tickets", "ticket_events", "ticket_participants"}
 
 
 def test_ticket_event_columns_match_the_domain_event() -> None:
@@ -140,10 +140,19 @@ def test_awaiting_user_defaults_to_false_and_requester_is_required() -> None:
     assert table.c.assignee_id.nullable is True
 
 
-def test_event_kinds_include_assigned_and_the_reserved_note() -> None:
+def test_event_kinds_include_assigned_the_reserved_note_and_the_confirmed_writes() -> None:
     from app.modules.tickets.domain.ticket import TicketEventKind
 
-    assert get_args(TicketEventKind) == ("created", "assigned", "contact_requested", "note")
+    assert get_args(TicketEventKind) == (
+        "created",
+        "assigned",
+        "contact_requested",
+        "note",
+        "participants_added",
+        "updated",
+        "resolved",
+        "closed",
+    )
 
 
 def test_ticket_event_and_record_are_frozen_values() -> None:

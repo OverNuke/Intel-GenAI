@@ -79,6 +79,7 @@ class TicketDetailOut(TicketOut):
     events: list[TicketEventOut]
     contact_notice: str | None
     receipt: ReceiptOut | None
+    participants: list[str]  # display names, besides requester and assignee
 
 
 def summary_out(summary: MySummary) -> MySummaryOut:
@@ -135,7 +136,12 @@ def detail_out(record: TicketRecord) -> TicketDetailOut:
         events=[event_out(e) for e in requester_events(record.events)],
         contact_notice=contact_notice(record.events, awaiting_user=t.awaiting_user),
         receipt=receipt_out(record.receipt) if record.receipt else None,
+        participants=participant_names(record),
     )
+
+
+def participant_names(record: TicketRecord) -> list[str]:
+    return [record.people[i] for i in record.participants if i in record.people]
 
 
 class _Strict(BaseModel):
@@ -293,6 +299,7 @@ class ItTicketOut(BaseModel):
     updated_at: datetime
     events: list[ItEventOut]
     receipt: ReceiptOut | None
+    participants: list[str]
 
 
 class ContactIn(_Strict):
@@ -337,4 +344,79 @@ def it_record_out(record: TicketRecord, now: datetime) -> ItTicketOut:
             for e in sorted(record.events, key=lambda e: (e.created_at, e.id))
         ],
         receipt=receipt_out(record.receipt) if record.receipt else None,
+        participants=participant_names(record),
     )
+
+
+# --- confirmed writes (participants, update, close)
+
+
+class ParticipantsIn(_Strict):
+    """Names as the person typed them; ids are resolved server-side. `confirmed` must be true."""
+
+    names: list[Annotated[str, Field(max_length=80)]] = Field(min_length=1, max_length=8)
+    confirmed: bool = False
+
+
+class UpdateTicketIn(_Strict):
+    """Only the editable fields; a field that is not sent is left alone."""
+
+    summary: str | None = Field(default=None, max_length=200)
+    description: str | None = Field(default=None, max_length=4000)
+    impact: Impact | None = None
+    urgency: Urgency | None = None
+    confirmed: bool = False
+
+    def changes(self) -> dict[str, object]:
+        return {f: getattr(self, f) for f in self.model_fields_set if f != "confirmed"}
+
+
+class CloseIn(_Strict):
+    confirmed: bool = False
+
+
+class AmbiguousNameOut(BaseModel):
+    name: str
+    candidates: list[str]  # display names the person can choose from
+
+
+class ParticipantsOut(BaseModel):
+    """What was added plus what needs a second look (shown as an amber warning)."""
+
+    ticket: TicketDetailOut
+    added: list[str]
+    ambiguous: list[AmbiguousNameOut]
+    unknown: list[str]
+    over_limit: list[str]
+
+
+WriteReason = Literal[
+    "missing-human-confirmation",
+    "confirmation-not-from-requester",
+    "ticket-closed",
+    "no-names",
+    "no-changes",
+    "unknown-field",
+    "invalid-value",
+    "not-allowed",
+    "not-resolved",
+    "already-closed",
+]
+
+WRITE_MESSAGES: dict[str, str] = {
+    "missing-human-confirmation": "Necesitamos tu confirmación para continuar.",
+    "confirmation-not-from-requester": "Solo quien creó el ticket puede hacer este cambio.",
+    "ticket-closed": "Este ticket ya está cerrado y no se puede cambiar.",
+    "no-names": "Escribe al menos un nombre.",
+    "no-changes": "No hay cambios que guardar.",
+    "unknown-field": "Ese dato del ticket no se puede cambiar.",
+    "invalid-value": "Revisa los datos: alguno no es válido.",
+    "not-allowed": "No tienes permiso para cerrar este ticket.",
+    "not-resolved": "El ticket se puede cerrar cuando TI lo marque como resuelto.",
+    "already-closed": "Este ticket ya está cerrado.",
+}
+
+
+class WriteErrorOut(BaseModel):
+    reason: WriteReason
+    message: str

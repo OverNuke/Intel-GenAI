@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { deniedSentence, parseDenied, ROLE_HOME } from "@/lib/access-labels";
 import { checkAccess } from "@/lib/guard";
 import { readServerContext } from "@/lib/server-context";
+import { unauthenticatedHref } from "@/lib/session-cookie";
 import { Icon } from "@/ui/atoms/icon";
 import { StateCard } from "@/ui/organisms/state-card";
 
@@ -15,8 +16,9 @@ const first = (value: string | string[] | undefined) => (Array.isArray(value) ? 
 export default async function SinAccesoPage({ searchParams }: { searchParams: Promise<Query> }) {
   const query = await searchParams;
   // "home" is open to every role, so this only resolves who is looking (for "Ir a tu sección").
-  const viewer = await checkAccess("home", await readServerContext());
-  if (viewer.kind !== "allowed") redirect("/entrar");
+  const ctx = await readServerContext();
+  const viewer = await checkAccess("home", ctx);
+  if (viewer.kind !== "allowed") redirect(unauthenticatedHref(ctx.cookie));
   const denied = parseDenied({ section: first(query.section), required: first(query.required) });
 
   return (

@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api-types.ts"
+    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api-types.ts",
+    "gen:icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
     "next": "^16.4.0",

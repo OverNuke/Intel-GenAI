@@ -1,13 +1,19 @@
 """Test-only in-memory TicketRepository (production adapter: infrastructure/sqlalchemy_tickets)."""
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import replace
 from datetime import datetime
 
 from app.modules.auth.domain.user import User
 from app.modules.tickets.domain.new_ticket import NewTicket
 from app.modules.tickets.domain.receipt import AriadnaReceipt
-from app.modules.tickets.domain.ticket import Ticket, TicketEvent, TicketRecord, TicketView
+from app.modules.tickets.domain.ticket import (
+    Ticket,
+    TicketEvent,
+    TicketEventKind,
+    TicketRecord,
+    TicketView,
+)
 from app.seed.data import TICKETS, USERS
 
 FIRST_NEW_NUMBER = 1061  # ticket_number_seq starts here (the seed uses 1053..1060)
@@ -20,12 +26,14 @@ class InMemoryTicketRepository:
         users: Iterable[User] = USERS,
         events: Iterable[TicketEvent] = (),
         receipts: Mapping[int, AriadnaReceipt] | None = None,
+        participants: Mapping[int, Iterable[str]] | None = None,
     ) -> None:
         self._tickets = {t.number: t for t in tickets}
         self._users = {u.id: u for u in users}
         self._events = list(events)
         self._receipts = dict(receipts or {})
         self._keys: dict[str, int] = {}
+        self._participants = {n: list(ids) for n, ids in (participants or {}).items()}
         self._next = max(FIRST_NEW_NUMBER, *(n + 1 for n in self._tickets))
 
     def _view(self, ticket: Ticket) -> TicketView:
@@ -58,6 +66,7 @@ class InMemoryTicketRepository:
             events=events,
             receipt=self._receipts.get(number),
             people={u.id: u.display_name for u in self._users.values()},
+            participants=tuple(self._participants.get(number, ())),
         )
 
     async def find_by_submission_key(self, key: str) -> TicketRecord | None:
@@ -129,4 +138,50 @@ class InMemoryTicketRepository:
                 created_at=at,
             )
         )
+        return await self.get(number)
+
+    def _append_event(
+        self, number: int, kind: TicketEventKind, by: str, body: str | None, at: datetime
+    ) -> None:
+        seq = sum(1 for e in self._events if e.ticket_number == number) + 1
+        self._events.append(
+            TicketEvent(
+                id=f"{number}-{seq}",
+                ticket_number=number,
+                kind=kind,
+                author_id=by,
+                body=body,
+                visible_to_requester=True,
+                created_at=at,
+            )
+        )
+
+    async def add_participants(
+        self, number: int, user_ids: Sequence[str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        ticket = self._tickets.get(number)
+        if ticket is None or ticket.status == "closed":
+            return None
+        current = self._participants.setdefault(number, [])
+        current.extend(u for u in user_ids if u not in current)
+        self._tickets[number] = replace(ticket, updated_at=at)
+        self._append_event(number, "participants_added", by, body, at)
+        return await self.get(number)
+
+    async def update_ticket(
+        self, number: int, changes: Mapping[str, str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        ticket = self._tickets.get(number)
+        if ticket is None or ticket.status == "closed":
+            return None
+        self._tickets[number] = replace(ticket, updated_at=at, **changes)  # type: ignore[arg-type]
+        self._append_event(number, "updated", by, body, at)
+        return await self.get(number)
+
+    async def close(self, number: int, by: str, at: datetime) -> TicketRecord | None:
+        ticket = self._tickets.get(number)
+        if ticket is None or ticket.status != "resolved":
+            return None
+        self._tickets[number] = replace(ticket, status="closed", updated_at=at)
+        self._append_event(number, "closed", by, None, at)
         return await self.get(number)

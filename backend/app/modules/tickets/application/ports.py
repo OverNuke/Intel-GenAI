@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Protocol
 
@@ -26,4 +27,23 @@ class TicketRepository(Protocol):
         self, number: int, by: str, message: str | None, at: datetime
     ) -> TicketRecord | None:
         """Sets awaiting_user, bumps updated_at and appends a contact_requested event."""
+        ...
+
+    async def add_participants(
+        self, number: int, user_ids: Sequence[str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        """Adds the users (already-present ones are skipped), bumps updated_at and appends a
+        participants_added event. None when the ticket is missing or closed."""
+        ...
+
+    async def update_ticket(
+        self, number: int, changes: Mapping[str, str], by: str, body: str, at: datetime
+    ) -> TicketRecord | None:
+        """Applies summary/description/impact/urgency, bumps updated_at and appends an updated
+        event. None when the ticket is missing or closed."""
+        ...
+
+    async def close(self, number: int, by: str, at: datetime) -> TicketRecord | None:
+        """Resuelto -> Cerrado with a closed event, atomically. None when the ticket is missing or
+        no longer Resuelto."""
         ...

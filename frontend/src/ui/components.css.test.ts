@@ -59,6 +59,21 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(missing).toEqual([]);
   });
 
+  it("defines the sign-in auth layout primitives (REQ-A1-M6)", () => {
+    const required = [".auth", ".auth-aside", ".auth-main", ".auth-card", ".or-divider", ".btn-block", ".field-msg", ".link"];
+    expect(required.filter((selector) => !hasSelector(selector))).toEqual([]);
+  });
+
+  it("defines the T4 notification email primitives", () => {
+    const required = [".mail", ".mail-head", ".mail-body"];
+    expect(required.filter((selector) => !hasSelector(selector))).toEqual([]);
+  });
+
+  it("no longer carries the replaced sign-in layout classes", () => {
+    const dead = [".split-page", ".brand-aside", ".split-main", ".separator", ".demo-box", ".field-error"];
+    expect(dead.filter((selector) => hasSelector(selector))).toEqual([]);
+  });
+
   it("uses only token colours: no hex or rgb literals", () => {
     expect(css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
     expect(css.match(/rgba?\(/g) ?? []).toEqual([]);
