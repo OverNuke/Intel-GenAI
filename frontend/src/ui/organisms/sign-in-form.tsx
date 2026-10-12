@@ -6,8 +6,10 @@ import { PICKER_ROLE_LABELS } from "@/lib/access-labels";
 import type { ApiResult } from "@/lib/api-client";
 import type { components } from "@/lib/api-types";
 import { initialsOf } from "@/lib/initials";
+import { Alert } from "../atoms/alert";
 import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
+import { Icon } from "../atoms/icon";
 import { ErrorSummary, type SummaryItem } from "../molecules/error-summary";
 import { FormField } from "../molecules/form-field";
 
@@ -111,7 +113,9 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
           Elige tu cuenta
         </h1>
         <p>Cuenta de la organización. Cada cuenta abre la sección de su rol.</p>
-        <p role="note">Esto es un prototipo: son cuentas de ejemplo.</p>
+        <Alert tone="info" role="note">
+          <p>Esto es un prototipo: son cuentas de ejemplo.</p>
+        </Alert>
         {failure ? <ErrorSummary key={attempt} message={failure} /> : null}
         <ul aria-label="Cuentas de ejemplo" className="account-list">
           {(accounts ?? []).map((account) => {
@@ -140,7 +144,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
             );
           })}
         </ul>
-        <Button variant="secondary" onClick={() => switchView("login")}>
+        <Button variant="ghost" onClick={() => switchView("login")}>
           Usar otra cuenta
         </Button>
       </section>
@@ -149,14 +153,19 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
 
   return (
     <section aria-labelledby="login-title" className="stack">
-      <Link href="/">Volver al inicio</Link>
+      <Link href="/" className="btn btn-ghost">
+        <Icon name="arrow-left" />
+        Volver al inicio
+      </Link>
       <h1 id="login-title" ref={headingRef} tabIndex={-1}>
         Inicia sesión
       </h1>
       <p>Usa tu correo institucional.</p>
-      <p role="note">Esto es un prototipo. No escribas tus datos reales.</p>
-      <div className="demo-box">
-        <p>
+      <Alert tone="info" role="note">
+        <p>Esto es un prototipo. No escribas tus datos reales.</p>
+      </Alert>
+      <div className="stack">
+        <p className="t-meta">
           Datos de ejemplo: {DEMO.email} · contraseña {DEMO.password}
         </p>
         <Button
@@ -172,15 +181,17 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
         </Button>
       </div>
       <Button
+        className="btn-block"
         aria-disabled={accounts ? undefined : "true"}
         onClick={() => {
           if (accounts) switchView("chooser");
         }}
       >
+        <Icon name="building-2" />
         Entrar con la cuenta de la organización
       </Button>
       {accounts ? null : <p className="t-meta">{COPY.accountsUnavailable}</p>}
-      <div role="separator" aria-label="o" className="separator">
+      <div role="separator" aria-label="o" className="or-divider">
         o
       </div>
       {items.length > 0 ? <ErrorSummary key={attempt} items={items} /> : null}
@@ -195,6 +206,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={fieldErrors.email}
+          leadingIcon="mail"
         />
         <FormField
           id="f-pass"
@@ -205,6 +217,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           error={fieldErrors.password}
+          leadingIcon="lock"
           trailing={
             <Button
               variant="ghost"
@@ -212,6 +225,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
               aria-controls="f-pass"
               onClick={() => setShowPassword((v) => !v)}
             >
+              <Icon name={showPassword ? "eye-off" : "eye"} />
               Mostrar
             </Button>
           }
@@ -229,7 +243,7 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
             {COPY.forgot}
           </p>
         ) : null}
-        <Button type="submit" busy={busy} busyLabel="Entrando…">
+        <Button type="submit" variant="secondary" className="btn-block" busy={busy} busyLabel="Entrando…">
           Iniciar sesión
         </Button>
       </form>

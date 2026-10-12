@@ -18,21 +18,21 @@ export default async function EntrarPage() {
   // An accounts outage must not block credentials login: degrade to a disabled picker.
   const accounts = await loadAccounts();
   return (
-    <div className="split-page">
-      <aside aria-label="Ariadna" className="brand-aside">
-        <div className="brand-aside-top">
-          <span className="logo-slot logo-slot--on-inverted" aria-hidden="true">
+    <div className="auth">
+      <aside aria-label="Ariadna" className="auth-aside">
+        <div className="auth-brand">
+          <span className="logo-slot" aria-hidden="true">
             <Icon name="image" />
           </span>
-          <div>
-            <p className="wordmark">Ariadna</p>
-            <p className="brand-aside-tagline">Tu guía para solicitudes de TI</p>
-          </div>
+          <p className="wordmark">Ariadna</p>
+          <p className="t-meta">Tu guía para solicitudes de TI</p>
         </div>
         <PrototypeBanner />
       </aside>
-      <main className="split-main">
-        <SignInContainer accounts={accounts} />
+      <main className="auth-main">
+        <div className="auth-card">
+          <SignInContainer accounts={accounts} />
+        </div>
       </main>
     </div>
   );
