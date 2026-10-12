@@ -881,6 +881,30 @@ a {
   gap: var(--space-2);
 }
 
+/* Painted copy of a button inside the aria-hidden picture; deliberately not .btn so it is not a page action. */
+.shot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--size-control);
+  padding: 0 var(--space-4);
+  border: var(--border-hairline) solid transparent;
+  border-radius: var(--radius-md);
+  font: var(--text-label-weight) var(--text-label-size) / var(--text-label-line) var(--font-ui);
+}
+
+.shot-btn--accent {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.shot-btn--outline {
+  background: var(--color-surface);
+  color: var(--color-accent-text);
+  border-color: var(--color-border-control);
+}
+
 .shot-caption {
   padding: var(--space-2) var(--space-5);
   border-top: var(--border-hairline) solid var(--color-hairline);

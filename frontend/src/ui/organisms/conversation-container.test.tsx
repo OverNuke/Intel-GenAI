@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { components } from "@/lib/api-types";
+import { COPY } from "@/lib/copy";
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: vi.fn(), refresh: vi.fn() }) }));
@@ -358,6 +359,24 @@ describe("ConversationContainer (U6)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enviar solicitud" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/solicitud/enviada/INC0001061"));
     expect(bodyOf(f, 1).idempotency_key).toBe(bodyOf(f, 2).idempotency_key);
+  });
+
+  it("S-U7-2: a failed submit shows no «Avisamos a TI…» line, does not navigate and keeps the draft", async () => {
+    const f = fetcher({
+      "/api/assistant/turn": () => json(readyTurn()),
+      "/api/tickets": () => json({}, 500),
+    });
+    open(f);
+    say("La impresora no imprime");
+    await waitFor(() => expect((screen.getByRole("button", { name: "Revisar y enviar" }) as HTMLButtonElement).disabled).toBe(false));
+    expect(screen.queryByText(COPY.request.sentNotice)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Revisar y enviar" }));
+    expect(screen.queryByText(COPY.request.sentNotice)).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "Enviar solicitud" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("No pudimos enviar tu solicitud"));
+    expect(screen.queryByText(COPY.request.sentNotice)).toBeNull();
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByText("Impresora sin imprimir")).toBeTruthy();
   });
 
   it("'Pasar con TI' goes to the confirmation of the captured draft and submits without a receipt", async () => {

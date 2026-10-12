@@ -129,8 +129,8 @@ describe("P1 landing", () => {
 
   it("REQ-P1-M1: exactly one primary, the hero «Iniciar sesión»; the closing CTA is secondary", () => {
     const { container } = render(<Home />);
-    // The product shots are aria-hidden, inert pictures of the app; their painted button is not a page action.
-    const primaries = [...container.querySelectorAll(".btn-primary")].filter((el) => el.closest(".shot") === null);
+    // Whole document, product shots included: the pictured button must not be a second `.btn-primary`.
+    const primaries = [...container.querySelectorAll(".btn-primary")];
     expect(primaries).toHaveLength(1);
     expect(primaries[0]?.textContent).toBe("Iniciar sesión");
     expect(primaries[0]?.closest(".landing-hero")).not.toBeNull();
@@ -171,7 +171,9 @@ describe("P1 landing", () => {
 
   it("REQ-P1-M4: no icon on the landing is larger than 24px", () => {
     const { container } = render(<Home />);
-    for (const svg of container.querySelectorAll("svg[data-icon]")) {
+    const icons = [...container.querySelectorAll("svg[data-icon]")];
+    expect(icons.length).toBeGreaterThan(0);
+    for (const svg of icons) {
       const size = Number(svg.getAttribute("width"));
       expect(size).toBeLessThanOrEqual(24);
     }
