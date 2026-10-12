@@ -65,6 +65,8 @@ export const COPY = {
     suggestedGroup: "Grupo asignado (sugerido)",
     sentTitle: "Solicitud enviada", // adapted
     sentBody: "Enviamos tu solicitud. Te avisaremos cuando la tome un especialista.",
+    // adapted: the mock lists this line as "por agregar" in U7 (see T4); terminal period added
+    sentNotice: "Avisamos a TI y a tu jefe o encargado por correo.",
     sentHandoff: "Una persona de TI verá tu caso. No tienes que repetir nada.",
     number: "Número",
     seeMyTickets: "Ver mis tickets",

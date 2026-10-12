@@ -48,6 +48,17 @@ describe("SubmissionConfirmation (U7)", () => {
     expect(screen.getByRole("link", { name: "Ver el ticket" }).getAttribute("href")).toBe("/tickets/INC0001061");
   });
 
+  it("S-U7-1: shows the notification line with a mail icon after the sent body and before the receipt", () => {
+    const { container } = render(<SubmissionConfirmation ticket={ticket()} />);
+    const line = screen.getByText("Avisamos a TI y a tu jefe o encargado por correo.");
+    expect(line.closest("p")?.querySelector('svg[data-icon="mail"]')).toBeTruthy();
+    const body = screen.getByText("Enviamos tu solicitud. Te avisaremos cuando la tome un especialista.");
+    const receipt = screen.getByRole("heading", { name: "Constancia de Ariadna" });
+    expect(body.compareDocumentPosition(line.closest("p")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(line.closest("p")!.compareDocumentPosition(receipt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelectorAll(".btn-primary").length).toBe(1);
+  });
+
   it("without a receipt (Pasar con TI) it explains that a person from IT will see the case", () => {
     render(<SubmissionConfirmation ticket={ticket({ receipt: null, via_ariadna: false })} />);
     expect(screen.queryByRole("heading", { name: "Constancia de Ariadna" })).toBeNull();
