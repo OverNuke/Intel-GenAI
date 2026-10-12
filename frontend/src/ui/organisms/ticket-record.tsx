@@ -34,7 +34,6 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
     ...(ticket.participants.length > 0
       ? ([["users", COPY.detail.participants, ticket.participants.join(", ")]] as [IconName, string, string][])
       : []),
-    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (as on U3).
     ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
   const visibleEvents = ticket.events.filter((e) => e.visible_to_requester);

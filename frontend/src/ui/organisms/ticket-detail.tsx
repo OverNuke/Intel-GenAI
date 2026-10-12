@@ -29,7 +29,6 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
       ? ([["users", COPY.detail.participants, ticket.participants.join(", ")]] as [IconName, string, string][])
       : []),
     ["paperclip", COPY.detail.attachments, COPY.detail.noAttachments],
-    // adapted: "clock" is a Lucide icon outside the mock's extracted sprite (see icon-paths.tsx).
     ["clock", COPY.detail.created, formatDate(ticket.created_at)],
   ];
 
