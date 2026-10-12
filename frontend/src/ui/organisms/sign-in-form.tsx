@@ -79,12 +79,13 @@ export function SignInForm({ accounts, login, onSignedIn }: SignInFormProps) {
     setBusyEmail(body.method === "account" ? (body.email ?? null) : null);
     setFailure(null);
     const result = await login(body);
-    setBusy(false);
-    setBusyEmail(null);
     if (result.ok) {
+      // Stay busy until the role home replaces this page: an idle button invites repeat taps.
       onSignedIn(result.data);
       return;
     }
+    setBusy(false);
+    setBusyEmail(null);
     setAttempt((n) => n + 1);
     setFailure(result.status === 400 || result.status === 401 ? COPY.rejected : COPY.unavailable);
   }

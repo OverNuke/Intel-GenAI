@@ -123,6 +123,18 @@ describe("A1 sign-in view", () => {
     expect(busy.getAttribute("aria-busy")).toBe("true");
   });
 
+  it("stays busy after a successful sign-in so a second tap cannot fire while the role home loads", async () => {
+    const { login, onSignedIn } = setup();
+    type("Correo institucional", "ana.ruiz@ejemplo.mx");
+    type("Contraseña", "demo2026");
+    submit();
+    await waitFor(() => expect(onSignedIn).toHaveBeenCalledTimes(1));
+    const busy = screen.getByRole("button", { name: "Entrando…" });
+    expect(busy.getAttribute("aria-busy")).toBe("true");
+    fireEvent.click(busy);
+    expect(login).toHaveBeenCalledTimes(1);
+  });
+
   it("S-A1-6: the forgot-password button announces the prototype message and stays on A1", () => {
     setup();
     expect(screen.queryByRole("status")).toBeNull();
