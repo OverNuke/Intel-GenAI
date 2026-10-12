@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { Alert } from "./alert";
 import { Badge } from "./badge";
 import { Button } from "./button";
 import { TextInput } from "./text-input";
@@ -54,5 +55,44 @@ describe("Badge", () => {
   it("renders its text", () => {
     render(<Badge>Supervisor</Badge>);
     expect(screen.getByText("Supervisor")).toBeTruthy();
+  });
+});
+
+describe("Alert", () => {
+  it.each([
+    ["info", "info"],
+    ["error", "circle-alert"],
+    ["warning", "triangle-alert"],
+    ["success", "circle-check"],
+  ] as const)("renders tone-%s with the %s icon, aria-hidden", (tone, icon) => {
+    const { container } = render(<Alert tone={tone}>Mensaje</Alert>);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.classList.contains("alert")).toBe(true);
+    expect(root.classList.contains(`tone-${tone}`)).toBe(true);
+    const svg = root.querySelector("svg[data-icon]");
+    expect(svg?.getAttribute("data-icon")).toBe(icon);
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(root.textContent).toBe("Mensaje");
+  });
+
+  it("honors icon and role overrides", () => {
+    render(
+      <Alert tone="info" icon="mail" role="note">
+        Aviso
+      </Alert>,
+    );
+    const note = screen.getByRole("note");
+    expect(note.querySelector("svg")?.getAttribute("data-icon")).toBe("mail");
+  });
+
+  it("forwards ref and extra props", () => {
+    const ref = { current: null as HTMLDivElement | null };
+    render(
+      <Alert tone="error" role="alert" ref={ref} tabIndex={-1}>
+        Error
+      </Alert>,
+    );
+    expect(ref.current).toBe(screen.getByRole("alert"));
+    expect(ref.current?.getAttribute("tabindex")).toBe("-1");
   });
 });

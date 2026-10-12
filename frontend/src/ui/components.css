@@ -140,26 +140,18 @@ a {
   gap: var(--space-2);
 }
 
-.field-error {
-  color: var(--status-error-text);
+.field-msg {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   margin: 0;
   font-size: var(--text-meta-size);
+  line-height: var(--text-meta-line);
+  color: var(--color-muted);
 }
 
-.error-summary {
-  background: var(--status-error-tint);
+.field-msg.is-error {
   color: var(--status-error-text);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-}
-
-.error-summary p,
-.error-summary ul {
-  margin: 0;
-}
-
-.error-summary a {
-  color: inherit;
 }
 
 .badge {
@@ -1521,8 +1513,18 @@ th[aria-sort="descending"] .sort-button::after {
   color: var(--ink);
 }
 
-.alert p {
+.alert-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert p,
+.alert ul {
   margin: 0;
+}
+
+.alert a {
+  color: inherit;
 }
 
 /* Stepper: full (horizontal on wide, vertical on compact) and vertical. */
@@ -1756,6 +1758,7 @@ th[aria-sort="descending"] .sort-button::after {
 .input-wrap {
   position: relative;
   display: flex;
+  flex: 1;
   align-items: center;
 }
 
