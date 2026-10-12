@@ -44,6 +44,16 @@ describe("/entrar page", () => {
     expect(aside.querySelector("img, picture, video")).toBeNull();
   });
 
+  it("brands the aside with the Ariadna mark instead of a dashed logo slot", async () => {
+    fetchAccounts.mockResolvedValue([]);
+    const { container } = render(await EntrarPage());
+    const aside = container.querySelector("aside.auth-aside")!;
+    expect(container.querySelector(".logo-slot")).toBeNull();
+    const mark = aside.querySelector("svg.ariadna-mark")!;
+    expect(mark).not.toBeNull();
+    expect(mark.getAttribute("aria-hidden")).toBe("true");
+  });
+
   it("A2 chooser: info note alert, no primary button, ghost «Usar otra cuenta» (REQ-A2-M1)", async () => {
     fetchAccounts.mockResolvedValue([{ id: "1", name: "Ana Ruiz", email: "ana.ruiz@ejemplo.mx", area: "Finanzas", role: "user" }]);
     const { container } = render(await EntrarPage());

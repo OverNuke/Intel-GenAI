@@ -1,6 +1,6 @@
 import { fetchAccounts } from "@/lib/accounts";
 import { readServerContext } from "@/lib/server-context";
-import { Icon } from "@/ui/atoms/icon";
+import { AriadnaMark } from "@/ui/atoms/ariadna-mark";
 import { PrototypeBanner } from "@/ui/atoms/prototype-banner";
 import { SignInContainer } from "./sign-in-container";
 
@@ -21,9 +21,7 @@ export default async function EntrarPage() {
     <div className="auth">
       <aside aria-label="Ariadna" className="auth-aside">
         <div className="auth-brand">
-          <span className="logo-slot" aria-hidden="true">
-            <Icon name="image" />
-          </span>
+          <AriadnaMark />
           <p className="wordmark">Ariadna</p>
           <p className="t-meta">Tu guía para solicitudes de TI</p>
         </div>

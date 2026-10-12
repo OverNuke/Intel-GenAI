@@ -250,9 +250,8 @@ a {
   color: var(--color-on-inverted-muted);
 }
 
-.auth-aside .logo-slot {
-  border-color: var(--color-on-inverted-muted);
-  color: var(--color-on-inverted-muted);
+.auth-aside .ariadna-mark {
+  color: var(--color-on-inverted);
 }
 
 .auth-brand {
@@ -579,16 +578,13 @@ a {
   gap: var(--space-3);
 }
 
-/* Logo slot: the design system's dashed placeholder until a real logo exists. */
-.logo-slot {
-  display: grid;
-  place-items: center;
+/* Ariadna mark: inline svg drawn with currentColor; each surface sets the colour. */
+.ariadna-mark {
+  display: block;
   flex: none;
   width: var(--size-control);
   height: var(--size-control);
-  border: var(--border-hairline) dashed var(--color-border-control);
-  border-radius: var(--radius-md);
-  color: var(--color-muted);
+  color: var(--color-accent);
 }
 
 .landing-header nav {

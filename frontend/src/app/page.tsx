@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AriadnaMark } from "@/ui/atoms/ariadna-mark";
 import { Icon, type IconName } from "@/ui/atoms/icon";
 import { PrototypeBanner } from "@/ui/atoms/prototype-banner";
 import { Stepper, type StepperStep } from "@/ui/molecules/stepper";
@@ -41,9 +42,7 @@ export default function Home() {
     <>
       <header className="landing-header">
         <div className="landing-brand">
-          <span className="logo-slot" aria-hidden="true">
-            <Icon name="image" />
-          </span>
+          <AriadnaMark />
           <div>
             <p className="wordmark">Ariadna</p>
             <p className="t-meta">Tu guía para solicitudes de TI</p>

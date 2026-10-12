@@ -53,6 +53,16 @@ describe("P1 landing", () => {
     expect(screen.getByRole("radiogroup", { name: "Tema" })).toBeTruthy();
   });
 
+  it("brands the header with the Ariadna mark instead of a dashed logo slot", () => {
+    const { container } = render(<Home />);
+    const header = screen.getByRole("banner");
+    expect(header.querySelector(".logo-slot")).toBeNull();
+    expect(container.querySelector(".logo-slot")).toBeNull();
+    const mark = header.querySelector("svg.ariadna-mark")!;
+    expect(mark).not.toBeNull();
+    expect(mark.getAttribute("aria-hidden")).toBe("true");
+  });
+
   it("anchors exist for the in-page nav", () => {
     render(<Home />);
     expect(document.getElementById("como-funciona")).not.toBeNull();
