@@ -30,11 +30,11 @@ const CARES: ReadonlyArray<readonly [IconName, string]> = [
   ["file-check", "Deja constancia de lo que revisó"],
 ];
 
-const ESTIMATES = [
-  ["7 pasos", "en el proceso observado"],
-  ["60 a 180 min", "tiempo conocido por solicitud"],
-  ["25 a 35 min", "preparar y validar (estimado)"],
-] as const;
+const ESTIMATES: ReadonlyArray<readonly [IconName, string, string]> = [
+  ["list-checks", "7 pasos", "en el proceso observado"],
+  ["clock", "60 a 180 min", "tiempo conocido por solicitud"],
+  ["clock", "25 a 35 min", "preparar y validar (estimado)"],
+];
 
 export default function Home() {
   return (
@@ -69,7 +69,7 @@ export default function Home() {
               <Link className="btn btn-primary" href="/entrar">
                 Iniciar sesión
               </Link>
-              <a className="btn btn-secondary" href="#como-funciona">
+              <a className="link" href="#como-funciona">
                 Ver cómo funciona
               </a>
             </div>
@@ -122,8 +122,9 @@ export default function Home() {
             Estimaciones de un estudio en una sola organización; no son resultados medidos.
           </p>
           <ul className="landing-metrics" aria-labelledby="obs-title" aria-describedby="obs-note">
-            {ESTIMATES.map(([value, label]) => (
+            {ESTIMATES.map(([icon, value, label]) => (
               <li key={value} className="landing-metric">
+                <Icon name={icon} size="md" />
                 <strong>{value}</strong>
                 <span className="t-meta">{label}</span>
               </li>
@@ -133,7 +134,7 @@ export default function Home() {
 
         <section className="landing-close" aria-labelledby="prueba-title">
           <h2 id="prueba-title">Prueba el prototipo</h2>
-          <Link className="btn btn-primary" href="/entrar">
+          <Link className="btn btn-secondary" href="/entrar">
             Iniciar sesión
           </Link>
         </section>

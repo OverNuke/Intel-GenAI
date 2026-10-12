@@ -126,4 +126,54 @@ describe("P1 landing", () => {
     render(<Home />);
     expect(screen.getByRole("heading", { level: 2, name: "Prueba el prototipo" })).toBeTruthy();
   });
+
+  it("REQ-P1-M1: exactly one primary, the hero «Iniciar sesión»; the closing CTA is secondary", () => {
+    const { container } = render(<Home />);
+    // The product shots are aria-hidden, inert pictures of the app; their painted button is not a page action.
+    const primaries = [...container.querySelectorAll(".btn-primary")].filter((el) => el.closest(".shot") === null);
+    expect(primaries).toHaveLength(1);
+    expect(primaries[0]?.textContent).toBe("Iniciar sesión");
+    expect(primaries[0]?.closest(".landing-hero")).not.toBeNull();
+    const closing = container.querySelector(".landing-close a");
+    expect(closing?.textContent).toBe("Iniciar sesión");
+    expect(closing?.getAttribute("href")).toBe("/entrar");
+    expect(closing?.classList.contains("btn-secondary")).toBe(true);
+    expect(closing?.classList.contains("btn-primary")).toBe(false);
+  });
+
+  it("REQ-P1-M2: «Ver cómo funciona» is a text link to the anchor, not a button", () => {
+    render(<Home />);
+    const link = screen.getByRole("link", { name: "Ver cómo funciona" });
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("href")).toBe("#como-funciona");
+    expect(link.classList.contains("link")).toBe(true);
+    expect(link.classList.contains("btn")).toBe(false);
+  });
+
+  it("REQ-P1-M3: the observation tiles carry list-checks / clock / clock and keep the estimate label", () => {
+    render(<Home />);
+    const list = screen.getByRole("list", { name: /Lo que observamos|estimaciones/i });
+    const items = within(list).getAllByRole("listitem");
+    expect(items.map((li) => li.querySelector("strong")?.textContent)).toEqual([
+      "7 pasos",
+      "60 a 180 min",
+      "25 a 35 min",
+    ]);
+    expect(items.map((li) => li.querySelector("svg[data-icon]")?.getAttribute("data-icon"))).toEqual([
+      "list-checks",
+      "clock",
+      "clock",
+    ]);
+    for (const li of items) expect(li.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+    expect(items[2]?.textContent).toContain("(estimado)");
+    expect(screen.getByText(/no son resultados medidos/)).toBeTruthy();
+  });
+
+  it("REQ-P1-M4: no icon on the landing is larger than 24px", () => {
+    const { container } = render(<Home />);
+    for (const svg of container.querySelectorAll("svg[data-icon]")) {
+      const size = Number(svg.getAttribute("width"));
+      expect(size).toBeLessThanOrEqual(24);
+    }
+  });
 });
