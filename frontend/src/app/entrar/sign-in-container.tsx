@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { startTransition } from "react";
 import { ROLE_HOME } from "@/lib/access-labels";
 import { apiPost } from "@/lib/api-client";
 import type { components } from "@/lib/api-types";
@@ -16,8 +17,11 @@ export function SignInContainer({ accounts }: { accounts: User[] | null }) {
       accounts={accounts}
       login={(body) => apiPost("/api/auth/login", body)}
       onSignedIn={(user) => {
-        router.replace(ROLE_HOME[user.role]);
-        router.refresh();
+        // A transition keeps the busy button responsive while the role home renders.
+        startTransition(() => {
+          router.replace(ROLE_HOME[user.role]);
+          router.refresh();
+        });
       }}
     />
   );
