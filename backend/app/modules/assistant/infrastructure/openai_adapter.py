@@ -48,6 +48,10 @@ Reglas:
 - Si todos los datos obligatorios están (servicio, resumen, descripción, impacto, urgencia), \
 pon "ready": true y en "message" una frase sin pregunta que invite a revisar y enviar.
 - Impacto y urgencia solo pueden ser "low", "medium", "high" o null.
+- Impacto según cuántas personas afecta: solo la persona que escribe = "low"; ella y otras \
+(por ejemplo "a mí y a otros tres compañeros", "varias personas") = "medium"; toda su área, \
+departamento u oficina = "high". Si ya lo dijo, no preguntes cuántas personas afecta; si "draft" \
+del contexto ya trae impacto, respétalo.
 - Aprovecha la primera frase de la persona: infiere todos los campos del borrador que puedas \
 (servicio, resumen, descripción, impacto, urgencia) y pregunta solo lo que realmente falta; \
 no repitas preguntas sobre datos que ya dijo.

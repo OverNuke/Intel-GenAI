@@ -13,10 +13,11 @@ from app.modules.assistant.application.ports import AssistantPort
 from app.modules.assistant.application.tools import MANAGER_AUTHORIZATION_NOTICE, ToolBox
 from app.modules.assistant.domain.conversation import Conversation
 from app.modules.assistant.domain.flags import attach_steps, enforce_domain_flags
+from app.modules.assistant.domain.impact import infer_impact
 from app.modules.assistant.domain.proposal import ActionProposal, AddParticipants, Flag
 from app.modules.assistant.domain.turn import MAX_STEPS, AssistantTurn, ToolStep, TurnDraft
 from app.modules.catalog.domain.services import get_service
-from app.modules.tickets.domain.ticket import Impact, Urgency
+from app.modules.tickets.domain.ticket import Urgency
 
 # Order matters: the first service with a matching word wins.
 _KEYWORDS: tuple[tuple[str, frozenset[str]], ...] = (
@@ -44,11 +45,6 @@ _KEYWORDS: tuple[tuple[str, frozenset[str]], ...] = (
     ("access", frozenset({"contrasena", "acceso", "cuenta", "carpeta", "permiso", "usuario"})),
 )
 
-_IMPACT: tuple[tuple[Impact, tuple[str, ...]], ...] = (
-    ("low", ("solo me afecta", "solo a mi", "solo yo")),
-    ("medium", ("varias personas", "varios compañeros")),
-    ("high", ("toda mi area", "toda el area", "todos")),
-)
 _URGENCY: tuple[tuple[Urgency, tuple[str, ...]], ...] = (
     ("low", ("puede esperar", "sin prisa")),
     ("medium", ("con dificultad",)),
@@ -226,7 +222,7 @@ class FakeAssistant:
         service = draft.service or entry_service or _route(context)
         description = draft.description or (texts[0] if texts else "")
         summary = draft.summary or (_truncate(description) if description.strip() else "")
-        impact = draft.impact or _infer(texts, _IMPACT)
+        impact = draft.impact or infer_impact(texts)
         # Safety beats a calm phrase; the person's own edit beats both.
         safety = _safety_hint(texts)
         urgency = draft.urgency or ("high" if safety else _infer(texts, _URGENCY))
