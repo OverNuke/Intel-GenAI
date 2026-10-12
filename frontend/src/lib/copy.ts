@@ -225,6 +225,12 @@ export const COPY = {
     },
     sentTitle: "Solicitud enviada",
   },
+  sessionExpired: {
+    title: "Tu sesión expiró",
+    // adapted: the mock has only the title and the action; the line is a proposal (spec REQ-SE-2)
+    body: "Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.",
+    action: "Volver a entrar",
+  },
   catalog: {
     intro: "Elige un servicio y Ariadna te guía paso a paso.", // adapted: the mock also names «Otra cosa»
     examples: "Por ejemplo",

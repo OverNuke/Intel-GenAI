@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { redirectMock } = vi.hoisted(() => ({
+const { redirectMock, incoming } = vi.hoisted(() => ({
   redirectMock: vi.fn((url: string): never => {
     throw new Error(`NEXT_REDIRECT:${url}`);
   }),
+  incoming: { cookie: "ariadna_session=abc" as string | null },
 }));
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
 vi.mock("next/headers", () => ({
-  headers: async () => new Headers({ cookie: "ariadna_session=abc" }),
+  headers: async () => new Headers(incoming.cookie === null ? {} : { cookie: incoming.cookie }),
 }));
 
 import { checkAccess, requireAccess } from "./guard";
@@ -28,6 +29,7 @@ const fetchOf = (res: Response | Error) =>
 
 beforeEach(() => {
   redirectMock.mockClear();
+  incoming.cookie = "ariadna_session=abc";
 });
 
 describe("checkAccess", () => {
@@ -84,7 +86,22 @@ describe("requireAccess", () => {
     expect(redirectMock).not.toHaveBeenCalled();
   });
 
-  it("redirects to /entrar on a JSON 401 and lets the redirect propagate", async () => {
+  it("S-SE-1: redirects to /sesion-expirada on a JSON 401 when a session cookie was sent", async () => {
+    await expect(requireAccess("home", fetchOf(Response.json({ detail: "x" }, { status: 401 })))).rejects.toThrow(
+      "NEXT_REDIRECT:/sesion-expirada",
+    );
+    expect(redirectMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("S-SE-1: a foreign-only cookie does not count as a stale session", async () => {
+    incoming.cookie = "theme=dark; xariadna_session=abc";
+    await expect(requireAccess("home", fetchOf(Response.json({ detail: "x" }, { status: 401 })))).rejects.toThrow(
+      "NEXT_REDIRECT:/entrar",
+    );
+  });
+
+  it("S-SE-2: redirects to /entrar on a JSON 401 without any cookie and lets the redirect propagate", async () => {
+    incoming.cookie = null;
     await expect(requireAccess("home", fetchOf(Response.json({ detail: "x" }, { status: 401 })))).rejects.toThrow(
       "NEXT_REDIRECT:/entrar",
     );
