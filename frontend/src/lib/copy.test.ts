@@ -56,3 +56,19 @@ describe("COPY (verbatim es-MX strings extracted from the mock)", () => {
     expect(COPY.request.urgencyDesc.high).toBe("Urgencia alta");
   });
 });
+
+describe("COPY.metrics chart strings (R4.3)", () => {
+  it("builds the status line and the exact per-point wording", () => {
+    expect(COPY.metrics.showing(7)).toBe("Mostrando los últimos 7 días");
+    expect(COPY.metrics.pointAdoption(3, 52)).toBe("Día 3: adopción 52 %");
+    expect(COPY.metrics.pointCorrected(3, 18)).toBe("Día 3: con corrección 18 %");
+  });
+
+  it("provides legend, axis, empty and loading copy", () => {
+    expect(COPY.metrics.legend).toBe("Leyenda");
+    expect(COPY.metrics.axisDays).toBe("Día");
+    expect(COPY.metrics.axisPercent).toBe("Porcentaje");
+    expect(COPY.metrics.empty).toBe("Todavía no hay datos de tendencia para este periodo.");
+    expect(COPY.metrics.loading).toBe("Cargando el seguimiento del agente…");
+  });
+});
