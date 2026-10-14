@@ -413,6 +413,7 @@ a {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  box-sizing: border-box;
   width: 100%;
   min-height: var(--size-control);
   padding: 0 var(--space-3);

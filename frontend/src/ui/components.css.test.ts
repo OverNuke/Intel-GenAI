@@ -464,6 +464,22 @@ describe("components.css primitives (REQ-VF-2)", () => {
   });
 });
 
+describe("rail items stay inside the rail (box model)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("sizes .rail-item with border-box so width: 100% plus padding cannot overflow the rail", () => {
+    expect(block(".rail-item")).toMatch(/width:\s*100%/);
+    expect(block(".rail-item")).toMatch(/box-sizing:\s*border-box/);
+  });
+
+  it("does not add a global box-sizing reset", () => {
+    expect(css).not.toMatch(/(^|\n)\s*(\*|html|body)[^{]*\{[^}]*box-sizing/);
+  });
+});
+
 describe("PageHeader css (R2.1, S2.2)", () => {
   const block = (sel: string): string => {
     const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
