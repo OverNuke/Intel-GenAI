@@ -522,3 +522,10 @@ describe("trend chart css (R4.3)", () => {
     expect(block(".trend-end")).toMatch(/top:\s*var\(--trend-y\)/);
   });
 });
+
+describe("data table css (R4.4)", () => {
+  it("right-aligns numeric cells with tabular numerals", () => {
+    expect(css).toMatch(/\.data-table td\.num[^{]*\{[^}]*text-align:\s*right/);
+    expect(css).toMatch(/\.data-table td\.num[^{]*\{[^}]*font-variant-numeric:\s*tabular-nums/);
+  });
+});

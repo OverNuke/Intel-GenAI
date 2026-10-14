@@ -152,6 +152,17 @@ describe("TrendChart readability (R4.3)", () => {
   });
 });
 
+describe("TrendTable layout (R4.4)", () => {
+  it("uses its own table class and marks numeric columns for right alignment", () => {
+    const { container } = render(<TrendTable trend={report(7).trend} />);
+    const table = container.querySelector("table")!;
+    expect(table.className).toBe("data-table");
+    expect(table.className).not.toContain("queue-table");
+    expect(table.querySelectorAll("th.num")).toHaveLength(2);
+    expect(table.querySelectorAll("td.num")).toHaveLength(14);
+  });
+});
+
 describe("AgentMetricsContainer (S1)", () => {
   const reports = { 7: report(7), 30: report(30) } as const;
 
