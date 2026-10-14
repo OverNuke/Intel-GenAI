@@ -486,3 +486,15 @@ describe("PageHeader css (R2.1, S2.2)", () => {
     expect(block(".page-header")).not.toMatch(/\d+px/);
   });
 });
+
+describe("StatTile css (R4.1, R4.2)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("defines the tile and a visibly different estimated variant", () => {
+    expect(block(".stat-tile")).toMatch(/background:\s*var\(--color-surface\)/);
+    expect(block(".stat-tile--estimated")).toMatch(/border:[^;]*dashed/);
+  });
+});

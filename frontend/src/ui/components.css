@@ -1183,6 +1183,30 @@ a {
   font: var(--text-metric-weight) var(--text-metric-size) / var(--text-metric-line) var(--font-display);
 }
 
+/* StatTile (S1): one figure. The estimated variant is dashed and unfilled so it never reads as a measurement. */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.stat-tile--estimated {
+  background: transparent;
+  border: var(--border-hairline) dashed var(--color-border-control);
+}
+
+.stat-tile__value {
+  font: var(--text-metric-weight) var(--text-metric-size) / var(--text-metric-line) var(--font-display);
+}
+
+.stat-tile__label {
+  font-weight: 600;
+}
+
 .service-grid {
   list-style: none;
   margin: 0;
