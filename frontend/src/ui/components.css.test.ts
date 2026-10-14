@@ -5,7 +5,7 @@ const css = readFileSync(new URL("./components.css", import.meta.url), "utf-8");
 const tokens = readFileSync(new URL("./tokens.css", import.meta.url), "utf-8");
 
 /** Custom properties that components.css sets locally (scoped to a rule), not design tokens. */
-const LOCAL_PROPS = new Set(["--tint", "--ink", "--fill", "--nav-h"]);
+const LOCAL_PROPS = new Set(["--tint", "--ink", "--fill", "--nav-h", "--trend-y"]);
 
 function hasSelector(selector: string): boolean {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -496,5 +496,29 @@ describe("StatTile css (R4.1, R4.2)", () => {
   it("defines the tile and a visibly different estimated variant", () => {
     expect(block(".stat-tile")).toMatch(/background:\s*var\(--color-surface\)/);
     expect(block(".stat-tile--estimated")).toMatch(/border:[^;]*dashed/);
+  });
+});
+
+describe("trend chart css (R4.3)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("scales the svg with its container", () => {
+    expect(block(".trend-chart")).toMatch(/width:\s*100%/);
+    expect(block(".trend-chart")).toMatch(/height:\s*auto/);
+  });
+
+  it("colours series by token: accent solid, muted dashed, strokes do not scale", () => {
+    expect(block(".trend-line--adoption")).toMatch(/stroke:\s*var\(--color-accent\)/);
+    expect(block(".trend-line--corrected")).toMatch(/stroke:\s*var\(--color-chart-muted\)/);
+    expect(block(".trend-line--corrected")).toMatch(/stroke-dasharray/);
+    expect(block(".trend-line")).toMatch(/vector-effect:\s*non-scaling-stroke/);
+  });
+
+  it("positions end labels with --trend-y, which has a local default", () => {
+    expect(block(".trend-end")).toMatch(/--trend-y:\s*0%/);
+    expect(block(".trend-end")).toMatch(/top:\s*var\(--trend-y\)/);
   });
 });

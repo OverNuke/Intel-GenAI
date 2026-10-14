@@ -1207,6 +1207,143 @@ a {
   font-weight: 600;
 }
 
+/* Trend chart (S1): SVG scaled by CSS; text is HTML so it never shrinks with the viewBox. */
+.trend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.trend-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.trend-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.trend-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trend-key {
+  display: inline-block;
+  width: var(--size-icon-lg);
+  border-top: var(--size-connector) solid var(--color-accent);
+}
+
+.trend-key--corrected {
+  border-top-style: dashed;
+  border-top-color: var(--color-chart-muted);
+}
+
+.trend-plot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--space-2);
+  row-gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.trend-yaxis {
+  position: relative;
+  grid-column: 1;
+  min-width: var(--size-icon-lg);
+}
+
+.trend-ytick {
+  --trend-y: 0%;
+  position: absolute;
+  right: 0;
+  top: var(--trend-y);
+  transform: translateY(-50%);
+  font: var(--text-meta-weight) var(--text-meta-size) / var(--text-meta-line) var(--text-meta-family);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.trend-chart {
+  grid-column: 2;
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.trend-grid {
+  stroke: var(--color-hairline);
+  stroke-width: var(--border-hairline);
+  vector-effect: non-scaling-stroke;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: var(--size-connector);
+  vector-effect: non-scaling-stroke;
+}
+
+.trend-line--adoption {
+  stroke: var(--color-accent);
+}
+
+.trend-line--corrected {
+  stroke: var(--color-chart-muted);
+  stroke-dasharray: 6 4;
+}
+
+.trend-marker--adoption {
+  fill: var(--color-accent);
+}
+
+.trend-marker--corrected {
+  fill: var(--color-chart-muted);
+}
+
+.trend-ends {
+  position: relative;
+  grid-column: 3;
+  min-width: var(--size-icon-lg);
+}
+
+.trend-end {
+  --trend-y: 0%;
+  position: absolute;
+  left: 0;
+  top: var(--trend-y);
+  transform: translateY(-50%);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.trend-end--adoption {
+  color: var(--color-accent);
+}
+
+.trend-end--corrected {
+  color: var(--color-muted);
+}
+
+.trend-xaxis {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font: var(--text-meta-weight) var(--text-meta-size) / var(--text-meta-line) var(--text-meta-family);
+  color: var(--color-muted);
+}
+
 .service-grid {
   list-style: none;
   margin: 0;

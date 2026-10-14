@@ -119,6 +119,39 @@ describe("TrendChart and TrendTable (S-AM-5)", () => {
   });
 });
 
+describe("TrendChart readability (R4.3)", () => {
+  const trend = report(7).trend;
+
+  it("has an HTML legend naming both series", () => {
+    render(<TrendChart trend={trend} />);
+    const items = within(screen.getByRole("list", { name: "Leyenda" })).getAllByRole("listitem");
+    expect(items.map((i) => i.textContent)).toEqual(["Adopción", "Con corrección"]);
+  });
+
+  it("styles series by CSS class, never by inline colour, and scales with its container", () => {
+    const { container } = render(<TrendChart trend={trend} />);
+    const svg = screen.getByRole("img", { name: /Tendencia/ });
+    expect(svg.getAttribute("viewBox")).toBeTruthy();
+    expect(svg.getAttribute("width")).toBeNull();
+    expect(svg.querySelector("polyline.trend-line--adoption")).not.toBeNull();
+    expect(svg.querySelector("polyline.trend-line--corrected")).not.toBeNull();
+    expect(container.innerHTML).not.toContain("currentColor");
+    expect(svg.querySelectorAll("circle.trend-marker--adoption")).toHaveLength(7);
+    expect(svg.querySelectorAll("rect.trend-marker--corrected")).toHaveLength(7);
+  });
+
+  it("shows axis ticks (0/50/100 and first/middle/last day) and an end label per series", () => {
+    const { container } = render(<TrendChart trend={trend} />);
+    const y = [...container.querySelectorAll(".trend-ytick")].map((t) => t.textContent);
+    expect(y).toEqual(["100 %", "50 %", "0 %"]);
+    const x = [...container.querySelectorAll(".trend-xtick")].map((t) => t.textContent);
+    expect(x).toEqual(["Día 1", "Día 4", "Día 7"]);
+    const ends = [...container.querySelectorAll<HTMLElement>(".trend-end")];
+    expect(ends.map((e) => e.textContent)).toEqual(["56 %", "19 %"]);
+    for (const end of ends) expect(end.style.getPropertyValue("--trend-y")).toMatch(/^\d+(\.\d+)?%$/);
+  });
+});
+
 describe("AgentMetricsContainer (S1)", () => {
   const reports = { 7: report(7), 30: report(30) } as const;
 
