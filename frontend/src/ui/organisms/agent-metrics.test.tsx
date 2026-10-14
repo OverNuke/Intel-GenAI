@@ -164,6 +164,27 @@ describe("TrendTable layout (R4.4)", () => {
   });
 });
 
+describe("empty and loading states (R4.6)", () => {
+  it("shows the empty copy instead of an empty chart and table when there are no points", () => {
+    const empty = { ...report(7), trend: [] };
+    const { container } = render(
+      <AgentMetricsContainer reports={{ 7: empty, 30: report(30) }} initialPeriod={7} />,
+    );
+    expect(screen.getByText("Todavía no hay datos de tendencia para este periodo.")).toBeTruthy();
+    expect(container.querySelector(".empty-state")).not.toBeNull();
+    expect(screen.queryByRole("img", { name: /Tendencia/ })).toBeNull();
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByRole("list", { name: "Medido" })).toBeTruthy();
+  });
+
+  it("the loading route renders a busy empty state with the loading copy", async () => {
+    const { default: Loading } = await import("../../app/supervisor/agente/loading");
+    const { container } = render(<Loading />);
+    expect(screen.getByText("Cargando el seguimiento del agente…")).toBeTruthy();
+    expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
+  });
+});
+
 describe("PeriodSwitch (R4.5)", () => {
   it("is a segmented control of native radios in a named group", () => {
     const { container } = render(<PeriodSwitch period={7} onChange={() => {}} />);

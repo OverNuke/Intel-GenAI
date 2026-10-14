@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { EmptyState } from "../molecules/empty-state";
 import { PageHeader } from "../molecules/page-header";
 import { EstimatedBlock } from "./estimated-block";
 import { MeasuredBlock } from "./measured-block";
@@ -38,8 +39,14 @@ export function AgentMetricsContainer({
 
       <section aria-labelledby="trend-title" className="card stack">
         <h2 id="trend-title">{COPY.metrics.trendTitle}</h2>
-        <TrendChart trend={report.trend} />
-        <TrendTable trend={report.trend} />
+        {report.trend.length === 0 ? (
+          <EmptyState message={COPY.metrics.empty} />
+        ) : (
+          <>
+            <TrendChart trend={report.trend} />
+            <TrendTable trend={report.trend} />
+          </>
+        )}
       </section>
     </div>
   );
