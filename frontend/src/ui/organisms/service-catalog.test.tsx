@@ -57,4 +57,12 @@ describe("ServiceCatalog (U4)", () => {
     ]);
     expect(screen.getByRole("link", { name: "Nuevo ticket" }).getAttribute("href")).toBe("/solicitud/conversacion");
   });
+
+  it("uses the shared page header with the new-ticket action", () => {
+    const { container } = render(<ServiceCatalog services={[printing]} />);
+    const header = container.querySelector("header.page-header")!;
+    expect(container.querySelector(".page-head")).toBeNull();
+    expect(header.querySelectorAll("h1")).toHaveLength(1);
+    expect(header.querySelector(".page-header__actions a")?.getAttribute("href")).toBe("/solicitud/conversacion");
+  });
 });
