@@ -44,7 +44,7 @@ uv run python -m scripts.export_openapi  # regenerate backend/openapi.json
 
 The ticket number sequence `ticket_number_seq` starts at 1061 (seed uses INC0001053..1060 explicitly), so the next real ticket is INC0001061. `tests/seed/test_seed_db.py` runs only when `DATABASE_URL` is set; point it at a throwaway Neon branch only.
 
-Env vars (set in `.env.local` / Vercel; `.env*` writes are blocked by permissions, so document, don't create): `DATABASE_URL` (Neon **pooled** URL) and `DATABASE_URL_UNPOOLED` (optional, for Alembic/seed) are consumed today; planned: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, `SESSION_SECRET`, `ASSISTANT_ADAPTER` (`openai` | `fake`). See `README.md`.
+Env vars (set in `.env.local` / Vercel; `.env*` writes are blocked by permissions, so document, don't create): `DATABASE_URL` (Neon **pooled** URL) and `DATABASE_URL_UNPOOLED` (optional, for Alembic/seed) are consumed. **Required on Vercel:** `DATABASE_URL` and `SESSION_SECRET` (signs the session cookie; without it `POST /api/auth/login` returns 500 on first use, set it and redeploy). Optional: `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY`, `ASSISTANT_ADAPTER` (`openai` | `fake`; falls back to `fake` unless base url, model and key are all set), `ASSISTANT_MODE`. See `README.md`.
 
 ## Architecture (big picture)
 
