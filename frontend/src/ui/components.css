@@ -416,7 +416,7 @@ a {
   box-sizing: border-box;
   width: 100%;
   min-height: var(--size-control);
-  padding: 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -445,11 +445,11 @@ a {
   cursor: not-allowed;
 }
 
+/* Expanded rail: long labels wrap to a second line. The collapsed rail, .islands and the mobile
+   bar override this with the clip recipe / their own nowrap rules. */
 .rail-label {
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 /* Tooltip: CSS-only hint from data-tooltip. The alt-text form keeps it out of the accessible name. */

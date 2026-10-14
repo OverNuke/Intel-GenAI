@@ -607,6 +607,22 @@ describe("narrow-screen leftovers (phase 7)", () => {
   });
 });
 
+describe("rail label wrapping (phase 7)", () => {
+  it("wraps long rail labels in the expanded rail instead of truncating them", () => {
+    const rule = /\n\.rail-label\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/overflow-wrap:\s*(anywhere|break-word)/);
+    expect(rule).not.toMatch(/white-space:\s*nowrap/);
+    expect(rule).not.toMatch(/text-overflow:/);
+    expect(rule).not.toMatch(/overflow:\s*hidden/);
+  });
+
+  it("keeps the clip recipe in the collapsed rail and the min height on items", () => {
+    const medium = [...css.matchAll(/@media \(max-width: 1100px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+    expect(medium).toMatch(/\.rail-label,[\s\S]*?overflow:\s*hidden;[\s\S]*?clip-path:\s*inset\(50%\);[\s\S]*?white-space:\s*nowrap/);
+    expect(/\n\.rail-item\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/min-height:\s*var\(--size-control\)/);
+  });
+});
+
 describe("segmented control css (R4.5)", () => {
   it("hides the native radios visually, keeps them focusable and shows checked and focus states", () => {
     expect(css).toMatch(/\.segmented__input\s*\{[^}]*clip-path:\s*inset\(50%\)/);
