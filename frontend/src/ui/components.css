@@ -1014,18 +1014,6 @@ a {
 }
 
 /* Pantallas de usuario (U1-U3) */
-.page-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.page-head p {
-  margin: 0;
-}
-
 /* PageHeader: back | title | actions. Three tracks always, so empty slots keep their space and
    the title sits at the same x on every page. */
 .page-header {
@@ -1790,13 +1778,7 @@ th[aria-sort="descending"] .sort-button::after {
   padding: var(--space-4);
 }
 
-/* Record header (U3 / T2), breadcrumb and section header. */
-.crumb {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
+/* Record header (U3 / T2) and section header. */
 .rec-head {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

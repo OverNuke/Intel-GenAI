@@ -124,4 +124,21 @@ describe("HomeView (U1)", () => {
     expect(screen.getByText("Todavía no hay equipos relacionados con tus tickets.")).toBeTruthy();
     expect(screen.queryByRole("list", { name: "Mi equipo" })).toBeNull();
   });
+
+  it("uses the shared page header for the greeting and no legacy page-head markup", () => {
+    const { container } = view();
+    const header = container.querySelector("header.page-header")!;
+    expect(header.querySelectorAll("h1")).toHaveLength(1);
+    expect(header.querySelector(".page-header__actions a")?.getAttribute("href")).toBe("/solicitud/conversacion");
+    expect(container.querySelector(".page-head")).toBeNull();
+    expect(container.querySelectorAll("h1")).toHaveLength(1);
+  });
+
+  it("section headings sit in section heads with their see-all link", () => {
+    view();
+    for (const name of ["Mis tickets", "¿Qué necesitas?"]) {
+      const head = screen.getByRole("heading", { level: 2, name }).closest(".sec-head")!;
+      expect(within(head as HTMLElement).getByRole("link", { name: /^Ver todos/ })).toBeTruthy();
+    }
+  });
 });

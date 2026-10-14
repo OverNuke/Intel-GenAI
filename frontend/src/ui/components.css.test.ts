@@ -31,7 +31,6 @@ describe("components.css primitives (REQ-VF-2)", () => {
       ".rail-rows",
       ".rail-row",
       ".alert",
-      ".crumb",
       ".icon-btn",
       ".opt-group",
       ".opt-tile",
@@ -398,8 +397,10 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(tokens).toMatch(/--bp-[\s\S]*?cannot be used in @media/i);
     });
 
-    it("wraps the page head and keeps the meta column on a token", () => {
-      expect(rule(".page-head")).toMatch(/flex-wrap:\s*wrap/);
+    it("has no legacy page-head or crumb rules and keeps the meta column on a token", () => {
+      expect(css).not.toMatch(/\.page-head\b(?!er)/);
+      expect(css).not.toMatch(/\.crumb\b/);
+      expect(css).toMatch(/\.page-header\s*\{/);
       expect(css).toMatch(/\.data-rows \.t-meta\s*\{[^}]*min-width:\s*var\(--size-meta-col\)/);
     });
 
