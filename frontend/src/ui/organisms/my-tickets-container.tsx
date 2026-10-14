@@ -15,6 +15,7 @@ import {
 import { STAGE_ORDER, type TicketStatus } from "@/lib/ticket-labels";
 import { Button } from "../atoms/button";
 import { EmptyState } from "../molecules/empty-state";
+import { PageHeader } from "../molecules/page-header";
 import { TicketList } from "./ticket-list";
 
 type Ticket = components["schemas"]["TicketOut"];
@@ -47,15 +48,15 @@ export function MyTicketsContainer({ tickets }: { tickets: Ticket[] }) {
 
   return (
     <div className="stack">
-      <div className="page-head">
-        <div>
-          <h1 tabIndex={-1}>{COPY.list.heading}</h1>
-          <p className="t-meta">{COPY.list.intro}</p>
-        </div>
-        <Link className="btn btn-primary" href="/solicitud/conversacion">
-          {COPY.newTicket}
-        </Link>
-      </div>
+      <PageHeader
+        title={COPY.list.heading}
+        meta={COPY.list.intro}
+        actions={
+          <Link className="btn btn-primary" href="/solicitud/conversacion">
+            {COPY.newTicket}
+          </Link>
+        }
+      />
 
       <div className="card stack">
         <div className="field">

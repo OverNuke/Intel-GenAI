@@ -68,7 +68,6 @@ export const COPY = {
     // adapted: the mock lists this line as "por agregar" in U7 (see T4); terminal period added
     sentNotice: "Avisamos a TI y a tu jefe o encargado por correo.",
     sentHandoff: "Una persona de TI verá tu caso. No tienes que repetir nada.",
-    number: "Número",
     seeMyTickets: "Ver mis tickets",
     seeTicket: "Ver el ticket",
     notSentYet: "Todavía no se ha enviado nada.",
@@ -148,6 +147,14 @@ export const COPY = {
     adoption: "Adopción",
     corrected: "Con corrección",
     day: "Día",
+    showing: (n: number) => `Mostrando los últimos ${n} días`,
+    pointAdoption: (day: number, value: number) => `Día ${day}: adopción ${value} %`,
+    pointCorrected: (day: number, value: number) => `Día ${day}: con corrección ${value} %`,
+    legend: "Leyenda",
+    axisDays: "Día",
+    axisPercent: "Porcentaje",
+    empty: "Todavía no hay datos de tendencia para este periodo.",
+    loading: "Cargando el seguimiento del agente…",
   },
   chat: {
     title: "Conversación con Ariadna",
@@ -236,6 +243,7 @@ export const COPY = {
   // T4 notification email preview (read-only; nothing is sent). Copy is a proposal, from the mock.
   notificationEmail: {
     title: "Correo de aviso",
+    backTo: (id: string) => `Volver a ${id}`,
     line: "El sistema lo envió al crear el ticket. Solo lo reciben las personas involucradas.",
     action: "Ver correo de aviso",
     from: "Mesa de ayuda TI · mesa.ayuda@ejemplo.mx",

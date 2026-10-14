@@ -5,7 +5,7 @@ const css = readFileSync(new URL("./components.css", import.meta.url), "utf-8");
 const tokens = readFileSync(new URL("./tokens.css", import.meta.url), "utf-8");
 
 /** Custom properties that components.css sets locally (scoped to a rule), not design tokens. */
-const LOCAL_PROPS = new Set(["--tint", "--ink", "--fill", "--nav-h"]);
+const LOCAL_PROPS = new Set(["--tint", "--ink", "--fill", "--nav-h", "--trend-y"]);
 
 function hasSelector(selector: string): boolean {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -31,7 +31,6 @@ describe("components.css primitives (REQ-VF-2)", () => {
       ".rail-rows",
       ".rail-row",
       ".alert",
-      ".crumb",
       ".icon-btn",
       ".opt-group",
       ".opt-tile",
@@ -139,7 +138,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(tokens).toMatch(/--size-landing-max:\s*1320px/);
     const wrap = /(?:^|\n)\.landing-header,\n\.landing,\n\.landing-footer\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
     expect(wrap).toMatch(/max-width:\s*var\(--size-landing-max\)/);
-    expect(wrap).toMatch(/padding-inline:\s*var\(--space-7\)/);
+    expect(wrap).toMatch(/padding-inline:\s*var\(--gutter-page\)/);
     expect(css).toMatch(/\.landing > section \+ section\s*\{[^}]*border-top:\s*var\(--border-hairline\) solid var\(--color-hairline\)/);
     expect(css).toMatch(/\.landing-metric strong\s*\{[^}]*font-variant-numeric:/);
   });
@@ -157,7 +156,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
 
     it("splits the grid into a bounded summary column and a fluid chat column", () => {
       const grid = /\.conversation-grid\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
-      expect(grid).toMatch(/grid-template-columns:\s*minmax\(320px, 440px\) minmax\(0, 1fr\)/);
+      expect(grid).toMatch(/grid-template-columns:\s*minmax\(var\(--size-summary-min\), var\(--size-summary-max\)\) minmax\(0, 1fr\)/);
       expect(grid).not.toMatch(/--size-chat-min/);
     });
 
@@ -190,7 +189,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(medium).toMatch(/\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), 60dvh\)/);
       const compact = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
       expect(compact).toMatch(
-        /\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), calc\(var\(--size-viewport\) - var\(--nav-h\) - var\(--space-4\) \* 2\)\)/,
+        /\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), calc\(var\(--size-viewport\) - var\(--size-topbar\) - var\(--nav-h\) - var\(--space-4\) \* 2\)\)/,
       );
     });
   });
@@ -360,5 +359,285 @@ describe("components.css primitives (REQ-VF-2)", () => {
         for (const part of s.split(",")) expect(part.trim()).toMatch(/^\.rec-body--detail\s/);
       }
     });
+  });
+
+  describe("phase 1 foundations: shell overflow and responsive primitives", () => {
+    const rule = (selector: string): string => {
+      const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? "";
+    };
+    const blocks = (query: string): string => {
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`@media ${escaped} \\{([\\s\\S]*?)\\n\\}\\n`, "g");
+      return [...css.matchAll(re)].map((m) => m[1] as string).join("\n");
+    };
+
+    it("tooltip is bounded by a token, never by the viewport width", () => {
+      const tip = rule("[data-tooltip]::after");
+      expect(tip).toMatch(/max-width:\s*var\(--size-tooltip-max\)/);
+      expect(tip).not.toMatch(/100vw|--size-viewport-w/);
+      expect(tokens).toMatch(/--size-tooltip-max:/);
+    });
+
+    it("never shows the tooltip on a disabled rail item, even in the islands", () => {
+      expect(css).toMatch(/\.islands \[data-tooltip\]\[aria-disabled="true"\]:hover::after[^{]*\{[^}]*display:\s*none/);
+      expect(css).toMatch(/\[data-tooltip\]\[aria-disabled="true"\]:focus-visible::after/);
+    });
+
+    it("guards the page against horizontal overflow and reserves the scrollbar gutter", () => {
+      expect(rule("body")).toMatch(/overflow-x:\s*clip/);
+      expect(rule("html")).toMatch(/scrollbar-gutter:\s*stable/);
+    });
+
+    it("defines fluid and container tokens and maps the breakpoints", () => {
+      expect(tokens).toMatch(/--gutter-page:\s*clamp\(/);
+      expect(tokens).toMatch(/--container-sm\s*:/);
+      expect(tokens).toMatch(/--container-md\s*:/);
+      expect(tokens).toMatch(/--container-lg\s*:/);
+      expect(tokens).toMatch(/--bp-[\s\S]*?cannot be used in @media/i);
+    });
+
+    it("has no legacy page-head or crumb rules and keeps the meta column on a token", () => {
+      expect(css).not.toMatch(/\.page-head\b(?!er)/);
+      expect(css).not.toMatch(/\.crumb\b/);
+      expect(css).toMatch(/\.page-header\s*\{/);
+      expect(css).toMatch(/\.data-rows \.t-meta\s*\{[^}]*min-width:\s*var\(--size-meta-col\)/);
+    });
+
+    it("keeps the profile menu inside narrow viewports", () => {
+      expect(rule(".menu")).toMatch(/min-width:\s*min\(var\(--size-menu-min\),/);
+    });
+
+    it("adds a 1101-1440 step that narrows the summary column and the record rail", () => {
+      const step = blocks("(min-width: 1101px) and (max-width: 1440px)");
+      expect(step).toMatch(/\.conversation-grid/);
+      expect(step).toMatch(/\.rec-body--detail/);
+    });
+
+    it("makes the topbar sticky on compact screens", () => {
+      expect(blocks("(max-width: 767px)")).toMatch(/\.app \.topbar\s*\{[^}]*position:\s*sticky/);
+    });
+
+    it("has no raw 160/320/48 magic px left", () => {
+      expect(css).not.toMatch(/\b(?:160|320|48)px/);
+    });
+  });
+  describe("container queries on app-main (R1.6, S1.5)", () => {
+    const containerCss = [...css.matchAll(/@container main \([^)]*\) \{([\s\S]*?)\n\}\n/g)]
+      .map((m) => m[1] as string)
+      .join("\n");
+    const mobileMedia = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)]
+      .map((m) => m[1] as string)
+      .join("\n");
+
+    it("makes .app-main an inline-size container named main", () => {
+      expect(css).toMatch(/\.app-main\s*\{[^}]*container:\s*main\s*\/\s*inline-size/);
+    });
+
+    it("collapses .rec-body and .rec-body--detail by container width", () => {
+      expect(containerCss).toMatch(
+        /\.rec-body,\s*\.rec-body--detail\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+      );
+    });
+
+    it("collapses .conversation-grid by container width", () => {
+      expect(containerCss).toMatch(/\.conversation-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    });
+
+    it("places container rules after the base rules they override", () => {
+      const first = css.indexOf("@container main");
+      expect(first).toBeGreaterThan(css.lastIndexOf("\n.rec-body--detail {"));
+      expect(first).toBeGreaterThan(css.lastIndexOf("\n.conversation-grid {"));
+    });
+
+    it("keeps the viewport media fallbacks", () => {
+      expect(mobileMedia).toMatch(/\.rec-body/);
+      expect(mobileMedia).toMatch(/\.conversation-grid/);
+    });
+  });
+
+  describe("fixed positioning stays outside the main container", () => {
+    it("has exactly one position: fixed rule and it is .app .nav-sections", () => {
+      const fixed = [...css.matchAll(/([^{}]+)\{[^{}]*position:\s*fixed/g)].map((m) => (m[1] as string).trim());
+      expect(fixed).toEqual([".app .nav-sections"]);
+    });
+  });
+});
+
+describe("rail items stay inside the rail (box model)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("sizes .rail-item with border-box so width: 100% plus padding cannot overflow the rail", () => {
+    expect(block(".rail-item")).toMatch(/width:\s*100%/);
+    expect(block(".rail-item")).toMatch(/box-sizing:\s*border-box/);
+  });
+
+  it("does not add a global box-sizing reset", () => {
+    expect(css).not.toMatch(/(^|\n)\s*(\*|html|body)[^{]*\{[^}]*box-sizing/);
+  });
+});
+
+describe("ticket row stacks when the content area is narrow", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+  const containerCss = [...css.matchAll(/@container main \(max-width: 800px\) \{([\s\S]*?)\n\}\n/g)]
+    .map((m) => m[1] as string)
+    .join("\n");
+  const mediaCss = [...css.matchAll(/@media \(max-width: 928px\) \{([\s\S]*?)\n\}\n/g)]
+    .map((m) => m[1] as string)
+    .join("\n");
+
+  it("keeps the wide layout as a single four-column row", () => {
+    expect(block(".ticket-row-link")).toMatch(/grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto auto/);
+  });
+
+  it("stacks id + state, then summary, then date by container width", () => {
+    expect(containerCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-areas:\s*"id state"\s+"summary summary"\s+"date date"/);
+    expect(containerCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\)/);
+  });
+
+  it("has the same stack in a viewport media fallback", () => {
+    expect(mediaCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-areas:\s*"id state"\s+"summary summary"\s+"date date"/);
+  });
+
+  it("assigns a grid area to every cell of the row", () => {
+    for (const area of ["id", "summary", "state", "date"]) {
+      expect(css).toMatch(new RegExp("grid-area:\\s*" + area + ";"));
+    }
+  });
+
+  it("breaks the summary at word boundaries, not per character", () => {
+    const summary = /\.ticket-row-link \.ticket-row-summary\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(summary).toMatch(/overflow-wrap:\s*break-word/);
+    expect(summary).toMatch(/min-width:\s*0/);
+    expect(block(".ticket-row-summary")).not.toMatch(/overflow-wrap:\s*anywhere/);
+  });
+
+  it("places the container rule after the base rule it overrides", () => {
+    expect(css.indexOf("@container main (max-width: 800px)")).toBeGreaterThan(css.lastIndexOf("\n.ticket-row-link {"));
+  });
+});
+
+describe("PageHeader css (R2.1, S2.2)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("collapses the back track when there is no back link so the title aligns with the content", () => {
+    expect(block(".page-header--no-back")).toMatch(/grid-template-areas:\s*"title actions"/);
+    expect(block(".page-header--no-back")).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/);
+    expect(block(".page-header--no-back")).not.toMatch(/var\(--size-control\)\s+minmax/);
+    const media = /@media \(max-width: 767px\)\s*\{\s*\.page-header\s*\{[^}]*\}\s*\.page-header--no-back\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(media).toMatch(/"title"\s+"actions"/);
+    expect(media).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  });
+
+  it("keeps three tracks while a back link exists", () => {
+    expect(block(".page-header")).toMatch(
+      /grid-template-columns:\s*var\(--size-control\)\s+minmax\(0,\s*1fr\)\s+minmax\(var\(--size-control\),\s*auto\)/,
+    );
+    expect(block(".page-header")).toMatch(/align-items:\s*center/);
+  });
+
+  it("drops actions to a second row at compact widths", () => {
+    const media = /@media \(max-width: 767px\)\s*\{\s*\.page-header\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(media).toMatch(/"back title"\s+"actions actions"/);
+  });
+
+  it("uses tokens only for spacing", () => {
+    expect(block(".page-header")).not.toMatch(/\d+px/);
+  });
+});
+
+describe("StatTile css (R4.1, R4.2)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("defines the tile and a visibly different estimated variant", () => {
+    expect(block(".stat-tile")).toMatch(/background:\s*var\(--color-surface\)/);
+    expect(block(".stat-tile--estimated")).toMatch(/border:[^;]*dashed/);
+  });
+});
+
+describe("trend chart css (R4.3)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("scales the svg with its container", () => {
+    expect(block(".trend-chart")).toMatch(/width:\s*100%/);
+    expect(block(".trend-chart")).toMatch(/height:\s*auto/);
+  });
+
+  it("colours series by token: accent solid, muted dashed, strokes do not scale", () => {
+    expect(block(".trend-line--adoption")).toMatch(/stroke:\s*var\(--color-accent\)/);
+    expect(block(".trend-line--corrected")).toMatch(/stroke:\s*var\(--color-chart-muted\)/);
+    expect(block(".trend-line--corrected")).toMatch(/stroke-dasharray/);
+    expect(block(".trend-line")).toMatch(/vector-effect:\s*non-scaling-stroke/);
+  });
+
+  it("positions end labels with --trend-y, which has a local default", () => {
+    expect(block(".trend-end")).toMatch(/--trend-y:\s*0%/);
+    expect(block(".trend-end")).toMatch(/top:\s*var\(--trend-y\)/);
+  });
+});
+
+describe("data table css (R4.4)", () => {
+  it("right-aligns numeric cells with tabular numerals", () => {
+    expect(css).toMatch(/\.data-table td\.num[^{]*\{[^}]*text-align:\s*right/);
+    expect(css).toMatch(/\.data-table td\.num[^{]*\{[^}]*font-variant-numeric:\s*tabular-nums/);
+  });
+});
+
+describe("narrow-screen leftovers (phase 7)", () => {
+  it("lets the filter tabs row wrap with a token gap so the count never overflows", () => {
+    const rule = /\.tabs-row\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule).toMatch(/gap:\s*var\(--space-/);
+    expect(rule).toMatch(/justify-content:\s*space-between/);
+  });
+});
+
+describe("action bar wrapping (phase 8)", () => {
+  it("lets .actions wrap with token gaps so a long button row never overflows", () => {
+    const rule = /\n\.actions\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/display:\s*flex/);
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule).toMatch(/gap:\s*var\(--space-\d+\)/);
+  });
+});
+
+describe("rail label wrapping (phase 7)", () => {
+  it("wraps long rail labels in the expanded rail instead of truncating them", () => {
+    const rule = /\n\.rail-label\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/overflow-wrap:\s*(anywhere|break-word)/);
+    expect(rule).not.toMatch(/white-space:\s*nowrap/);
+    expect(rule).not.toMatch(/text-overflow:/);
+    expect(rule).not.toMatch(/overflow:\s*hidden/);
+  });
+
+  it("keeps the clip recipe in the collapsed rail and the min height on items", () => {
+    const medium = [...css.matchAll(/@media \(max-width: 1100px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
+    expect(medium).toMatch(/\.rail-label,[\s\S]*?overflow:\s*hidden;[\s\S]*?clip-path:\s*inset\(50%\);[\s\S]*?white-space:\s*nowrap/);
+    expect(/\n\.rail-item\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/min-height:\s*var\(--size-control\)/);
+  });
+});
+
+describe("segmented control css (R4.5)", () => {
+  it("hides the native radios visually, keeps them focusable and shows checked and focus states", () => {
+    expect(css).toMatch(/\.segmented__input\s*\{[^}]*clip-path:\s*inset\(50%\)/);
+    expect(css).not.toMatch(/\.segmented__input\s*\{[^}]*display:\s*none/);
+    expect(css).toMatch(/\.segmented__option:has\(:checked\)/);
+    expect(css).toMatch(/\.segmented__option:has\(:focus-visible\)/);
+    expect(css).toMatch(/\.segmented__option\s*\{[^}]*min-height:\s*var\(--size-control\)/);
   });
 });

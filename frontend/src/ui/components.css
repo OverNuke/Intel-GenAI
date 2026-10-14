@@ -1,7 +1,12 @@
 /* Estilos mínimos de las pantallas de acceso. Solo usan tokens de tokens.css. */
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--color-canvas);
   color: var(--color-ink);
   font: var(--text-body-weight) var(--text-body-size) / var(--text-body-line) var(--font-ui);
@@ -368,6 +373,7 @@ a {
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
 }
 
@@ -408,9 +414,10 @@ a {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  box-sizing: border-box;
   width: 100%;
   min-height: var(--size-control);
-  padding: 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -439,11 +446,11 @@ a {
   cursor: not-allowed;
 }
 
+/* Expanded rail: long labels wrap to a second line. The collapsed rail, .islands and the mobile
+   bar override this with the clip recipe / their own nowrap rules. */
 .rail-label {
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 /* Tooltip: CSS-only hint from data-tooltip. The alt-text form keeps it out of the accessible name. */
@@ -457,7 +464,7 @@ a {
   top: 50%;
   transform: translateY(-50%);
   width: max-content;
-  max-width: calc(var(--size-viewport-w) - var(--space-7));
+  max-width: var(--size-tooltip-max);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--color-inverted);
@@ -511,7 +518,7 @@ a {
   position: absolute;
   right: 0;
   z-index: var(--z-overlay);
-  min-width: 240px;
+  min-width: min(var(--size-menu-min), calc(var(--size-viewport-w) - var(--space-5) * 2));
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -543,6 +550,7 @@ a {
 
 .app-main {
   grid-area: main;
+  container: main / inline-size;
   padding: var(--space-5);
 }
 
@@ -555,7 +563,7 @@ a {
   width: 100%;
   max-width: var(--size-landing-max);
   margin: 0 auto;
-  padding-inline: var(--space-7);
+  padding-inline: var(--gutter-page);
 }
 
 .landing-header,
@@ -948,7 +956,12 @@ a {
   padding: var(--space-6);
 }
 
-.nf-title {
+.nf-main .page-header {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "title";
+}
+
+.nf-main .page-header__title h1 {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(2.5rem, 8.5vw, 8rem);
@@ -977,6 +990,9 @@ a {
 }
 
 .nf-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   align-self: flex-start;
   color: var(--color-ink);
   font-weight: 600;
@@ -1000,15 +1016,63 @@ a {
 }
 
 /* Pantallas de usuario (U1-U3) */
-.page-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-4);
+/* PageHeader: back | title | actions. The back track exists only with a back link; without one the
+   --no-back modifier drops it so the title sits flush with the content below. */
+.page-header {
+  display: grid;
+  grid-template-columns: var(--size-control) minmax(0, 1fr) minmax(var(--size-control), auto);
+  grid-template-areas: "back title actions";
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-3);
 }
 
-.page-head p {
+.page-header--no-back {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title actions";
+}
+
+.page-header__back {
+  grid-area: back;
+}
+
+.page-header__title {
+  grid-area: title;
+  min-width: 0;
+}
+
+.page-header__title h1,
+.page-header__title p {
   margin: 0;
+}
+
+.page-header__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .page-header {
+    grid-template-columns: var(--size-control) minmax(0, 1fr);
+    grid-template-areas:
+      "back title"
+      "actions actions";
+  }
+
+  .page-header--no-back {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "actions";
+  }
+
+  .page-header__actions {
+    justify-content: flex-start;
+  }
 }
 
 .card {
@@ -1035,6 +1099,48 @@ a {
   cursor: pointer;
 }
 
+/* Segmented control: native radios stay in the a11y tree and keep arrow keys; the label is the visual. */
+.segmented {
+  display: inline-flex;
+  padding: var(--space-1);
+  gap: var(--space-1);
+  border: var(--border-hairline) solid var(--color-border-control);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+}
+
+.segmented__option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--size-control);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.segmented__input {
+  position: absolute;
+  width: var(--border-hairline);
+  height: var(--border-hairline);
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+}
+
+.segmented__option:has(:checked) {
+  background: var(--color-accent-tint);
+  box-shadow: inset 0 0 0 var(--border-hairline) var(--color-accent);
+  font-weight: 600;
+}
+
+.segmented__option:has(:focus-visible) {
+  outline: var(--border-focus) solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .chip[aria-pressed="true"] {
   background: var(--color-accent-tint);
   border-color: var(--color-accent);
@@ -1043,6 +1149,7 @@ a {
 
 .tabs-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
@@ -1086,6 +1193,7 @@ a {
 .ticket-row-link {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "id summary state date";
   align-items: center;
   gap: var(--space-4);
   min-height: var(--size-row);
@@ -1099,12 +1207,32 @@ a {
   background: var(--color-container);
 }
 
+/* Words wrap at word boundaries; `anywhere` let a squeezed column break one character per line. */
 .ticket-row-summary {
-  overflow-wrap: anywhere;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .ticket-state {
   white-space: nowrap;
+}
+
+.ticket-row-link > .t-id {
+  grid-area: id;
+}
+
+.ticket-row-link .ticket-row-summary {
+  grid-area: summary;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.ticket-row-link > .ticket-state {
+  grid-area: state;
+}
+
+.ticket-row-link > .t-meta {
+  grid-area: date;
 }
 
 .t-id {
@@ -1133,6 +1261,167 @@ a {
   font: var(--text-metric-weight) var(--text-metric-size) / var(--text-metric-line) var(--font-display);
 }
 
+/* StatTile (S1): one figure. The estimated variant is dashed and unfilled so it never reads as a measurement. */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: var(--border-hairline) solid var(--color-hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.stat-tile--estimated {
+  background: transparent;
+  border: var(--border-hairline) dashed var(--color-border-control);
+}
+
+.stat-tile__value {
+  font: var(--text-metric-weight) var(--text-metric-size) / var(--text-metric-line) var(--font-display);
+}
+
+.stat-tile__label {
+  font-weight: 600;
+}
+
+/* Trend chart (S1): SVG scaled by CSS; text is HTML so it never shrinks with the viewBox. */
+.trend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.trend-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.trend-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+.trend-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.trend-key {
+  display: inline-block;
+  width: var(--size-icon-lg);
+  border-top: var(--size-connector) solid var(--color-accent);
+}
+
+.trend-key--corrected {
+  border-top-style: dashed;
+  border-top-color: var(--color-chart-muted);
+}
+
+.trend-plot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--space-2);
+  row-gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.trend-yaxis {
+  position: relative;
+  grid-column: 1;
+  min-width: var(--size-icon-lg);
+}
+
+.trend-ytick {
+  --trend-y: 0%;
+  position: absolute;
+  right: 0;
+  top: var(--trend-y);
+  transform: translateY(-50%);
+  font: var(--text-meta-weight) var(--text-meta-size) / var(--text-meta-line) var(--text-meta-family);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.trend-chart {
+  grid-column: 2;
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.trend-grid {
+  stroke: var(--color-hairline);
+  stroke-width: var(--border-hairline);
+  vector-effect: non-scaling-stroke;
+}
+
+.trend-line {
+  fill: none;
+  stroke-width: var(--size-connector);
+  vector-effect: non-scaling-stroke;
+}
+
+.trend-line--adoption {
+  stroke: var(--color-accent);
+}
+
+.trend-line--corrected {
+  stroke: var(--color-chart-muted);
+  stroke-dasharray: 6 4;
+}
+
+.trend-marker--adoption {
+  fill: var(--color-accent);
+}
+
+.trend-marker--corrected {
+  fill: var(--color-chart-muted);
+}
+
+.trend-ends {
+  position: relative;
+  grid-column: 3;
+  min-width: var(--size-icon-lg);
+}
+
+.trend-end {
+  --trend-y: 0%;
+  position: absolute;
+  left: 0;
+  top: var(--trend-y);
+  transform: translateY(-50%);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.trend-end--adoption {
+  color: var(--color-accent);
+}
+
+.trend-end--corrected {
+  color: var(--color-muted);
+}
+
+.trend-xaxis {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font: var(--text-meta-weight) var(--text-meta-size) / var(--text-meta-line) var(--text-meta-family);
+  color: var(--color-muted);
+}
+
 .service-grid {
   list-style: none;
   margin: 0;
@@ -1156,6 +1445,35 @@ a {
 
 .service-name {
   font-weight: 600;
+}
+
+/* U4 service card: icon tile + title, then meta rows with small leading icons. */
+.service-head {
+  display: grid;
+  grid-template-columns: var(--size-control) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.service-head__text {
+  min-width: 0;
+}
+
+.service-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-tint);
+}
+
+.service-meta-label,
+.service-handler {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* U1 "Mi equipo": asset cards (icon, name, id, status of the latest ticket). */
@@ -1239,7 +1557,7 @@ a {
 }
 
 .data-rows .t-meta {
-  min-width: 160px;
+  min-width: var(--size-meta-col);
 }
 
 .stage-tracker,
@@ -1300,7 +1618,7 @@ a {
 /* 320-440px summary column (UnderstoodPanel or "Tu solicitud") + fluid chat shell. */
 .conversation-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+  grid-template-columns: minmax(var(--size-summary-min), var(--size-summary-max)) minmax(0, 1fr);
   gap: var(--space-5);
   align-items: stretch;
   flex: 1;
@@ -1401,6 +1719,33 @@ a {
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--border-hairline) solid var(--color-hairline);
   vertical-align: top;
+}
+
+/* Plain data table (S1 trend): not the sortable queue table. Numeric columns align right. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+}
+
+.data-table caption {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-hairline) solid var(--color-hairline);
+}
+
+.data-table th.num,
+.data-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .sort-button {
@@ -1728,16 +2073,10 @@ th[aria-sort="descending"] .sort-button::after {
   padding: var(--space-4);
 }
 
-/* Record header (U3 / T2), breadcrumb and section header. */
-.crumb {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
+/* Record header (U3 / T2) and section header. */
 .rec-head {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: var(--space-5);
   gap: var(--space-5);
 }
@@ -1998,17 +2337,7 @@ th[aria-sort="descending"] .sort-button::after {
   gap: var(--space-1);
 }
 
-/* U6 chat head and two-column form grid. */
-.chat-head {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.chat-head h1 {
-  margin: 0;
-}
+/* U6 two-column form grid. */
 
 .form-grid {
   display: grid;
@@ -2130,6 +2459,26 @@ th[aria-sort="descending"] .sort-button::after {
   display: block;
 }
 
+/* A disabled item has nothing to announce visually: no tooltip hovering over the content (also islands). */
+[data-tooltip][aria-disabled="true"]:hover::after,
+[data-tooltip][aria-disabled="true"]:focus-visible::after,
+.islands [data-tooltip][aria-disabled="true"]:hover::after,
+.islands [data-tooltip][aria-disabled="true"]:focus-visible::after {
+  display: none;
+}
+
+/* 1101px-1440px = --bp-medium + 1 .. --bp-standard: the labelled rail eats 240px, so the side columns
+   narrow before the layout has the room of a full desktop. */
+@media (min-width: 1101px) and (max-width: 1440px) {
+  .conversation-grid {
+    grid-template-columns: minmax(var(--size-summary-min), var(--size-summary-max-narrow)) minmax(0, 1fr);
+  }
+
+  .rec-body--detail {
+    grid-template-columns: minmax(0, 1fr) var(--size-record-rail-narrow);
+  }
+}
+
 /* 1100px = --bp-medium (custom properties cannot be used in media queries). The rail collapses to
    icons (labels stay in the accessibility tree, tooltip on hover/focus) and wide grids relax. */
 @media (max-width: 1100px) {
@@ -2181,10 +2530,6 @@ th[aria-sort="descending"] .sort-button::after {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .rec-head > div:first-child {
-    grid-column: 1 / -1;
-  }
-
   .opt-group {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--size-control) * 4)), 1fr));
   }
@@ -2202,6 +2547,16 @@ th[aria-sort="descending"] .sort-button::after {
     grid-template-areas:
       "top"
       "main";
+  }
+
+  /* Sticky topbar: a grid item sticks only inside its own area, so it spans both rows and stays 1 row tall. */
+  .app .topbar {
+    grid-row: 1 / -1;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-island);
+    height: var(--size-topbar);
   }
 
   .app .nav-sections {
@@ -2291,9 +2646,9 @@ th[aria-sort="descending"] .sort-button::after {
     padding-bottom: calc(var(--nav-h) + var(--space-4));
   }
 
-  /* U6: the topbar scrolls away, so the chat shell is the viewport minus the bar and page padding. */
+  /* U6: the topbar is sticky, so the chat shell is the viewport minus topbar, bottom bar and page padding. */
   .conversation {
-    height: max(var(--size-chat-min), calc(var(--size-viewport) - var(--nav-h) - var(--space-4) * 2));
+    height: max(var(--size-chat-min), calc(var(--size-viewport) - var(--size-topbar) - var(--nav-h) - var(--space-4) * 2));
   }
 }
 
@@ -2387,5 +2742,58 @@ th[aria-sort="descending"] .sort-button::after {
 
   .wide-only {
     display: none;
+  }
+}
+
+/* Container-width twins of the 767px viewport collapse: main loses 240px to the labelled rail, so the
+   grids must stack by the width main actually has. Fixed overlays must render outside main (a container
+   becomes the containing block of its fixed descendants). */
+@container main (max-width: 640px) {
+  .rec-body,
+  .rec-body--detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container main (max-width: 720px) {
+  .conversation-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Single row needs ~745px of content (id 85 + state 190 + date 190 + gaps/padding 80 + a readable
+   summary). 800px keeps ~55px for the summary before the row stacks: id + state, summary, date.
+   The media fallback is the same point in viewport terms: 800 + the 80px rail + 2 x --space-5 of page padding = 928px. */
+@container main (max-width: 800px) {
+  .ticket-row-link {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "id state"
+      "summary summary"
+      "date date";
+    row-gap: var(--space-1);
+  }
+
+  .ticket-state {
+    justify-self: end;
+    text-align: right;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 928px) {
+  .ticket-row-link {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "id state"
+      "summary summary"
+      "date date";
+    row-gap: var(--space-1);
+  }
+
+  .ticket-state {
+    justify-self: end;
+    text-align: right;
+    white-space: normal;
   }
 }

@@ -64,4 +64,12 @@ describe("SubmissionConfirmation (U7)", () => {
     expect(screen.queryByRole("heading", { name: "Constancia de Ariadna" })).toBeNull();
     expect(screen.getByText("Una persona de TI verá tu caso. No tienes que repetir nada.")).toBeTruthy();
   });
+
+  it("uses the shared page header: one h1 with the ticket id once as eyebrow, no legacy markup", () => {
+    const { container } = render(<SubmissionConfirmation ticket={ticket()} />);
+    const header = container.querySelector("header.page-header")!;
+    expect(header.querySelectorAll("h1")).toHaveLength(1);
+    expect(header.querySelector(".t-id")?.textContent).toBe("INC0001061");
+    expect(screen.getAllByText("INC0001061")).toHaveLength(1);
+  });
 });

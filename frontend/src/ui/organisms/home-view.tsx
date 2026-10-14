@@ -4,6 +4,7 @@ import { COPY } from "@/lib/copy";
 import { assetLabel, sampleAsset, type AssetKind } from "@/lib/sample-assets";
 import { firstName } from "@/lib/ticket-labels";
 import { Icon, type IconName } from "../atoms/icon";
+import { PageHeader } from "../molecules/page-header";
 import { EmptyState } from "../molecules/empty-state";
 import { StatusPill } from "../molecules/status-pill";
 import { SummaryCards } from "./summary-cards";
@@ -65,15 +66,15 @@ export function HomeView({
 
   return (
     <div className="stack">
-      <div className="page-head">
-        <div>
-          <h1 tabIndex={-1}>Hola, {firstName(user.name)}</h1>
-          <p>{COPY.home.subtitle}</p>
-        </div>
-        <Link className="btn btn-primary" href="/solicitud/conversacion">
-          {COPY.newTicket}
-        </Link>
-      </div>
+      <PageHeader
+        title={`Hola, ${firstName(user.name)}`}
+        meta={COPY.home.subtitle}
+        actions={
+          <Link className="btn btn-primary" href="/solicitud/conversacion">
+            {COPY.newTicket}
+          </Link>
+        }
+      />
 
       <SummaryCards
         items={[
@@ -85,7 +86,7 @@ export function HomeView({
       />
 
       <section aria-labelledby="home-tickets" className="stack">
-        <div className="page-head">
+        <div className="sec-head">
           <h2 id="home-tickets">{COPY.myTickets}</h2>
           <Link href="/tickets">{`${COPY.home.seeAll} (${tickets.length})`}</Link>
         </div>
@@ -98,7 +99,7 @@ export function HomeView({
       </section>
 
       <section aria-labelledby="home-services" className="stack">
-        <div className="page-head">
+        <div className="sec-head">
           <h2 id="home-services">{COPY.whatDoYouNeed}</h2>
           <Link href="/solicitud">{`${COPY.home.seeAll} (${services.length})`}</Link>
         </div>

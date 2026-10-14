@@ -19,11 +19,20 @@ describe("NotFoundScreen (public 404)", () => {
     ).toBeTruthy();
   });
 
-  it("offers the exit link to / with a decorative arrow", () => {
+  it("offers the exit link to / with a decorative arrow icon, not a text glyph", () => {
     render(<NotFoundScreen />);
     const link = screen.getByRole("link", { name: "Volver al inicio" });
     expect(link.getAttribute("href")).toBe("/");
-    expect(link.querySelector('[aria-hidden="true"]')?.textContent).toBe("→");
+    expect(link.querySelector('svg[data-icon="arrow-right"][aria-hidden="true"]')).not.toBeNull();
+    expect(link.textContent).not.toContain("→");
+  });
+
+  it("titles the main region through the shared page header (id view-title)", () => {
+    const { container } = render(<NotFoundScreen />);
+    const h1 = container.querySelector("main.nf-main header.page-header h1");
+    expect(h1?.getAttribute("id")).toBe("view-title");
+    expect(container.querySelector("main")?.getAttribute("aria-labelledby")).toBe("view-title");
+    expect(container.querySelector(".page-header__back")).toBeNull();
   });
 
   it("links the wordmark to / and 'Entrar' to /entrar", () => {

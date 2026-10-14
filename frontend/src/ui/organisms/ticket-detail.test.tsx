@@ -195,10 +195,10 @@ describe("TicketDetail (U3)", () => {
 });
 
 describe("RecordHeader", () => {
-  it("renders crumb, id, title, optional help, sample chip and its cells", () => {
-    render(
+  it("renders back link, id, title, optional help, sample chip and its cells", () => {
+    const { container } = render(
       <RecordHeader
-        crumb={{ href: "/x", label: "Volver" }}
+        back={{ href: "/x", label: "Volver" }}
         id="INC1"
         title="Titulo"
         subtitle="Sub"
@@ -214,9 +214,16 @@ describe("RecordHeader", () => {
     expect(screen.getByRole("link", { name: "Ayuda" }).getAttribute("href")).toBe("/ayuda");
     expect(screen.getByText("Datos de ejemplo")).toBeTruthy();
     expect(screen.getByText("celda")).toBeTruthy();
+    // the id shows once (no breadcrumb row), inside the page header; the status card stays
+    expect(container.querySelector(".crumb")).toBeNull();
+    expect(screen.getAllByText("INC1")).toHaveLength(1);
+    expect(container.querySelector(".page-header .t-id")?.textContent).toBe("INC1");
+    expect(container.querySelector(".page-header a.icon-btn")?.getAttribute("aria-label")).toBe("Volver");
+    expect(container.querySelector(".rec-head")?.textContent).toContain("celda");
+    expect(container.querySelectorAll("h1")).toHaveLength(1);
     cleanup();
     render(
-      <RecordHeader crumb={{ href: "/x", label: "Volver" }} id="INC1" title="Titulo">
+      <RecordHeader back={{ href: "/x", label: "Volver" }} id="INC1" title="Titulo">
         <div>celda</div>
       </RecordHeader>,
     );

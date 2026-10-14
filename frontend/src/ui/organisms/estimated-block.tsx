@@ -1,6 +1,7 @@
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
 import { formatEstimated } from "@/lib/format-metric";
+import { StatTile } from "../molecules/stat-tile";
 
 type Block = components["schemas"]["EstimatedBlockOut"];
 
@@ -19,12 +20,15 @@ export function EstimatedBlock({ block }: EstimatedBlockProps) {
       </p>
       <ul aria-label={COPY.metrics.estimates} className="summary-cards">
         {block.metrics.map((metric) => (
-          <li key={metric.key} className="summary-card">
-            <span className="summary-value">{formatEstimated(metric.value, metric.unit)}</span>
-            <span>{metric.label}</span>
-            <span className="t-meta">{metric.basis}</span>
+          <StatTile
+            key={metric.key}
+            variant="estimated"
+            label={metric.label}
+            value={formatEstimated(metric.value, metric.unit)}
+            basis={metric.basis}
+          >
             <span className="t-meta">{metric.disclaimer}</span>
-          </li>
+          </StatTile>
         ))}
       </ul>
     </section>

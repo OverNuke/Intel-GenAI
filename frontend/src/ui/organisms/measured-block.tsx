@@ -1,6 +1,7 @@
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
 import { formatMeasured } from "@/lib/format-metric";
+import { StatTile } from "../molecules/stat-tile";
 
 type Measured = components["schemas"]["MeasuredMetricOut"];
 
@@ -16,11 +17,12 @@ export function MeasuredBlock({ metrics }: MeasuredBlockProps) {
       </div>
       <ul aria-label={COPY.metrics.measured} className="summary-cards">
         {metrics.map((metric) => (
-          <li key={metric.key} className="summary-card">
-            <span className="summary-value">{formatMeasured(metric.value, metric.unit)}</span>
-            <span>{metric.label}</span>
-            <span className="t-meta">{metric.description}</span>
-          </li>
+          <StatTile
+            key={metric.key}
+            label={metric.label}
+            value={formatMeasured(metric.value, metric.unit)}
+            basis={metric.description}
+          />
         ))}
       </ul>
     </section>

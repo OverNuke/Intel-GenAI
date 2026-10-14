@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
+import { EmptyState } from "../molecules/empty-state";
+import { PageHeader } from "../molecules/page-header";
 import { EstimatedBlock } from "./estimated-block";
 import { MeasuredBlock } from "./measured-block";
 import { PeriodSwitch, type MetricsPeriod } from "./period-switch";
@@ -24,13 +26,11 @@ export function AgentMetricsContainer({
 
   return (
     <div className="stack">
-      <div className="page-head">
-        <div>
-          <h1 tabIndex={-1}>{COPY.metrics.title}</h1>
-          <p className="t-meta">{COPY.metrics.intro}</p>
-        </div>
-        <span className="badge">{COPY.sampleData}</span>
-      </div>
+      <PageHeader
+        title={COPY.metrics.title}
+        meta={COPY.metrics.intro}
+        actions={<span className="badge">{COPY.sampleData}</span>}
+      />
 
       <PeriodSwitch period={period} onChange={setPeriod} />
 
@@ -39,8 +39,14 @@ export function AgentMetricsContainer({
 
       <section aria-labelledby="trend-title" className="card stack">
         <h2 id="trend-title">{COPY.metrics.trendTitle}</h2>
-        <TrendChart trend={report.trend} />
-        <TrendTable trend={report.trend} />
+        {report.trend.length === 0 ? (
+          <EmptyState message={COPY.metrics.empty} />
+        ) : (
+          <>
+            <TrendChart trend={report.trend} />
+            <TrendTable trend={report.trend} />
+          </>
+        )}
       </section>
     </div>
   );

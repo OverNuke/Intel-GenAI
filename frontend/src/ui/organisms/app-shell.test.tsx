@@ -252,4 +252,10 @@ describe("AppShell header", () => {
     shell(ana, "home");
     expect(within(screen.getByRole("main")).getByText("contenido")).toBeTruthy();
   });
+  it("keeps the section nav outside main (main is a size container: fixed descendants would anchor to it)", () => {
+    shell(ana, "home");
+    const main = screen.getByRole("main");
+    const nav = screen.getByRole("navigation", { name: "Secciones" });
+    expect(main.contains(nav)).toBe(false);
+  });
 });

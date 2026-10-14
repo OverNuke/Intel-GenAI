@@ -81,4 +81,12 @@ describe("MyTicketsContainer (U2)", () => {
     render(<MyTicketsContainer tickets={TICKETS} />);
     expect(screen.getByRole("status").textContent).toBe("2 tickets");
   });
+
+  it("uses the shared page header with the new-ticket action", () => {
+    const { container } = render(<MyTicketsContainer tickets={TICKETS} />);
+    const header = container.querySelector("header.page-header")!;
+    expect(container.querySelector(".page-head")).toBeNull();
+    expect(header.querySelectorAll("h1")).toHaveLength(1);
+    expect(header.querySelector(".page-header__actions a")?.getAttribute("href")).toBe("/solicitud/conversacion");
+  });
 });

@@ -35,7 +35,7 @@ export function TicketDetail({ ticket, requesterName }: { ticket: Detail; reques
   return (
     <div className="stack">
       <RecordHeader
-        crumb={{ href: "/tickets", label: COPY.myTickets }}
+        back={{ href: "/tickets", label: COPY.myTickets }}
         id={ticket.id}
         title={ticket.summary}
         subtitle={ticket.service_label}
