@@ -462,3 +462,26 @@ describe("components.css primitives (REQ-VF-2)", () => {
     });
   });
 });
+
+describe("PageHeader css (R2.1, S2.2)", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+
+  it("always has three tracks so empty slots keep their space", () => {
+    expect(block(".page-header")).toMatch(
+      /grid-template-columns:\s*var\(--size-control\)\s+minmax\(0,\s*1fr\)\s+minmax\(var\(--size-control\),\s*auto\)/,
+    );
+    expect(block(".page-header")).toMatch(/align-items:\s*center/);
+  });
+
+  it("drops actions to a second row at compact widths", () => {
+    const media = /@media \(max-width: 767px\)\s*\{\s*\.page-header\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(media).toMatch(/"back title"\s+"actions actions"/);
+  });
+
+  it("uses tokens only for spacing", () => {
+    expect(block(".page-header")).not.toMatch(/\d+px/);
+  });
+});

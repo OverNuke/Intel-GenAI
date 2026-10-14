@@ -1018,6 +1018,53 @@ a {
   margin: 0;
 }
 
+/* PageHeader: back | title | actions. Three tracks always, so empty slots keep their space and
+   the title sits at the same x on every page. */
+.page-header {
+  display: grid;
+  grid-template-columns: var(--size-control) minmax(0, 1fr) minmax(var(--size-control), auto);
+  grid-template-areas: "back title actions";
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-3);
+}
+
+.page-header__back {
+  grid-area: back;
+}
+
+.page-header__title {
+  grid-area: title;
+  min-width: 0;
+}
+
+.page-header__title h1,
+.page-header__title p {
+  margin: 0;
+}
+
+.page-header__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .page-header {
+    grid-template-columns: var(--size-control) minmax(0, 1fr);
+    grid-template-areas:
+      "back title"
+      "actions actions";
+  }
+
+  .page-header__actions {
+    justify-content: flex-start;
+  }
+}
+
 .card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
