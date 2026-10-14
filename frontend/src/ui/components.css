@@ -1208,6 +1208,35 @@ a {
   font-weight: 600;
 }
 
+/* U4 service card: icon tile + title, then meta rows with small leading icons. */
+.service-head {
+  display: grid;
+  grid-template-columns: var(--size-control) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.service-head__text {
+  min-width: 0;
+}
+
+.service-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-tint);
+}
+
+.service-meta-label,
+.service-handler {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 /* U1 "Mi equipo": asset cards (icon, name, id, status of the latest ticket). */
 .sec-head-l {
   display: flex;

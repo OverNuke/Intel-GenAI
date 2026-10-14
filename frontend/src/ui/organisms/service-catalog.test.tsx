@@ -58,6 +58,35 @@ describe("ServiceCatalog (U4)", () => {
     expect(screen.getByRole("link", { name: "Nuevo ticket" }).getAttribute("href")).toBe("/solicitud/conversacion");
   });
 
+  it("shows one decorative icon tile per card; the h2 stays the accessible name", () => {
+    const { container } = render(<ServiceCatalog services={[printing, software]} />);
+    const [printingCard, softwareCard] = screen.getAllByRole("article");
+    const tile = printingCard!.querySelector(".service-icon")!;
+    expect(tile.getAttribute("aria-hidden")).toBe("true");
+    expect(tile.querySelector("svg[data-icon='printer']")).not.toBeNull();
+    expect(softwareCard!.querySelector(".service-icon svg[data-icon='app-window']")).not.toBeNull();
+    expect(container.querySelectorAll(".service-icon")).toHaveLength(2);
+    expect(screen.getByRole("article", { name: "Impresión" })).toBe(printingCard);
+    expect(within(printingCard!).getAllByRole("heading", { level: 2 })).toHaveLength(1);
+    expect(within(printingCard!).getAllByRole("link")).toHaveLength(1);
+  });
+
+  it("renders a fallback icon for an unknown service key", () => {
+    const unknown: Service = { ...printing, key: "brand-new", label: "Otro" };
+    render(<ServiceCatalog services={[unknown]} />);
+    const card = screen.getByRole("article", { name: "Otro" });
+    expect(card.querySelector(".service-icon svg[data-icon='circle-ellipsis']")).not.toBeNull();
+  });
+
+  it("adds decorative icons to the meta rows without changing their text", () => {
+    render(<ServiceCatalog services={[printing]} />);
+    const card = screen.getByRole("article", { name: "Impresión" });
+    for (const name of ["list-checks", "paperclip", "headset"]) {
+      expect(card.querySelector(`svg[data-icon='${name}']`)).not.toBeNull();
+    }
+    expect(within(card).getByRole("heading", { level: 3, name: "Por ejemplo" })).toBeTruthy();
+  });
+
   it("uses the shared page header with the new-ticket action", () => {
     const { container } = render(<ServiceCatalog services={[printing]} />);
     const header = container.querySelector("header.page-header")!;
