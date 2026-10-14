@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Icon } from "@/ui/atoms/icon";
+import { PageHeader } from "@/ui/molecules/page-header";
 import { PrototypeBanner } from "@/ui/atoms/prototype-banner";
 
 /** Public 404: static, no session or backend, so it also works with the API down. */
@@ -12,14 +14,12 @@ export function NotFoundScreen() {
         <Link href="/entrar">Entrar</Link>
       </header>
       <main className="nf-main" aria-labelledby="view-title">
-        <h1 id="view-title" className="nf-title">
-          Página no encontrada
-        </h1>
+        <PageHeader title="Página no encontrada" titleId="view-title" />
         <hr className="nf-divider" />
         <div className="nf-body">
           <p>Esta dirección no existe o cambió de lugar. Vuelve al inicio y retoma desde ahí.</p>
           <Link className="nf-exit" href="/">
-            Volver al inicio <span aria-hidden="true">→</span>
+            Volver al inicio <Icon name="arrow-right" size="sm" />
           </Link>
         </div>
       </main>

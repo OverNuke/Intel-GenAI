@@ -954,7 +954,12 @@ a {
   padding: var(--space-6);
 }
 
-.nf-title {
+.nf-main .page-header {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "title";
+}
+
+.nf-main .page-header__title h1 {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(2.5rem, 8.5vw, 8rem);
@@ -983,6 +988,9 @@ a {
 }
 
 .nf-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   align-self: flex-start;
   color: var(--color-ink);
   font-weight: 600;
