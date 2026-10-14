@@ -68,14 +68,15 @@ describe("/ti/tickets/[id]/correo (T4)", () => {
     expect(container.querySelector(".btn-primary")).toBeNull();
   });
 
-  it("breadcrumb goes back to the record with the ticket id, then names the page", async () => {
+  it("the page header goes back to the record by ticket id; no breadcrumb row", async () => {
     serverGet.mockResolvedValue({ ok: true, data: record });
     const { container } = render(await EmailPage({ params: Promise.resolve({ id: "INC0001055" }) }));
-    const back = container.querySelector(".crumb a") as HTMLAnchorElement;
+    const back = screen.getByRole("link", { name: "Volver a INC0001055" });
     expect(back.getAttribute("href")).toBe("/ti/tickets/INC0001055");
-    expect(back.textContent).toContain("INC0001055");
     expect(back.querySelector('svg[data-icon="arrow-left"]')).not.toBeNull();
-    expect(container.querySelector(".crumb")!.textContent).toContain("Correo de aviso");
+    expect(container.querySelector(".crumb")).toBeNull();
+    expect(container.querySelector(".page-head")).toBeNull();
+    expect(container.querySelectorAll("header.page-header h1")).toHaveLength(1);
   });
 
   it("an unknown id is the not-found screen and other failures go to the retry boundary", async () => {

@@ -236,6 +236,7 @@ export const COPY = {
   // T4 notification email preview (read-only; nothing is sent). Copy is a proposal, from the mock.
   notificationEmail: {
     title: "Correo de aviso",
+    backTo: (id: string) => `Volver a ${id}`,
     line: "El sistema lo envió al crear el ticket. Solo lo reciben las personas involucradas.",
     action: "Ver correo de aviso",
     from: "Mesa de ayuda TI · mesa.ayuda@ejemplo.mx",
