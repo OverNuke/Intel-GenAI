@@ -42,11 +42,10 @@ export function TicketRecord({ ticket, onContact }: { ticket: Record; onContact:
   return (
     <div className="stack">
       <RecordHeader
-        crumb={{ href: "/ti/seguimiento", label: COPY.it.backToQueue }}
+        back={{ href: "/ti/seguimiento", label: COPY.it.backToQueue }}
         id={ticket.id}
         title={ticket.summary}
         subtitle={`${COPY.it.requester}: ${ticket.requester_name}`}
-        crumbId={false}
       >
         <div>
           <span className="t-meta">{COPY.detail.state}</span>
