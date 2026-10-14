@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { components } from "@/lib/api-types";
 import { COPY } from "@/lib/copy";
 import { Icon } from "../atoms/icon";
+import { PageHeader } from "../molecules/page-header";
 import { AriadnaReceipt } from "./ariadna-receipt";
 
 type Detail = components["schemas"]["TicketDetailOut"];
@@ -10,9 +11,7 @@ type Detail = components["schemas"]["TicketDetailOut"];
 export function SubmissionConfirmation({ ticket }: { ticket: Detail }) {
   return (
     <div className="stack">
-      <h1 tabIndex={-1}>{COPY.request.sentTitle}</h1>
-      <p className="t-meta">{COPY.request.number}</p>
-      <p className="t-id">{ticket.id}</p>
+      <PageHeader title={COPY.request.sentTitle} eyebrowId={ticket.id} />
       <p>{COPY.request.sentBody}</p>
       {/* adapted: notification line (REQ-U7-M1); this page only renders for an existing ticket */}
       <p className="t-meta row">
