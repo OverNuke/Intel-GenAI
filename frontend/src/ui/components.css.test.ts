@@ -139,7 +139,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
     expect(tokens).toMatch(/--size-landing-max:\s*1320px/);
     const wrap = /(?:^|\n)\.landing-header,\n\.landing,\n\.landing-footer\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
     expect(wrap).toMatch(/max-width:\s*var\(--size-landing-max\)/);
-    expect(wrap).toMatch(/padding-inline:\s*var\(--space-7\)/);
+    expect(wrap).toMatch(/padding-inline:\s*var\(--gutter-page\)/);
     expect(css).toMatch(/\.landing > section \+ section\s*\{[^}]*border-top:\s*var\(--border-hairline\) solid var\(--color-hairline\)/);
     expect(css).toMatch(/\.landing-metric strong\s*\{[^}]*font-variant-numeric:/);
   });
@@ -157,7 +157,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
 
     it("splits the grid into a bounded summary column and a fluid chat column", () => {
       const grid = /\.conversation-grid\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
-      expect(grid).toMatch(/grid-template-columns:\s*minmax\(320px, 440px\) minmax\(0, 1fr\)/);
+      expect(grid).toMatch(/grid-template-columns:\s*minmax\(var\(--size-summary-min\), var\(--size-summary-max\)\) minmax\(0, 1fr\)/);
       expect(grid).not.toMatch(/--size-chat-min/);
     });
 
@@ -190,7 +190,7 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(medium).toMatch(/\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), 60dvh\)/);
       const compact = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)].map((m) => m[1]).join("\n");
       expect(compact).toMatch(
-        /\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), calc\(var\(--size-viewport\) - var\(--nav-h\) - var\(--space-4\) \* 2\)\)/,
+        /\.conversation\s*\{[^}]*height:\s*max\(var\(--size-chat-min\), calc\(var\(--size-viewport\) - var\(--size-topbar\) - var\(--nav-h\) - var\(--space-4\) \* 2\)\)/,
       );
     });
   });
@@ -359,6 +359,66 @@ describe("components.css primitives (REQ-VF-2)", () => {
       for (const s of hits) {
         for (const part of s.split(",")) expect(part.trim()).toMatch(/^\.rec-body--detail\s/);
       }
+    });
+  });
+
+  describe("phase 1 foundations: shell overflow and responsive primitives", () => {
+    const rule = (selector: string): string => {
+      const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? "";
+    };
+    const blocks = (query: string): string => {
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`@media ${escaped} \\{([\\s\\S]*?)\\n\\}\\n`, "g");
+      return [...css.matchAll(re)].map((m) => m[1] as string).join("\n");
+    };
+
+    it("tooltip is bounded by a token, never by the viewport width", () => {
+      const tip = rule("[data-tooltip]::after");
+      expect(tip).toMatch(/max-width:\s*var\(--size-tooltip-max\)/);
+      expect(tip).not.toMatch(/100vw|--size-viewport-w/);
+      expect(tokens).toMatch(/--size-tooltip-max:/);
+    });
+
+    it("never shows the tooltip on a disabled rail item, even in the islands", () => {
+      expect(css).toMatch(/\.islands \[data-tooltip\]\[aria-disabled="true"\]:hover::after[^{]*\{[^}]*display:\s*none/);
+      expect(css).toMatch(/\[data-tooltip\]\[aria-disabled="true"\]:focus-visible::after/);
+    });
+
+    it("guards the page against horizontal overflow and reserves the scrollbar gutter", () => {
+      expect(rule("body")).toMatch(/overflow-x:\s*clip/);
+      expect(rule("html")).toMatch(/scrollbar-gutter:\s*stable/);
+    });
+
+    it("defines fluid and container tokens and maps the breakpoints", () => {
+      expect(tokens).toMatch(/--gutter-page:\s*clamp\(/);
+      expect(tokens).toMatch(/--container-sm\s*:/);
+      expect(tokens).toMatch(/--container-md\s*:/);
+      expect(tokens).toMatch(/--container-lg\s*:/);
+      expect(tokens).toMatch(/--bp-[\s\S]*?cannot be used in @media/i);
+    });
+
+    it("wraps the page head and keeps the meta column on a token", () => {
+      expect(rule(".page-head")).toMatch(/flex-wrap:\s*wrap/);
+      expect(css).toMatch(/\.data-rows \.t-meta\s*\{[^}]*min-width:\s*var\(--size-meta-col\)/);
+    });
+
+    it("keeps the profile menu inside narrow viewports", () => {
+      expect(rule(".menu")).toMatch(/min-width:\s*min\(var\(--size-menu-min\),/);
+    });
+
+    it("adds a 1101-1440 step that narrows the summary column and the record rail", () => {
+      const step = blocks("(min-width: 1101px) and (max-width: 1440px)");
+      expect(step).toMatch(/\.conversation-grid/);
+      expect(step).toMatch(/\.rec-body--detail/);
+    });
+
+    it("makes the topbar sticky on compact screens", () => {
+      expect(blocks("(max-width: 767px)")).toMatch(/\.app \.topbar\s*\{[^}]*position:\s*sticky/);
+    });
+
+    it("has no raw 160/320/48 magic px left", () => {
+      expect(css).not.toMatch(/\b(?:160|320|48)px/);
     });
   });
 });

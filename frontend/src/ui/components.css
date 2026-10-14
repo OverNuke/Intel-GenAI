@@ -1,7 +1,12 @@
 /* Estilos mínimos de las pantallas de acceso. Solo usan tokens de tokens.css. */
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--color-canvas);
   color: var(--color-ink);
   font: var(--text-body-weight) var(--text-body-size) / var(--text-body-line) var(--font-ui);
@@ -457,7 +462,7 @@ a {
   top: 50%;
   transform: translateY(-50%);
   width: max-content;
-  max-width: calc(var(--size-viewport-w) - var(--space-7));
+  max-width: var(--size-tooltip-max);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
   background: var(--color-inverted);
@@ -511,7 +516,7 @@ a {
   position: absolute;
   right: 0;
   z-index: var(--z-overlay);
-  min-width: 240px;
+  min-width: min(var(--size-menu-min), calc(var(--size-viewport-w) - var(--space-5) * 2));
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -555,7 +560,7 @@ a {
   width: 100%;
   max-width: var(--size-landing-max);
   margin: 0 auto;
-  padding-inline: var(--space-7);
+  padding-inline: var(--gutter-page);
 }
 
 .landing-header,
@@ -1002,6 +1007,7 @@ a {
 /* Pantallas de usuario (U1-U3) */
 .page-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
@@ -1239,7 +1245,7 @@ a {
 }
 
 .data-rows .t-meta {
-  min-width: 160px;
+  min-width: var(--size-meta-col);
 }
 
 .stage-tracker,
@@ -1300,7 +1306,7 @@ a {
 /* 320-440px summary column (UnderstoodPanel or "Tu solicitud") + fluid chat shell. */
 .conversation-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+  grid-template-columns: minmax(var(--size-summary-min), var(--size-summary-max)) minmax(0, 1fr);
   gap: var(--space-5);
   align-items: stretch;
   flex: 1;
@@ -2130,6 +2136,26 @@ th[aria-sort="descending"] .sort-button::after {
   display: block;
 }
 
+/* A disabled item has nothing to announce visually: no tooltip hovering over the content (also islands). */
+[data-tooltip][aria-disabled="true"]:hover::after,
+[data-tooltip][aria-disabled="true"]:focus-visible::after,
+.islands [data-tooltip][aria-disabled="true"]:hover::after,
+.islands [data-tooltip][aria-disabled="true"]:focus-visible::after {
+  display: none;
+}
+
+/* 1101px-1440px = --bp-medium + 1 .. --bp-standard: the labelled rail eats 240px, so the side columns
+   narrow before the layout has the room of a full desktop. */
+@media (min-width: 1101px) and (max-width: 1440px) {
+  .conversation-grid {
+    grid-template-columns: minmax(var(--size-summary-min), var(--size-summary-max-narrow)) minmax(0, 1fr);
+  }
+
+  .rec-body--detail {
+    grid-template-columns: minmax(0, 1fr) var(--size-record-rail-narrow);
+  }
+}
+
 /* 1100px = --bp-medium (custom properties cannot be used in media queries). The rail collapses to
    icons (labels stay in the accessibility tree, tooltip on hover/focus) and wide grids relax. */
 @media (max-width: 1100px) {
@@ -2202,6 +2228,16 @@ th[aria-sort="descending"] .sort-button::after {
     grid-template-areas:
       "top"
       "main";
+  }
+
+  /* Sticky topbar: a grid item sticks only inside its own area, so it spans both rows and stays 1 row tall. */
+  .app .topbar {
+    grid-row: 1 / -1;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-island);
+    height: var(--size-topbar);
   }
 
   .app .nav-sections {
@@ -2291,9 +2327,9 @@ th[aria-sort="descending"] .sort-button::after {
     padding-bottom: calc(var(--nav-h) + var(--space-4));
   }
 
-  /* U6: the topbar scrolls away, so the chat shell is the viewport minus the bar and page padding. */
+  /* U6: the topbar is sticky, so the chat shell is the viewport minus topbar, bottom bar and page padding. */
   .conversation {
-    height: max(var(--size-chat-min), calc(var(--size-viewport) - var(--nav-h) - var(--space-4) * 2));
+    height: max(var(--size-chat-min), calc(var(--size-viewport) - var(--size-topbar) - var(--nav-h) - var(--space-4) * 2));
   }
 }
 

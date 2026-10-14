@@ -83,6 +83,20 @@
   --size-chat-min: 420px;
   --size-viewport: 100dvh;
   --size-viewport-w: 100vw;
+  --size-tooltip-max: 240px; /* tooltip width cap: never derived from the viewport (it escaped the rail) */
+  --size-menu-min: 240px;
+  --size-meta-col: 160px;
+  --size-summary-min: 320px; /* U6 summary column */
+  --size-summary-max: 440px;
+  --size-summary-max-narrow: 360px; /* 1101-1440px step */
+  --size-record-rail-narrow: 300px; /* U3 data rail at 1101-1440px */
+  --container-sm: 480px;
+  --container-md: 768px;
+  --container-lg: 1100px;
+  --container-xl: 1440px;
+  --gutter-page: clamp(var(--space-4), 4vw, var(--space-7));
+  --space-fluid-section: clamp(var(--space-5), 3vw, var(--space-7));
+  --text-fluid-lead: clamp(18px, 1.2vw + 14px, 22px);
   --border-hairline: 1px;
   --border-selected: 2px;
   --border-focus: 2px;
@@ -106,6 +120,8 @@
   --z-overlay: 30;
   --z-tooltip: 40;
   --z-prototype: 50;
+  /* --bp-* cannot be used in @media, so components.css repeats the literals. Mapping:
+     767px = --bp-compact (max-width), 1100px = --bp-medium (max-width), 1101px-1440px = medium..standard. */
   --bp-compact: 767px;
   --bp-standard: 1440px;
   --bp-medium: 1100px;
