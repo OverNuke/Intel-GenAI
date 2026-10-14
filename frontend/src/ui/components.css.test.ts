@@ -607,6 +607,15 @@ describe("narrow-screen leftovers (phase 7)", () => {
   });
 });
 
+describe("action bar wrapping (phase 8)", () => {
+  it("lets .actions wrap with token gaps so a long button row never overflows", () => {
+    const rule = /\n\.actions\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/display:\s*flex/);
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule).toMatch(/gap:\s*var\(--space-\d+\)/);
+  });
+});
+
 describe("rail label wrapping (phase 7)", () => {
   it("wraps long rail labels in the expanded rail instead of truncating them", () => {
     const rule = /\n\.rail-label\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
