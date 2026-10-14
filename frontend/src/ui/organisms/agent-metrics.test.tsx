@@ -121,4 +121,12 @@ describe("AgentMetricsContainer (S1)", () => {
     render(<AgentMetricsContainer reports={reports} initialPeriod={30} />);
     expect(screen.getByRole("radio", { name: "30 días" })).toHaveProperty("checked", true);
   });
+
+  it("uses the shared page header with the sample-data badge as its action", () => {
+    const { container } = render(<AgentMetricsContainer reports={reports} initialPeriod={7} />);
+    const header = container.querySelector("header.page-header")!;
+    expect(container.querySelector(".page-head")).toBeNull();
+    expect(header.querySelectorAll("h1")).toHaveLength(1);
+    expect(header.querySelector(".page-header__actions .badge")).not.toBeNull();
+  });
 });
