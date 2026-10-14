@@ -70,6 +70,28 @@ describe("MeasuredBlock and EstimatedBlock (S-AM-4)", () => {
   });
 });
 
+describe("StatTile in the blocks (R4.1, R4.2)", () => {
+  it("only estimates use the estimated variant, and they keep the disclaimer", () => {
+    const { container } = render(
+      <>
+        <MeasuredBlock metrics={report(7).measured} />
+        <EstimatedBlock block={report(7).estimated} />
+      </>,
+    );
+    const measuredList = within(screen.getByRole("list", { name: "Medido" }));
+    const estimatedList = within(screen.getByRole("list", { name: "Estimaciones" }));
+    for (const item of measuredList.getAllByRole("listitem")) {
+      expect(item.className).toContain("stat-tile");
+      expect(item.className).not.toContain("stat-tile--estimated");
+    }
+    for (const item of estimatedList.getAllByRole("listitem")) {
+      expect(item.className).toContain("stat-tile--estimated");
+      expect(item.textContent).toContain("no son resultados medidos");
+    }
+    expect(container.querySelectorAll(".summary-card")).toHaveLength(0);
+  });
+});
+
 describe("TrendChart and TrendTable (S-AM-5)", () => {
   it("the table repeats exactly the numbers the chart plots", () => {
     const trend = report(7).trend;
