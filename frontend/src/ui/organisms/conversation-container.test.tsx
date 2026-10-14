@@ -104,6 +104,12 @@ describe("ConversationContainer (U6)", () => {
     expect(screen.getByRole("link", { name: "Volver" }).getAttribute("href")).toBe("/inicio");
     expect(screen.getByRole("heading", { level: 1, name: "Conversación con Ariadna" })).toBeTruthy();
     expect(screen.getByText("Datos de ejemplo")).toBeTruthy();
+    const head = document.querySelector(".page-header") as HTMLElement;
+    expect(head).not.toBeNull();
+    expect(document.querySelector(".chat-head")).toBeNull();
+    expect(head.querySelector("h1")).not.toBeNull();
+    expect(head.querySelector('a[aria-label="Volver"]')).not.toBeNull();
+    expect(document.querySelectorAll("h1")).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: "Hablar con TI" })).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: "Pasar con TI" })).toHaveLength(1);
     cleanup();
@@ -115,7 +121,7 @@ describe("ConversationContainer (U6)", () => {
     open(fetcher({}));
     for (const name of ["Hablar con TI", "Pasar con TI"]) {
       const button = screen.getByRole("button", { name });
-      expect(button.closest(".chat-head")).toBeNull();
+      expect(button.closest(".page-header")).toBeNull();
       const shell = button.closest(".conversation") as HTMLElement;
       expect(shell).not.toBeNull();
       const composer = shell.querySelector(".composer") as HTMLElement;

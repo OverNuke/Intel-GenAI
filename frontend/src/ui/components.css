@@ -2052,17 +2052,7 @@ th[aria-sort="descending"] .sort-button::after {
   gap: var(--space-1);
 }
 
-/* U6 chat head and two-column form grid. */
-.chat-head {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.chat-head h1 {
-  margin: 0;
-}
+/* U6 two-column form grid. */
 
 .form-grid {
   display: grid;

@@ -13,6 +13,7 @@ import { firstName } from "@/lib/ticket-labels";
 import { Badge } from "../atoms/badge";
 import { Button } from "../atoms/button";
 import { Icon } from "../atoms/icon";
+import { PageHeader } from "../molecules/page-header";
 import { Chat } from "./chat";
 import { ConfirmStep } from "./confirm-step";
 import {
@@ -332,14 +333,11 @@ export function ConversationContainer({
 
   return (
     <div className="conv-page">
-      <div className="chat-head">
-        <Link className="btn btn-ghost" href={backHref}>
-          <Icon name="arrow-left" />
-          {COPY.chat.back}
-        </Link>
-        <h1 tabIndex={-1}>{COPY.chat.title}</h1>
-        <Badge>{COPY.sampleData}</Badge>
-      </div>
+      <PageHeader
+        title={COPY.chat.title}
+        back={{ href: backHref, label: COPY.chat.back }}
+        actions={<Badge>{COPY.sampleData}</Badge>}
+      />
       <div className="conversation-grid">
         <div className="conv-side">
           {/* Swap region: both panels stay mounted (draft + a11y tree); `hidden` picks one. */}
