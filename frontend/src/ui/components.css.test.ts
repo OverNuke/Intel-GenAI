@@ -598,6 +598,15 @@ describe("data table css (R4.4)", () => {
   });
 });
 
+describe("narrow-screen leftovers (phase 7)", () => {
+  it("lets the filter tabs row wrap with a token gap so the count never overflows", () => {
+    const rule = /\.tabs-row\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule).toMatch(/gap:\s*var\(--space-/);
+    expect(rule).toMatch(/justify-content:\s*space-between/);
+  });
+});
+
 describe("segmented control css (R4.5)", () => {
   it("hides the native radios visually, keeps them focusable and shows checked and focus states", () => {
     expect(css).toMatch(/\.segmented__input\s*\{[^}]*clip-path:\s*inset\(50%\)/);
