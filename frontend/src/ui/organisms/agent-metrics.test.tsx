@@ -5,6 +5,7 @@ import type { components } from "@/lib/api-types";
 import { AgentMetricsContainer } from "./agent-metrics-container";
 import { EstimatedBlock } from "./estimated-block";
 import { MeasuredBlock } from "./measured-block";
+import { PeriodSwitch } from "./period-switch";
 import { TrendChart } from "./trend-chart";
 import { TrendTable } from "./trend-table";
 
@@ -160,6 +161,34 @@ describe("TrendTable layout (R4.4)", () => {
     expect(table.className).not.toContain("queue-table");
     expect(table.querySelectorAll("th.num")).toHaveLength(2);
     expect(table.querySelectorAll("td.num")).toHaveLength(14);
+  });
+});
+
+describe("PeriodSwitch (R4.5)", () => {
+  it("is a segmented control of native radios in a named group", () => {
+    const { container } = render(<PeriodSwitch period={7} onChange={() => {}} />);
+    const group = screen.getByRole("radiogroup", { name: "Periodo" });
+    expect(group.className).toContain("segmented");
+    const radios = within(group).getAllByRole("radio");
+    expect(radios.map((r) => (r as HTMLInputElement).type)).toEqual(["radio", "radio"]);
+    expect(new Set(radios.map((r) => (r as HTMLInputElement).name)).size).toBe(1);
+    expect(container.querySelector(".chip")).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("Mostrando los últimos 7 días");
+  });
+
+  it("reports the chosen period and does not fetch", () => {
+    const calls: number[] = [];
+    const original = globalThis.fetch;
+    globalThis.fetch = (() => {
+      throw new Error("PeriodSwitch must not fetch");
+    }) as typeof fetch;
+    try {
+      render(<PeriodSwitch period={7} onChange={(p) => calls.push(p)} />);
+      fireEvent.click(screen.getByRole("radio", { name: "30 días" }));
+      expect(calls).toEqual([30]);
+    } finally {
+      globalThis.fetch = original;
+    }
   });
 });
 

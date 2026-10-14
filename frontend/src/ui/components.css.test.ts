@@ -529,3 +529,13 @@ describe("data table css (R4.4)", () => {
     expect(css).toMatch(/\.data-table td\.num[^{]*\{[^}]*font-variant-numeric:\s*tabular-nums/);
   });
 });
+
+describe("segmented control css (R4.5)", () => {
+  it("hides the native radios visually, keeps them focusable and shows checked and focus states", () => {
+    expect(css).toMatch(/\.segmented__input\s*\{[^}]*clip-path:\s*inset\(50%\)/);
+    expect(css).not.toMatch(/\.segmented__input\s*\{[^}]*display:\s*none/);
+    expect(css).toMatch(/\.segmented__option:has\(:checked\)/);
+    expect(css).toMatch(/\.segmented__option:has\(:focus-visible\)/);
+    expect(css).toMatch(/\.segmented__option\s*\{[^}]*min-height:\s*var\(--size-control\)/);
+  });
+});

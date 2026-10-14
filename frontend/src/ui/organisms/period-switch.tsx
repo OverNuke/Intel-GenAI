@@ -15,22 +15,27 @@ export function PeriodSwitch({
 }) {
   return (
     <div className="stack">
-      <div role="radiogroup" aria-label={COPY.metrics.period} className="chip-row">
-        <span className="t-meta">{COPY.metrics.period}</span>
-        {PERIODS.map((value) => (
-          <label key={value} className="chip">
-            <input
-              type="radio"
-              name="periodo"
-              checked={period === value}
-              onChange={() => onChange(value)}
-            />
-            {COPY.metrics.days[value]}
-          </label>
-        ))}
+      <div className="chip-row">
+        <span className="t-meta" aria-hidden="true">
+          {COPY.metrics.period}
+        </span>
+        <div role="radiogroup" aria-label={COPY.metrics.period} className="segmented">
+          {PERIODS.map((value) => (
+            <label key={value} className="segmented__option">
+              <input
+                type="radio"
+                name="periodo"
+                className="segmented__input"
+                checked={period === value}
+                onChange={() => onChange(value)}
+              />
+              <span>{COPY.metrics.days[value]}</span>
+            </label>
+          ))}
+        </div>
       </div>
       <p role="status" className="t-meta">
-        Mostrando los últimos {period} días
+        {COPY.metrics.showing(period)}
       </p>
     </div>
   );
