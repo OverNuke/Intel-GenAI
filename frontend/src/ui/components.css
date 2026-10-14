@@ -548,6 +548,7 @@ a {
 
 .app-main {
   grid-area: main;
+  container: main / inline-size;
   padding: var(--space-5);
 }
 
@@ -2423,5 +2424,21 @@ th[aria-sort="descending"] .sort-button::after {
 
   .wide-only {
     display: none;
+  }
+}
+
+/* Container-width twins of the 767px viewport collapse: main loses 240px to the labelled rail, so the
+   grids must stack by the width main actually has. Fixed overlays must render outside main (a container
+   becomes the containing block of its fixed descendants). */
+@container main (max-width: 640px) {
+  .rec-body,
+  .rec-body--detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container main (max-width: 720px) {
+  .conversation-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

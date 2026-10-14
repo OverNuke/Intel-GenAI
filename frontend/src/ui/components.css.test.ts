@@ -421,4 +421,44 @@ describe("components.css primitives (REQ-VF-2)", () => {
       expect(css).not.toMatch(/\b(?:160|320|48)px/);
     });
   });
+  describe("container queries on app-main (R1.6, S1.5)", () => {
+    const containerCss = [...css.matchAll(/@container main \([^)]*\) \{([\s\S]*?)\n\}\n/g)]
+      .map((m) => m[1] as string)
+      .join("\n");
+    const mobileMedia = [...css.matchAll(/@media \(max-width: 767px\) \{([\s\S]*?)\n\}\n/g)]
+      .map((m) => m[1] as string)
+      .join("\n");
+
+    it("makes .app-main an inline-size container named main", () => {
+      expect(css).toMatch(/\.app-main\s*\{[^}]*container:\s*main\s*\/\s*inline-size/);
+    });
+
+    it("collapses .rec-body and .rec-body--detail by container width", () => {
+      expect(containerCss).toMatch(
+        /\.rec-body,\s*\.rec-body--detail\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+      );
+    });
+
+    it("collapses .conversation-grid by container width", () => {
+      expect(containerCss).toMatch(/\.conversation-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+    });
+
+    it("places container rules after the base rules they override", () => {
+      const first = css.indexOf("@container main");
+      expect(first).toBeGreaterThan(css.lastIndexOf("\n.rec-body--detail {"));
+      expect(first).toBeGreaterThan(css.lastIndexOf("\n.conversation-grid {"));
+    });
+
+    it("keeps the viewport media fallbacks", () => {
+      expect(mobileMedia).toMatch(/\.rec-body/);
+      expect(mobileMedia).toMatch(/\.conversation-grid/);
+    });
+  });
+
+  describe("fixed positioning stays outside the main container", () => {
+    it("has exactly one position: fixed rule and it is .app .nav-sections", () => {
+      const fixed = [...css.matchAll(/([^{}]+)\{[^{}]*position:\s*fixed/g)].map((m) => (m[1] as string).trim());
+      expect(fixed).toEqual([".app .nav-sections"]);
+    });
+  });
 });
