@@ -1179,6 +1179,7 @@ a {
 .ticket-row-link {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "id summary state date";
   align-items: center;
   gap: var(--space-4);
   min-height: var(--size-row);
@@ -1192,12 +1193,32 @@ a {
   background: var(--color-container);
 }
 
+/* Words wrap at word boundaries; `anywhere` let a squeezed column break one character per line. */
 .ticket-row-summary {
-  overflow-wrap: anywhere;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .ticket-state {
   white-space: nowrap;
+}
+
+.ticket-row-link > .t-id {
+  grid-area: id;
+}
+
+.ticket-row-link .ticket-row-summary {
+  grid-area: summary;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.ticket-row-link > .ticket-state {
+  grid-area: state;
+}
+
+.ticket-row-link > .t-meta {
+  grid-area: date;
 }
 
 .t-id {
@@ -2723,5 +2744,42 @@ th[aria-sort="descending"] .sort-button::after {
 @container main (max-width: 720px) {
   .conversation-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Single row needs ~745px of content (id 85 + state 190 + date 190 + gaps/padding 80 + a readable
+   summary). 800px keeps ~55px for the summary before the row stacks: id + state, summary, date.
+   The media fallback is the same point in viewport terms: 800 + the 80px rail + 2 x --space-5 of page padding = 928px. */
+@container main (max-width: 800px) {
+  .ticket-row-link {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "id state"
+      "summary summary"
+      "date date";
+    row-gap: var(--space-1);
+  }
+
+  .ticket-state {
+    justify-self: end;
+    text-align: right;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 928px) {
+  .ticket-row-link {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "id state"
+      "summary summary"
+      "date date";
+    row-gap: var(--space-1);
+  }
+
+  .ticket-state {
+    justify-self: end;
+    text-align: right;
+    white-space: normal;
   }
 }

@@ -480,6 +480,49 @@ describe("rail items stay inside the rail (box model)", () => {
   });
 });
 
+describe("ticket row stacks when the content area is narrow", () => {
+  const block = (sel: string): string => {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
+  };
+  const containerCss = [...css.matchAll(/@container main \(max-width: 800px\) \{([\s\S]*?)\n\}\n/g)]
+    .map((m) => m[1] as string)
+    .join("\n");
+  const mediaCss = [...css.matchAll(/@media \(max-width: 928px\) \{([\s\S]*?)\n\}\n/g)]
+    .map((m) => m[1] as string)
+    .join("\n");
+
+  it("keeps the wide layout as a single four-column row", () => {
+    expect(block(".ticket-row-link")).toMatch(/grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto auto/);
+  });
+
+  it("stacks id + state, then summary, then date by container width", () => {
+    expect(containerCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-areas:\s*"id state"\s+"summary summary"\s+"date date"/);
+    expect(containerCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\)/);
+  });
+
+  it("has the same stack in a viewport media fallback", () => {
+    expect(mediaCss).toMatch(/\.ticket-row-link\s*\{[^}]*grid-template-areas:\s*"id state"\s+"summary summary"\s+"date date"/);
+  });
+
+  it("assigns a grid area to every cell of the row", () => {
+    for (const area of ["id", "summary", "state", "date"]) {
+      expect(css).toMatch(new RegExp("grid-area:\\s*" + area + ";"));
+    }
+  });
+
+  it("breaks the summary at word boundaries, not per character", () => {
+    const summary = /\.ticket-row-link \.ticket-row-summary\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(summary).toMatch(/overflow-wrap:\s*break-word/);
+    expect(summary).toMatch(/min-width:\s*0/);
+    expect(block(".ticket-row-summary")).not.toMatch(/overflow-wrap:\s*anywhere/);
+  });
+
+  it("places the container rule after the base rule it overrides", () => {
+    expect(css.indexOf("@container main (max-width: 800px)")).toBeGreaterThan(css.lastIndexOf("\n.ticket-row-link {"));
+  });
+});
+
 describe("PageHeader css (R2.1, S2.2)", () => {
   const block = (sel: string): string => {
     const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
