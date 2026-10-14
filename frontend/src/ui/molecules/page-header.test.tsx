@@ -23,10 +23,24 @@ describe("PageHeader", () => {
     expect(link.textContent).toBe("");
   });
 
-  it("has no interactive element when back and actions are absent, but keeps the empty tracks", () => {
+  it("has no interactive element when back and actions are absent", () => {
     const { container } = render(<PageHeader title="T" />);
     expect(container.querySelectorAll("a, button")).toHaveLength(0);
     expect(container.querySelector(".page-header")).not.toBeNull();
+  });
+
+  it("collapses the back track when there is no back link", () => {
+    const { container } = render(<PageHeader title="T" />);
+    const header = container.querySelector(".page-header") as HTMLElement;
+    expect(header.classList.contains("page-header--no-back")).toBe(true);
+    expect(header.querySelector(".page-header__back")).toBeNull();
+  });
+
+  it("keeps the back track when a back link exists", () => {
+    const { container } = render(<PageHeader title="T" back={{ href: "/inicio", label: "Volver" }} />);
+    const header = container.querySelector(".page-header") as HTMLElement;
+    expect(header.classList.contains("page-header--no-back")).toBe(false);
+    expect(header.querySelector(".page-header__back")).not.toBeNull();
   });
 
   it("renders the record id once and the meta line", () => {

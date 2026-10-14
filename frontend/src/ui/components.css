@@ -1015,8 +1015,8 @@ a {
 }
 
 /* Pantallas de usuario (U1-U3) */
-/* PageHeader: back | title | actions. Three tracks always, so empty slots keep their space and
-   the title sits at the same x on every page. */
+/* PageHeader: back | title | actions. The back track exists only with a back link; without one the
+   --no-back modifier drops it so the title sits flush with the content below. */
 .page-header {
   display: grid;
   grid-template-columns: var(--size-control) minmax(0, 1fr) minmax(var(--size-control), auto);
@@ -1024,6 +1024,11 @@ a {
   align-items: center;
   column-gap: var(--space-3);
   row-gap: var(--space-3);
+}
+
+.page-header--no-back {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title actions";
 }
 
 .page-header__back {
@@ -1055,6 +1060,13 @@ a {
     grid-template-areas:
       "back title"
       "actions actions";
+  }
+
+  .page-header--no-back {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "title"
+      "actions";
   }
 
   .page-header__actions {

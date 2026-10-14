@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import { Icon } from "../atoms/icon";
 
 /**
- * Page header shared by every screen: back arrow | title block | actions. The three tracks always
- * exist (empty ones keep their space) so the title sits at the same x everywhere. The back control
- * is icon-only; the destination travels in its accessible name.
+ * Page header shared by every screen: back arrow | title block | actions. The back track exists only
+ * when there is a back link; otherwise it collapses so the title aligns flush with the content below.
+ * The back control is icon-only; the destination travels in its accessible name.
  */
 export function PageHeader({
   title,
@@ -24,7 +24,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="page-header">
+    <header className={back ? "page-header" : "page-header page-header--no-back"}>
       {back ? (
         <Link className="page-header__back icon-btn icon-btn--outline" href={back.href} aria-label={back.label}>
           <Icon name="arrow-left" />

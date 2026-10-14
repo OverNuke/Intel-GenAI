@@ -529,7 +529,16 @@ describe("PageHeader css (R2.1, S2.2)", () => {
     return new RegExp("(?:^|\\n)" + esc + "\\s*\\{([^}]*)\\}").exec(css)?.[1] ?? "";
   };
 
-  it("always has three tracks so empty slots keep their space", () => {
+  it("collapses the back track when there is no back link so the title aligns with the content", () => {
+    expect(block(".page-header--no-back")).toMatch(/grid-template-areas:\s*"title actions"/);
+    expect(block(".page-header--no-back")).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/);
+    expect(block(".page-header--no-back")).not.toMatch(/var\(--size-control\)\s+minmax/);
+    const media = /@media \(max-width: 767px\)\s*\{\s*\.page-header\s*\{[^}]*\}\s*\.page-header--no-back\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(media).toMatch(/"title"\s+"actions"/);
+    expect(media).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  });
+
+  it("keeps three tracks while a back link exists", () => {
     expect(block(".page-header")).toMatch(
       /grid-template-columns:\s*var\(--size-control\)\s+minmax\(0,\s*1fr\)\s+minmax\(var\(--size-control\),\s*auto\)/,
     );
